@@ -13,6 +13,7 @@ export interface FishingSpot {
 }
 
 import spotPhotos from './spot-photos.json';
+import localPhotos from './local-photos.json';
 
 // Curated Unsplash photos mapped by access type — used as fallback only
 const SPOT_IMAGES: Record<string, string> = {
@@ -43,20 +44,34 @@ const SPOT_IMAGES: Record<string, string> = {
 const DEFAULT_SPOT_IMAGE = 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&h=400&fit=crop&auto=format';
 
 /**
- * Returns a real Google Places photo URL when available (after running
- * `npx tsx scripts/fetch-spot-photos.ts`), otherwise falls back to a
- * curated Unsplash image matched by access type.
+ * Priority order:
+ * 1. Real photo from public/spot-photos/ (added by the owner)
+ * 2. Google Places API photo (after running npm run fetch-photos)
+ * 3. Curated Unsplash image matched by access type
  */
 export function getSpotImage(slug: string, accessType: string): string {
+  // 1. Local real photo
+  const local = (localPhotos as Record<string, string[]>)[slug];
+  if (local && local.length > 0) return local[0];
+
+  // 2. Google Places photo reference
   const ref = (spotPhotos as Record<string, string>)[slug];
   if (ref) return `/api/spot-photo?ref=${encodeURIComponent(ref)}&w=600`;
 
-  // Fallback: Unsplash by access type
+  // 3. Unsplash fallback by access type
   if (SPOT_IMAGES[accessType]) return SPOT_IMAGES[accessType];
   const key = Object.keys(SPOT_IMAGES).find((k) =>
     accessType.toLowerCase().includes(k.toLowerCase().split('/')[0])
   );
   return key ? SPOT_IMAGES[key] : DEFAULT_SPOT_IMAGE;
+}
+
+/**
+ * Returns all local photos for a spot (for gallery use on detail page).
+ * Returns empty array if no local photos exist.
+ */
+export function getSpotGallery(slug: string): string[] {
+  return (localPhotos as Record<string, string[]>)[slug] ?? [];
 }
 
 function slugify(name: string): string {

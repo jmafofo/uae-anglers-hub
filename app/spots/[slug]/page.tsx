@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { MapPin, Fish, Clock, Building2, ArrowLeft, Navigation } from 'lucide-react';
-import { fishingSpots, getSpotBySlug, getSpotImage } from '@/lib/spots';
+import { fishingSpots, getSpotBySlug, getSpotImage, getSpotGallery } from '@/lib/spots';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -37,6 +37,7 @@ export default async function SpotPage({ params }: PageProps) {
 
   const googleMapsUrl = `https://www.google.com/maps?q=${spot.latitude},${spot.longitude}`;
   const wazeUrl = `https://waze.com/ul?ll=${spot.latitude},${spot.longitude}&navigate=yes`;
+  const gallery = getSpotGallery(spot.slug); // extra photos beyond the hero
 
   return (
     <div className="min-h-screen pb-16">
@@ -92,6 +93,29 @@ export default async function SpotPage({ params }: PageProps) {
             Open in Waze
           </a>
         </div>
+
+        {/* Photo gallery — only shown when 2+ local photos exist */}
+        {gallery.length > 1 && (
+          <div className="mb-10">
+            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Photos</h2>
+            <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory">
+              {gallery.map((src, i) => (
+                <div
+                  key={src}
+                  className="relative shrink-0 w-64 h-44 rounded-xl overflow-hidden snap-start"
+                >
+                  <Image
+                    src={src}
+                    alt={`${spot.name} photo ${i + 1}`}
+                    fill
+                    sizes="256px"
+                    className="object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Info grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-10">
