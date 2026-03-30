@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Image from 'next/image';
 import { MapPin, Fish, Clock, ChevronRight } from 'lucide-react';
-import { fishingSpots, emirates } from '@/lib/spots';
+import { fishingSpots, emirates, getSpotImage } from '@/lib/spots';
 
 export const metadata: Metadata = {
   title: 'UAE Fishing Spots — 41 Verified Locations Across All 7 Emirates',
@@ -73,42 +74,47 @@ export default async function SpotsPage({ searchParams }: PageProps) {
             <Link
               key={spot.id}
               href={`/spots/${spot.slug}`}
-              className="group flex flex-col p-5 rounded-xl bg-white/5 border border-white/10 hover:border-teal-500/40 hover:bg-white/8 transition-all"
+              className="group flex flex-col rounded-xl bg-white/5 border border-white/10 hover:border-teal-500/40 transition-all overflow-hidden"
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1 min-w-0">
-                  <h2 className="font-semibold text-white group-hover:text-teal-400 transition-colors truncate">
-                    {spot.name}
-                  </h2>
-                  <p className="text-gray-500 text-xs mt-0.5">{spot.emirate}</p>
-                </div>
-                <span className="ml-2 shrink-0 text-xs bg-teal-500/10 text-teal-400 border border-teal-500/20 px-2 py-0.5 rounded-full">
+              {/* Thumbnail */}
+              <div className="relative w-full h-44 overflow-hidden">
+                <Image
+                  src={getSpotImage(spot.accessType)}
+                  alt={spot.name}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1a] via-transparent to-transparent" />
+                <span className="absolute bottom-2 left-3 text-xs bg-black/50 text-teal-400 border border-teal-500/30 backdrop-blur-sm px-2 py-0.5 rounded-full">
                   {spot.accessType}
                 </span>
               </div>
 
-              {/* Species */}
-              <div className="flex items-start gap-1.5 mb-3">
-                <Fish className="w-3.5 h-3.5 text-gray-500 mt-0.5 shrink-0" />
-                <p className="text-gray-400 text-xs leading-relaxed">
-                  {spot.species.slice(0, 4).join(', ')}
-                  {spot.species.length > 4 && (
-                    <span className="text-gray-600"> +{spot.species.length - 4} more</span>
-                  )}
-                </p>
-              </div>
+              {/* Info */}
+              <div className="p-4 flex flex-col flex-1">
+                <div className="mb-2">
+                  <h2 className="font-semibold text-white group-hover:text-teal-400 transition-colors truncate">
+                    {spot.name}
+                  </h2>
+                  <p className="text-gray-500 text-xs mt-0.5 flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />{spot.emirate}
+                  </p>
+                </div>
 
-              {/* Best time */}
-              <div className="flex items-center gap-1.5 mb-3">
-                <Clock className="w-3.5 h-3.5 text-gray-500 shrink-0" />
-                <p className="text-gray-500 text-xs truncate">{spot.bestTime}</p>
-              </div>
+                <div className="flex items-start gap-1.5 mb-2">
+                  <Fish className="w-3.5 h-3.5 text-gray-500 mt-0.5 shrink-0" />
+                  <p className="text-gray-400 text-xs leading-relaxed">
+                    {spot.species.slice(0, 3).join(', ')}
+                    {spot.species.length > 3 && <span className="text-gray-600"> +{spot.species.length - 3} more</span>}
+                  </p>
+                </div>
 
-              {/* Access */}
-              <div className="flex items-center gap-1.5 mt-auto pt-3 border-t border-white/5">
-                <MapPin className="w-3.5 h-3.5 text-gray-500 shrink-0" />
-                <p className="text-gray-500 text-xs truncate">{spot.access}</p>
-                <ChevronRight className="w-3.5 h-3.5 text-gray-600 ml-auto shrink-0 group-hover:text-teal-400 transition-colors" />
+                <div className="flex items-center gap-1.5 mt-auto pt-2 border-t border-white/5">
+                  <Clock className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+                  <p className="text-gray-500 text-xs truncate flex-1">{spot.bestTime}</p>
+                  <ChevronRight className="w-3.5 h-3.5 text-gray-600 shrink-0 group-hover:text-teal-400 transition-colors" />
+                </div>
               </div>
             </Link>
           ))}

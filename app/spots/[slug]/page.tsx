@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { MapPin, Fish, Clock, Building2, ArrowLeft, Navigation } from 'lucide-react';
-import { fishingSpots, getSpotBySlug } from '@/lib/spots';
+import { fishingSpots, getSpotBySlug, getSpotImage } from '@/lib/spots';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -38,32 +39,36 @@ export default async function SpotPage({ params }: PageProps) {
   const wazeUrl = `https://waze.com/ul?ll=${spot.latitude},${spot.longitude}&navigate=yes`;
 
   return (
-    <div className="min-h-screen pt-20 px-4 pb-16">
-      <div className="max-w-3xl mx-auto">
-        {/* Back */}
-        <Link
-          href="/spots"
-          className="inline-flex items-center gap-1.5 text-gray-400 hover:text-white text-sm mb-8 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to all spots
-        </Link>
+    <div className="min-h-screen pb-16">
+      {/* Hero image */}
+      <div className="relative w-full h-64 sm:h-80 pt-14">
+        <Image
+          src={getSpotImage(spot.accessType)}
+          alt={spot.name}
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1a] via-[#0a0f1a]/40 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 px-4 pb-6 max-w-3xl mx-auto">
+          <Link href="/spots" className="inline-flex items-center gap-1.5 text-gray-300 hover:text-white text-sm mb-4 transition-colors">
+            <ArrowLeft className="w-4 h-4" /> All spots
+          </Link>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white drop-shadow-lg">{spot.name}</h1>
+          <p className="text-gray-300 text-sm mt-1 flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{spot.emirate}</p>
+        </div>
+      </div>
 
-        {/* Title block */}
+      <div className="max-w-3xl mx-auto px-4 pt-8">
+        {/* Badges + GPS */}
         <div className="mb-8">
-          <div className="flex items-start gap-3 flex-wrap mb-3">
+          <div className="flex items-center gap-2 flex-wrap mb-2">
             <span className="text-xs bg-teal-500/10 text-teal-400 border border-teal-500/20 px-3 py-1 rounded-full">
               {spot.accessType}
             </span>
-            <span className="text-xs bg-white/5 text-gray-400 border border-white/10 px-3 py-1 rounded-full flex items-center gap-1">
-              <MapPin className="w-3 h-3" />
-              {spot.emirate}
-            </span>
           </div>
-          <h1 className="text-4xl font-extrabold text-white mb-2">{spot.name}</h1>
-          <p className="text-gray-400">
-            GPS: {spot.latitude}, {spot.longitude}
-          </p>
+          <p className="text-gray-500 text-sm">GPS: {spot.latitude}, {spot.longitude}</p>
         </div>
 
         {/* Navigate buttons */}

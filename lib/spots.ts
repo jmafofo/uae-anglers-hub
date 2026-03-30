@@ -12,6 +12,43 @@ export interface FishingSpot {
   facilities: string[];
 }
 
+// Curated Unsplash photos mapped by access type — stable direct image URLs
+const SPOT_IMAGES: Record<string, string> = {
+  'Shore/Bridge':          'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&h=400&fit=crop&auto=format',
+  'Shore/Boat':            'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=600&h=400&fit=crop&auto=format',
+  'Shore/Kayak':           'https://images.unsplash.com/photo-1559494007-9f5847c49d94?w=600&h=400&fit=crop&auto=format',
+  'Shore':                 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&h=400&fit=crop&auto=format',
+  'Shore/Camping':         'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=600&h=400&fit=crop&auto=format',
+  'Shore/Breakwater':      'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=600&h=400&fit=crop&auto=format',
+  'Shore/Marina':          'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=600&h=400&fit=crop&auto=format',
+  'Shore/Port':            'https://images.unsplash.com/photo-1565008576549-57569a49371d?w=600&h=400&fit=crop&auto=format',
+  'Shore/Bay':             'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop&auto=format',
+  'Shore/Historical':      'https://images.unsplash.com/photo-1548625149-720094d48f4b?w=600&h=400&fit=crop&auto=format',
+  'Shore/Fishing Village': 'https://images.unsplash.com/photo-1572702273633-5f6b95a2b62b?w=600&h=400&fit=crop&auto=format',
+  'Shore/Artificial Island':'https://images.unsplash.com/photo-1512100356356-de1b84283e18?w=600&h=400&fit=crop&auto=format',
+  'Shore/Boat Charter':    'https://images.unsplash.com/photo-1540946485063-a40da27545f8?w=600&h=400&fit=crop&auto=format',
+  'Freshwater':            'https://images.unsplash.com/photo-1500932334442-8761ee4810a7?w=600&h=400&fit=crop&auto=format',
+  'Tidal Inlet':           'https://images.unsplash.com/photo-1559825481-12a05cc00344?w=600&h=400&fit=crop&auto=format',
+  'Marina/Shore':          'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=600&h=400&fit=crop&auto=format',
+  'Marina/Deep Sea':       'https://images.unsplash.com/photo-1540946485063-a40da27545f8?w=600&h=400&fit=crop&auto=format',
+  'Lagoon/Mangrove':       'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=600&h=400&fit=crop&auto=format',
+  'Lagoon/Family':         'https://images.unsplash.com/photo-1527090526205-beaac8dc3c62?w=600&h=400&fit=crop&auto=format',
+  'Mangrove/Flats':        'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=600&h=400&fit=crop&auto=format',
+  'Deep Sea':              'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=600&h=400&fit=crop&auto=format',
+  'Deep Sea/Offshore':     'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=600&h=400&fit=crop&auto=format',
+};
+
+const DEFAULT_SPOT_IMAGE = 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&h=400&fit=crop&auto=format';
+
+export function getSpotImage(accessType: string): string {
+  // Try exact match first, then partial match
+  if (SPOT_IMAGES[accessType]) return SPOT_IMAGES[accessType];
+  const key = Object.keys(SPOT_IMAGES).find((k) =>
+    accessType.toLowerCase().includes(k.toLowerCase().split('/')[0])
+  );
+  return key ? SPOT_IMAGES[key] : DEFAULT_SPOT_IMAGE;
+}
+
 function slugify(name: string): string {
   return name
     .toLowerCase()
