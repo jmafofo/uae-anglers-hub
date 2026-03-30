@@ -1,0 +1,188 @@
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import Link from 'next/link';
+import { MapPin, Fish, Clock, Building2, ArrowLeft, Navigation } from 'lucide-react';
+import { fishingSpots, getSpotBySlug } from '@/lib/spots';
+
+interface PageProps {
+  params: Promise<{ slug: string }>;
+}
+
+export async function generateStaticParams() {
+  return fishingSpots.map((spot) => ({ slug: spot.slug }));
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const spot = getSpotBySlug(slug);
+  if (!spot) return {};
+
+  const speciesList = spot.species.slice(0, 5).join(', ');
+  return {
+    title: `${spot.name} Fishing Spot — ${spot.emirate}, UAE`,
+    description: `Fish for ${speciesList} at ${spot.name} in ${spot.emirate}. ${spot.accessType} access. Best time: ${spot.bestTime}. GPS coordinates, facilities, and local tips.`,
+    openGraph: {
+      title: `${spot.name} — UAE Fishing Spot`,
+      description: `${spot.accessType} fishing in ${spot.emirate}. Species: ${speciesList}.`,
+      url: `https://uaeangler.com/spots/${spot.slug}`,
+    },
+  };
+}
+
+export default async function SpotPage({ params }: PageProps) {
+  const { slug } = await params;
+  const spot = getSpotBySlug(slug);
+  if (!spot) notFound();
+
+  const googleMapsUrl = `https://www.google.com/maps?q=${spot.latitude},${spot.longitude}`;
+  const wazeUrl = `https://waze.com/ul?ll=${spot.latitude},${spot.longitude}&navigate=yes`;
+
+  return (
+    <div className="min-h-screen pt-20 px-4 pb-16">
+      <div className="max-w-3xl mx-auto">
+        {/* Back */}
+        <Link
+          href="/spots"
+          className="inline-flex items-center gap-1.5 text-gray-400 hover:text-white text-sm mb-8 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to all spots
+        </Link>
+
+        {/* Title block */}
+        <div className="mb-8">
+          <div className="flex items-start gap-3 flex-wrap mb-3">
+            <span className="text-xs bg-teal-500/10 text-teal-400 border border-teal-500/20 px-3 py-1 rounded-full">
+              {spot.accessType}
+            </span>
+            <span className="text-xs bg-white/5 text-gray-400 border border-white/10 px-3 py-1 rounded-full flex items-center gap-1">
+              <MapPin className="w-3 h-3" />
+              {spot.emirate}
+            </span>
+          </div>
+          <h1 className="text-4xl font-extrabold text-white mb-2">{spot.name}</h1>
+          <p className="text-gray-400">
+            GPS: {spot.latitude}, {spot.longitude}
+          </p>
+        </div>
+
+        {/* Navigate buttons */}
+        <div className="flex gap-3 mb-10">
+          <a
+            href={googleMapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-teal-500 hover:bg-teal-400 text-white text-sm font-semibold transition-colors"
+          >
+            <Navigation className="w-4 h-4" />
+            Open in Google Maps
+          </a>
+          <a
+            href={wazeUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-white/20 hover:border-white text-gray-300 hover:text-white text-sm font-semibold transition-colors"
+          >
+            <Navigation className="w-4 h-4" />
+            Open in Waze
+          </a>
+        </div>
+
+        {/* Info grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-10">
+          {/* Species */}
+          <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+            <div className="flex items-center gap-2 mb-4">
+              <Fish className="w-4 h-4 text-teal-400" />
+              <h2 className="font-semibold text-white">Species Found Here</h2>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {spot.species.map((s) => (
+                <span
+                  key={s}
+                  className="text-xs bg-teal-500/10 text-teal-400 border border-teal-500/20 px-2.5 py-1 rounded-full"
+                >
+                  {s}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Best time */}
+          <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+            <div className="flex items-center gap-2 mb-4">
+              <Clock className="w-4 h-4 text-teal-400" />
+              <h2 className="font-semibold text-white">Best Time to Fish</h2>
+            </div>
+            <p className="text-gray-300 text-sm leading-relaxed">{spot.bestTime}</p>
+          </div>
+
+          {/* Access */}
+          <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+            <div className="flex items-center gap-2 mb-4">
+              <MapPin className="w-4 h-4 text-teal-400" />
+              <h2 className="font-semibold text-white">Access</h2>
+            </div>
+            <p className="text-gray-300 text-sm">{spot.access}</p>
+          </div>
+
+          {/* Facilities */}
+          <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+            <div className="flex items-center gap-2 mb-4">
+              <Building2 className="w-4 h-4 text-teal-400" />
+              <h2 className="font-semibold text-white">Facilities</h2>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {spot.facilities.map((f) => (
+                <span
+                  key={f}
+                  className="text-xs bg-white/5 text-gray-400 border border-white/10 px-2.5 py-1 rounded-full"
+                >
+                  {f}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div className="p-6 rounded-xl bg-gradient-to-br from-teal-900/30 to-transparent border border-teal-500/20 text-center">
+          <h3 className="font-bold text-white mb-2">Fished here before?</h3>
+          <p className="text-gray-400 text-sm mb-5">
+            Log your catch, share tips, and help other UAE anglers find the best spots.
+          </p>
+          <Link
+            href="/signup"
+            className="inline-flex items-center gap-2 bg-teal-500 hover:bg-teal-400 text-white px-6 py-3 rounded-lg font-semibold text-sm transition-colors"
+          >
+            Join UAE Anglers Hub — Free
+          </Link>
+        </div>
+
+        {/* Structured data for SEO */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Place',
+              name: spot.name,
+              description: `Fishing spot in ${spot.emirate}, UAE. Species: ${spot.species.join(', ')}.`,
+              geo: {
+                '@type': 'GeoCoordinates',
+                latitude: spot.latitude,
+                longitude: spot.longitude,
+              },
+              address: {
+                '@type': 'PostalAddress',
+                addressRegion: spot.emirate,
+                addressCountry: 'AE',
+              },
+              url: `https://uaeangler.com/spots/${spot.slug}`,
+            }),
+          }}
+        />
+      </div>
+    </div>
+  );
+}
