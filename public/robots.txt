@@ -1,4 +1,7 @@
-User-Agent: *
-Disallow:
+User-agent: Googlebot
+Allow: /
+
+User-agent: *
+Allow: /
 
 Sitemap: https://uaeangler.com/sitemap.xml
