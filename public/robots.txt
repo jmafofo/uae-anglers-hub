@@ -1,5 +1,4 @@
 User-Agent: *
-Allow: /
 Disallow:
 
 Sitemap: https://uaeangler.com/sitemap.xml
