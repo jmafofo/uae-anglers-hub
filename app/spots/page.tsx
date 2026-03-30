@@ -79,7 +79,7 @@ export default async function SpotsPage({ searchParams }: PageProps) {
               {/* Thumbnail */}
               <div className="relative w-full h-44 overflow-hidden">
                 <Image
-                  src={getSpotImage(spot.accessType)}
+                  src={getSpotImage(spot.slug, spot.accessType)}
                   alt={spot.name}
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"

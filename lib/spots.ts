@@ -12,7 +12,9 @@ export interface FishingSpot {
   facilities: string[];
 }
 
-// Curated Unsplash photos mapped by access type — stable direct image URLs
+import spotPhotos from './spot-photos.json';
+
+// Curated Unsplash photos mapped by access type — used as fallback only
 const SPOT_IMAGES: Record<string, string> = {
   'Shore/Bridge':          'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&h=400&fit=crop&auto=format',
   'Shore/Boat':            'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=600&h=400&fit=crop&auto=format',
@@ -40,8 +42,16 @@ const SPOT_IMAGES: Record<string, string> = {
 
 const DEFAULT_SPOT_IMAGE = 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&h=400&fit=crop&auto=format';
 
-export function getSpotImage(accessType: string): string {
-  // Try exact match first, then partial match
+/**
+ * Returns a real Google Places photo URL when available (after running
+ * `npx tsx scripts/fetch-spot-photos.ts`), otherwise falls back to a
+ * curated Unsplash image matched by access type.
+ */
+export function getSpotImage(slug: string, accessType: string): string {
+  const ref = (spotPhotos as Record<string, string>)[slug];
+  if (ref) return `/api/spot-photo?ref=${encodeURIComponent(ref)}&w=600`;
+
+  // Fallback: Unsplash by access type
   if (SPOT_IMAGES[accessType]) return SPOT_IMAGES[accessType];
   const key = Object.keys(SPOT_IMAGES).find((k) =>
     accessType.toLowerCase().includes(k.toLowerCase().split('/')[0])

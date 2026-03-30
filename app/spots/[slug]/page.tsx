@@ -43,7 +43,7 @@ export default async function SpotPage({ params }: PageProps) {
       {/* Hero image */}
       <div className="relative w-full h-64 sm:h-80 pt-14">
         <Image
-          src={getSpotImage(spot.accessType)}
+          src={getSpotImage(spot.slug, spot.accessType)}
           alt={spot.name}
           fill
           priority
