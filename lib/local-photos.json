@@ -1,1 +1,15 @@
-{}
+{
+  "al-aryam-island": [
+    "/spot-photos/al-aryam-island.jpg",
+    "/spot-photos/al-aryam-island-2.jpg"
+  ],
+  "hameem-beach": [
+    "/spot-photos/hameem_beach.jpg"
+  ],
+  "mangrove-village-spot": [
+    "/spot-photos/mangrove_village_spot.jpg"
+  ],
+  "mina-breakwater": [
+    "/spot-photos/mina-breakwater.jpg"
+  ]
+}

@@ -32,11 +32,13 @@ function main() {
 
   // Group files by slug
   // Naming: slug.jpg (main), slug-2.jpg, slug-3.jpg … (extras)
+  // Also accept underscores — normalise to hyphens automatically
   const grouped: Record<string, string[]> = {};
 
   for (const file of files) {
     const ext = path.extname(file).toLowerCase();
-    const base = path.basename(file, ext);
+    // Normalise underscores → hyphens so both conventions work
+    const base = path.basename(file, ext).replace(/_/g, '-');
 
     // Match "slug-N" where N is a number — extra photos
     const multiMatch = base.match(/^(.+)-(\d+)$/);
