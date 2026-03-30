@@ -18,11 +18,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // Auth excluded (login/signup) — private/auth pages not useful to index
   ];
 
+  // Priority spots get 0.95 — known community favourites with real photos
+  const prioritySpotSlugs = new Set(['hameem-beach', 'al-hamra-marina', 'fujairah-marine-club', 'khor-fakkan', 'dibba', 'al-zorah-nature-reserve', 'al-mamzah-beach']);
+
   const spotPages: MetadataRoute.Sitemap = fishingSpots.map((spot) => ({
     url: `${base}/spots/${spot.slug}`,
     lastModified: new Date(),
     changeFrequency: 'monthly' as const,
-    priority: 0.8,
+    priority: prioritySpotSlugs.has(spot.slug) ? 0.95 : 0.8,
   }));
 
   return [...staticPages, ...spotPages];

@@ -13,18 +13,32 @@ export async function generateStaticParams() {
   return fishingSpots.map((spot) => ({ slug: spot.slug }));
 }
 
+// Custom SEO descriptions for high-priority spots
+const CUSTOM_DESCRIPTIONS: Record<string, string> = {
+  'hameem-beach':
+    'Hameem Beach is one of Abu Dhabi\'s best-kept fishing secrets — a pristine, uncrowded shoreline with crystal-clear water, minimal fishing pressure, and excellent catches of Hammour, Kingfish, Barracuda, Trevally and Emperor Fish. Ideal for camping and night fishing. GPS coordinates and access guide included.',
+  'al-zorah-nature-reserve':
+    'Al Zorah Nature Reserve in Ajman is a stunning mangrove fishing destination home to flamingos, Mullet, Trevally, Barracuda and Sea Bass. Fish the flats at high tide by kayak or from shore. One of the most scenic fishing spots in the UAE.',
+  'al-mamzah-beach':
+    'Al Mamzah Beach on the Dubai-Sharjah border offers sheltered, calm water and year-round fishing for Kingfish, Queenfish, Trevally and Bream. A family-friendly public beach park with excellent early morning sessions.',
+};
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const spot = getSpotBySlug(slug);
   if (!spot) return {};
 
   const speciesList = spot.species.slice(0, 5).join(', ');
+  const description =
+    CUSTOM_DESCRIPTIONS[slug] ??
+    `Fish for ${speciesList} at ${spot.name} in ${spot.emirate}. ${spot.accessType} access. Best time: ${spot.bestTime}. GPS coordinates, facilities, and local tips.`;
+
   return {
     title: `${spot.name} Fishing Spot — ${spot.emirate}, UAE`,
-    description: `Fish for ${speciesList} at ${spot.name} in ${spot.emirate}. ${spot.accessType} access. Best time: ${spot.bestTime}. GPS coordinates, facilities, and local tips.`,
+    description,
     openGraph: {
       title: `${spot.name} — UAE Fishing Spot`,
-      description: `${spot.accessType} fishing in ${spot.emirate}. Species: ${speciesList}.`,
+      description,
       url: `https://uaeangler.com/spots/${spot.slug}`,
     },
   };
