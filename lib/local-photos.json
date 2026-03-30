@@ -3,6 +3,12 @@
     "/spot-photos/al-aryam-island.jpg",
     "/spot-photos/al-aryam-island-2.jpg"
   ],
+  "al-mamzah-beach": [
+    "/spot-photos/al_mamzah_beach.jpg"
+  ],
+  "al-zorah-ajman": [
+    "/spot-photos/al_zorah_ajman.jpg"
+  ],
   "hameem-beach": [
     "/spot-photos/hameem_beach.jpg"
   ],
@@ -11,5 +17,8 @@
   ],
   "mina-breakwater": [
     "/spot-photos/mina-breakwater.jpg"
+  ],
+  "mina-zayed": [
+    "/spot-photos/mina_zayed.jpg"
   ]
 }
