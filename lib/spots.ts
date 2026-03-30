@@ -124,6 +124,12 @@ const rawSpots = [
   { name: 'Dibba', latitude: 25.62, longitude: 56.27, emirate: 'Fujairah', accessType: 'Shore/Fishing Village', species: 'Various', access: 'Public - Major fishing hub', bestTime: 'Early morning (market opens 5 AM)', facilities: 'Live fish auctions, fishing village' },
   { name: 'Khor Fakkan', latitude: 25.335, longitude: 56.342, emirate: 'Fujairah', accessType: 'Shore/Bay', species: 'Various Gulf of Oman species', access: 'Public', bestTime: 'Various', facilities: 'Bay area, scenic location' },
   { name: 'Fujairah Beaches', latitude: 25.12, longitude: 56.325, emirate: 'Fujairah', accessType: 'Shore', species: 'Various', access: 'Multiple public beaches', bestTime: 'Various', facilities: 'Beach access along coast' },
+
+  // Community additions
+  { name: 'Hameem Beach', latitude: 23.785, longitude: 52.732, emirate: 'Abu Dhabi', accessType: 'Shore/Camping', species: 'Hammour, Kingfish, Barracuda, Emperor Fish, Trevally, Spangled Emperor', access: 'Public - Remote western Abu Dhabi coast, camping permitted', bestTime: 'All day, overnight camping popular', facilities: 'Camping area, remote unspoiled beach, crystal clear water' },
+  { name: 'Mangrove Village', latitude: 24.435, longitude: 54.442, emirate: 'Abu Dhabi', accessType: 'Mangrove/Flats', species: 'Mullet, Trevally, Barracuda, Grouper, Sea Bass', access: 'Public - Kayak and paddleboard launch area', bestTime: 'Early morning, incoming tide', facilities: 'Kayak rentals nearby, mangrove boardwalks, sheltered water' },
+  { name: 'Al Mamzah Beach', latitude: 25.326, longitude: 55.407, emirate: 'Dubai', accessType: 'Shore', species: 'Kingfish, Queenfish, Trevally, Barracuda, Bream, Sultan Ibrahim', access: 'Public beach park (small entry fee)', bestTime: 'Early morning, evening, good year-round', facilities: 'Beach park, parking, showers, nearby cafes, calm sheltered water' },
+  { name: 'Al Zorah Nature Reserve', latitude: 25.422, longitude: 55.472, emirate: 'Ajman', accessType: 'Mangrove/Flats', species: 'Mullet, Trevally, Barracuda, Grouper, Sea Bass, Rabbitfish', access: 'Public - Kayak rentals available at reserve entrance', bestTime: 'Early morning, high tide for best results', facilities: 'Kayak rental, nature trails, flamingo colony, mangrove boardwalk' },
 ];
 
 export const fishingSpots: FishingSpot[] = rawSpots.map((s, i) => ({
