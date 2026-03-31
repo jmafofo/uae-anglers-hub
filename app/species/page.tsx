@@ -20,7 +20,7 @@ export default function SpeciesPage() {
           </div>
           <h1 className="text-4xl font-extrabold text-white mb-3">UAE Fish Species Guide</h1>
           <p className="text-gray-400 text-lg max-w-2xl">
-            {fishSpecies.length} species documented with scientific names, habitats, and conservation status.
+            {fishSpecies.length}{' '}species documented with scientific names, habitats, and conservation status.
             Every catch you log contributes to UAE marine research.
           </p>
         </div>

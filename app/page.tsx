@@ -114,7 +114,7 @@ export default function HomePage() {
           </h1>
 
           <p className="text-gray-400 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
-            {spotCount} verified spots across all 7 Emirates. The UAE&apos;s first
+            {spotCount}+ verified spots across all 7 Emirates. The UAE&apos;s first
             community-powered coastal fish database — catch data that matters
             beyond the fishing line.
           </p>
@@ -347,7 +347,7 @@ export default function HomePage() {
               <p className="text-teal-400 text-xs font-semibold uppercase tracking-[0.2em] mb-2">Marine Biodiversity</p>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-white">UAE Fish Species</h2>
               <p className="text-gray-400 mt-2">
-                {speciesCount} species documented — Persian Gulf &amp; Gulf of Oman
+                {speciesCount}{' '}species documented — Persian Gulf &amp; Gulf of Oman
               </p>
             </div>
             <Link href="/species"
@@ -408,7 +408,7 @@ export default function HomePage() {
             <div>
               <p className="text-teal-400 text-xs font-semibold uppercase tracking-[0.2em] mb-2">Where to Fish</p>
               <h2 className="text-3xl sm:text-4xl font-extrabold text-white">Featured Spots</h2>
-              <p className="text-gray-400 mt-2">{spotCount} verified locations · updated regularly</p>
+              <p className="text-gray-400 mt-2">{spotCount}{' '}verified locations · updated regularly</p>
             </div>
             <Link href="/spots"
               className="inline-flex items-center gap-1.5 text-teal-400 hover:text-teal-300 font-semibold text-sm whitespace-nowrap transition-colors">

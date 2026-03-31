@@ -17,6 +17,9 @@
   "golden-trevally": [
     "/fish-species/golden_trevally.jpg"
   ],
+  "greater-amberjack": [
+    "/fish-species/greater_amberjack.jpg"
+  ],
   "hammour": [
     "/fish-species/hammour.jpg"
   ],
@@ -24,10 +27,22 @@
     "/fish-species/queenfish.jpg",
     "/fish-species/jesh.jpg"
   ],
+  "longnose-emperor": [
+    "/fish-species/longnose_emperor_fish.jpg"
+  ],
+  "longtail-tuna": [
+    "/fish-species/longtail_tuna.jpg"
+  ],
   "mahi-mahi": [
     "/fish-species/mahi_mahi.jpg"
   ],
+  "sultan-ibrahim": [
+    "/fish-species/sultan_ibrahim.jpg"
+  ],
   "largescaled-therapon": [
     "/fish-species/terapon_jarbua.jpg"
+  ],
+  "yellowfin-tuna": [
+    "/fish-species/yellowfin_tuna.jpg"
   ]
 }

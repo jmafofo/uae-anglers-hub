@@ -38,6 +38,11 @@ const ALIAS_MAP: Record<string, string> = {
   'queenfish':             'queenfish',
   'terapon-jarbua':        'largescaled-therapon', // Terapon jarbua
   'golden-trevally':       'golden-trevally',     // already slug but just in case
+  'sultan-ibrahim':        'sultan-ibrahim',
+  'greater-amberjack':     'greater-amberjack',
+  'longnose-emperor-fish': 'longnose-emperor',
+  'longtail-tuna':         'longtail-tuna',
+  'yellowfin-tuna':        'yellowfin-tuna',
 
   // Common alternative names — extend as needed
   'hammour-fish':          'hammour',
