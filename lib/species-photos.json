@@ -2,6 +2,9 @@
   "one-spot-snapper": [
     "/fish-species/black_spot_snapper.jpg"
   ],
+  "cobia": [
+    "/fish-species/cobia.jpg"
+  ],
   "spangled-emperor": [
     "/fish-species/emperor-fish.jpg"
   ],
@@ -14,7 +17,11 @@
   "golden-trevally": [
     "/fish-species/golden_trevally.jpg"
   ],
+  "hammour": [
+    "/fish-species/hammour.jpg"
+  ],
   "queenfish": [
+    "/fish-species/queenfish.jpg",
     "/fish-species/jesh.jpg"
   ],
   "mahi-mahi": [
