@@ -33,7 +33,7 @@ function habitatGradient(category: FishSpecies['habitatCategory']): string {
     case 'Pelagic': return 'from-sky-950 via-blue-900 to-[#0a0f1a]';
     case 'Coastal': return 'from-teal-950 via-green-900 to-[#0a0f1a]';
     case 'Demersal': return 'from-stone-900 via-slate-900 to-[#0a0f1a]';
-    case 'Freshwater': return 'from-emerald-950 via-green-900 to-[#0a0f1a]';
+    case 'Other': return 'from-gray-900 via-slate-900 to-[#0a0f1a]';
     default: return 'from-gray-900 to-[#0a0f1a]';
   }
 }
@@ -153,11 +153,13 @@ export default async function SpeciesDetailPage({ params }: PageProps) {
                 <p className="text-gray-400">{species.habitat}</p>
               </section>
 
-              {/* Color pattern */}
-              <section>
-                <h2 className="text-lg font-semibold text-white mb-2">Identification</h2>
-                <p className="text-gray-400 capitalize">{species.colorPattern}</p>
-              </section>
+              {/* Local name */}
+              {species.localName && (
+                <section>
+                  <h2 className="text-lg font-semibold text-white mb-2">Local Name (Arabic)</h2>
+                  <p className="text-gray-400 text-xl">{species.localName}</p>
+                </section>
+              )}
 
               {/* Fun facts */}
               <section>
@@ -213,6 +215,10 @@ export default async function SpeciesDetailPage({ params }: PageProps) {
                       species.edibility === 'Fair' ? 'text-yellow-400' :
                       'text-red-400'
                     }`}>{species.edibility}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Coast</span>
+                    <span className="text-gray-300">{species.coast}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Danger</span>

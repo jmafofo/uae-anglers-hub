@@ -3,9 +3,9 @@ import { fishSpecies } from '@/lib/species';
 import SpeciesSearchBar from './SearchBar';
 
 export const metadata: Metadata = {
-  title: 'UAE Fish Species Guide — 34 Species with Scientific Names',
+  title: 'UAE Fish Species Guide — MOCCAE 2023 Official List',
   description:
-    'Comprehensive guide to fish species found in UAE waters. Scientific names, habitat, diet, conservation status, edibility ratings and fun facts for every species.',
+    'Comprehensive guide to fish species in UAE waters based on the MOCCAE 2023 official fish list. Scientific names, Arabic names, habitat, conservation status and edibility for Persian Gulf and Gulf of Oman species.',
 };
 
 export default function SpeciesPage() {

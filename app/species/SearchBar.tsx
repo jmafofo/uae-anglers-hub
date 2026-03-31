@@ -43,7 +43,7 @@ function habitatGradient(category: FishSpecies['habitatCategory']): string {
     case 'Pelagic': return 'from-sky-900/80 to-blue-900/80';
     case 'Coastal': return 'from-teal-900/80 to-green-900/80';
     case 'Demersal': return 'from-stone-900/80 to-slate-800/80';
-    case 'Freshwater': return 'from-emerald-900/80 to-green-900/80';
+    case 'Other': return 'from-gray-800/80 to-slate-800/80';
     default: return 'from-gray-800/80 to-gray-900/80';
   }
 }
@@ -192,8 +192,7 @@ export default function SpeciesSearchBar() {
                  species.habitatCategory === 'Open Ocean' ? '🐟' :
                  species.habitatCategory === 'Pelagic' ? '🎣' :
                  species.habitatCategory === 'Coastal' ? '🌊' :
-                 species.habitatCategory === 'Demersal' ? '🪸' :
-                 species.habitatCategory === 'Freshwater' ? '🏞️' : '🐡'}
+                 species.habitatCategory === 'Demersal' ? '🪸' : '🐡'}
               </div>
               {species.dangerLevel !== 'none' && (
                 <span className="absolute top-2 right-2 text-xs bg-black/50 backdrop-blur-sm px-2 py-0.5 rounded-full">
