@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { fishingSpots } from '@/lib/spots';
+import { fishSpecies } from '@/lib/species';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = 'https://uaeangler.com';
@@ -15,6 +16,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/tournaments`,       lastModified: new Date(), changeFrequency: 'daily',   priority: 0.7 },
     { url: `${base}/shop`,              lastModified: new Date(), changeFrequency: 'daily',   priority: 0.7 },
     { url: `${base}/assistant`,         lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
+    // Phase 4
+    { url: `${base}/species`,           lastModified: new Date(), changeFrequency: 'weekly',  priority: 0.9 },
+    { url: `${base}/conservation`,      lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${base}/research`,          lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${base}/ocean-sentinel`,    lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
     // Auth excluded (login/signup) — private/auth pages not useful to index
   ];
 
@@ -28,5 +34,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: prioritySpotSlugs.has(spot.slug) ? 0.95 : 0.8,
   }));
 
-  return [...staticPages, ...spotPages];
+  const speciesPages: MetadataRoute.Sitemap = fishSpecies.map((species) => ({
+    url: `${base}/species/${species.slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.75,
+  }));
+
+  return [...staticPages, ...spotPages, ...speciesPages];
 }

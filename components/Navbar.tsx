@@ -13,6 +13,8 @@ import {
   Menu,
   X,
   Plus,
+  ShieldCheck,
+  Beaker,
 } from 'lucide-react';
 
 const navLinks = [
@@ -20,6 +22,9 @@ const navLinks = [
   { href: '/assistant', label: 'AI Assistant', icon: Bot },
   { href: '/spots', label: 'Spots', icon: MapPin },
   { href: '/catches', label: 'Catches', icon: Fish },
+  { href: '/species', label: 'Species', icon: Fish },
+  { href: '/conservation', label: 'Conservation', icon: ShieldCheck },
+  { href: '/research', label: 'Research', icon: Beaker },
   { href: '/community', label: 'Community', icon: Users },
   { href: '/forum', label: 'Forum', icon: MessageSquare },
   { href: '/charters', label: 'Charters', icon: Anchor },

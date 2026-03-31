@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Fish, Upload, MapPin, X, Check } from 'lucide-react';
 import { getSupabase } from '@/lib/supabase';
 import { emirates } from '@/lib/spots';
+import { fishSpecies } from '@/lib/species';
 
 const COMMON_SPECIES = [
   'Hammour (Grouper)', 'Kingfish', 'Barracuda', 'Queenfish', 'Trevally',
@@ -28,6 +29,7 @@ export default function LogCatchPage() {
 
   const [form, setForm] = useState({
     species: '',
+    scientific_name: '',
     weight_kg: '',
     length_cm: '',
     bait: '',
@@ -38,6 +40,18 @@ export default function LogCatchPage() {
     is_public: true,
     caught_at: new Date().toISOString().slice(0, 16),
   });
+
+  // Auto-suggest scientific name when species changes
+  const suggestedScientificName = useMemo(() => {
+    if (!form.species) return '';
+    const q = form.species.toLowerCase();
+    const match = fishSpecies.find(
+      (s) =>
+        s.name.toLowerCase().includes(q) ||
+        q.includes(s.name.toLowerCase().split(' ')[0].toLowerCase())
+    );
+    return match ? match.scientificName : '';
+  }, [form.species]);
 
   useEffect(() => {
     getSupabase().auth.getUser().then(({ data: { user } }) => {
@@ -78,6 +92,7 @@ export default function LogCatchPage() {
     const { error } = await sb.from('catches').insert({
       user_id: user.id,
       species: form.species,
+      scientific_name: form.scientific_name || suggestedScientificName || null,
       weight_kg: form.weight_kg ? parseFloat(form.weight_kg) : null,
       length_cm: form.length_cm ? parseFloat(form.length_cm) : null,
       bait: form.bait || null,
@@ -184,6 +199,32 @@ export default function LogCatchPage() {
               placeholder="Or type species name..."
               className="w-full bg-white/5 border border-white/20 focus:border-teal-500 rounded-lg px-4 py-3 text-white placeholder-gray-500 outline-none text-sm"
             />
+            {/* Scientific name suggestion */}
+            {suggestedScientificName && !form.scientific_name && (
+              <p className="mt-1.5 text-xs text-gray-500">
+                Scientific name:{' '}
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, scientific_name: suggestedScientificName })}
+                  className="italic text-teal-400 hover:text-teal-300 transition-colors"
+                >
+                  {suggestedScientificName}
+                </button>
+                {' '}(tap to use)
+              </p>
+            )}
+            {form.scientific_name && (
+              <div className="mt-1.5 flex items-center gap-2">
+                <p className="text-xs text-gray-500 italic">{form.scientific_name}</p>
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, scientific_name: '' })}
+                  className="text-xs text-gray-600 hover:text-gray-400"
+                >
+                  ×
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Weight & Length */}

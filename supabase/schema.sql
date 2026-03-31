@@ -240,3 +240,6 @@ alter table public.listings enable row level security;
 create policy "Active listings viewable by all" on public.listings for select using (is_active = true);
 create policy "Auth users can post listings" on public.listings for insert with check (auth.uid() = user_id);
 create policy "Users can update own listings" on public.listings for update using (auth.uid() = user_id);
+
+-- Phase 4: Add scientific_name to catches (run separately if table already exists)
+-- alter table public.catches add column if not exists scientific_name text;
