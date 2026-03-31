@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Search, Filter } from 'lucide-react';
 import {
   fishSpecies,
@@ -12,6 +13,7 @@ import {
   type Edibility,
   type ConservationStatus,
 } from '@/lib/species';
+import speciesPhotos from '@/lib/species-photos.json';
 
 const edibilityOptions: Edibility[] = ['Excellent', 'Good', 'Fair', 'Avoid', 'Not Edible'];
 
@@ -185,24 +187,48 @@ export default function SpeciesSearchBar() {
             href={`/species/${species.slug}`}
             className="group flex flex-col rounded-xl border border-white/10 hover:border-teal-500/40 transition-all overflow-hidden bg-white/5"
           >
-            {/* Gradient thumbnail */}
-            <div className={`relative h-36 bg-gradient-to-br ${habitatGradient(species.habitatCategory)} flex items-center justify-center`}>
-              <div className="text-4xl opacity-60">
-                {species.habitatCategory === 'Reef' ? '🐠' :
-                 species.habitatCategory === 'Open Ocean' ? '🐟' :
-                 species.habitatCategory === 'Pelagic' ? '🎣' :
-                 species.habitatCategory === 'Coastal' ? '🌊' :
-                 species.habitatCategory === 'Demersal' ? '🪸' : '🐡'}
-              </div>
-              {species.dangerLevel !== 'none' && (
-                <span className="absolute top-2 right-2 text-xs bg-black/50 backdrop-blur-sm px-2 py-0.5 rounded-full">
-                  {dangerIcon(species.dangerLevel)}
-                </span>
-              )}
-              <span className="absolute bottom-2 left-2 text-xs bg-black/50 backdrop-blur-sm text-gray-300 px-2 py-0.5 rounded-full">
-                {species.habitatCategory}
-              </span>
-            </div>
+            {/* Thumbnail — real photo if available, else gradient placeholder */}
+            {(() => {
+              const photos = (speciesPhotos as Record<string, string[]>)[species.slug];
+              const heroPhoto = photos?.[0];
+              return heroPhoto ? (
+                <div className="relative h-36 overflow-hidden bg-black">
+                  <Image
+                    src={heroPhoto}
+                    alt={species.name}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  {species.dangerLevel !== 'none' && (
+                    <span className="absolute top-2 right-2 text-xs bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded-full">
+                      {dangerIcon(species.dangerLevel)}
+                    </span>
+                  )}
+                  <span className="absolute bottom-2 left-2 text-xs bg-black/60 backdrop-blur-sm text-gray-300 px-2 py-0.5 rounded-full">
+                    {species.habitatCategory}
+                  </span>
+                </div>
+              ) : (
+                <div className={`relative h-36 bg-gradient-to-br ${habitatGradient(species.habitatCategory)} flex items-center justify-center`}>
+                  <div className="text-4xl opacity-60">
+                    {species.habitatCategory === 'Reef' ? '🐠' :
+                     species.habitatCategory === 'Open Ocean' ? '🐟' :
+                     species.habitatCategory === 'Pelagic' ? '🎣' :
+                     species.habitatCategory === 'Coastal' ? '🌊' :
+                     species.habitatCategory === 'Demersal' ? '🪸' : '🐡'}
+                  </div>
+                  {species.dangerLevel !== 'none' && (
+                    <span className="absolute top-2 right-2 text-xs bg-black/50 backdrop-blur-sm px-2 py-0.5 rounded-full">
+                      {dangerIcon(species.dangerLevel)}
+                    </span>
+                  )}
+                  <span className="absolute bottom-2 left-2 text-xs bg-black/50 backdrop-blur-sm text-gray-300 px-2 py-0.5 rounded-full">
+                    {species.habitatCategory}
+                  </span>
+                </div>
+              );
+            })()}
 
             <div className="p-4 flex flex-col flex-1">
               <h3 className="font-semibold text-white group-hover:text-teal-400 transition-colors">

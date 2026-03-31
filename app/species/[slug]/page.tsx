@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { Fish, ChevronRight, MapPin, Ruler, Weight, Layers, AlertTriangle } from 'lucide-react';
 import { fishSpecies, getSpeciesBySlug, getRelatedSpecies, type FishSpecies, type ConservationStatus } from '@/lib/species';
+import speciesPhotos from '@/lib/species-photos.json';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -65,6 +67,8 @@ export default async function SpeciesDetailPage({ params }: PageProps) {
     url: `https://uaeangler.com/species/${species.slug}`,
   };
 
+  const heroPhoto = (speciesPhotos as Record<string, string[]>)[species.slug]?.[0];
+
   return (
     <>
       <script
@@ -73,14 +77,28 @@ export default async function SpeciesDetailPage({ params }: PageProps) {
       />
 
       <div className="min-h-screen">
-        {/* Hero */}
-        <div className={`relative min-h-[340px] bg-gradient-to-b ${habitatGradient(species.habitatCategory)} flex items-end pt-20`}>
-          <div className="absolute inset-0 opacity-[0.03]"
-            style={{
-              backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)',
-              backgroundSize: '30px 30px',
-            }}
-          />
+        {/* Hero — real photo if available, else habitat gradient */}
+        <div className={`relative min-h-[340px] flex items-end pt-20 ${!heroPhoto ? `bg-gradient-to-b ${habitatGradient(species.habitatCategory)}` : 'bg-[#0a0f1a]'}`}>
+          {heroPhoto ? (
+            <>
+              <Image
+                src={heroPhoto}
+                alt={species.name}
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover object-center"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1a] via-[#0a0f1a]/60 to-[#0a0f1a]/10" />
+            </>
+          ) : (
+            <div className="absolute inset-0 opacity-[0.03]"
+              style={{
+                backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)',
+                backgroundSize: '30px 30px',
+              }}
+            />
+          )}
           <div className="relative z-10 max-w-4xl mx-auto px-4 pb-10 w-full">
             {/* Breadcrumb */}
             <div className="flex items-center gap-2 text-gray-400 text-sm mb-4">

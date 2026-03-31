@@ -1,0 +1,26 @@
+{
+  "one-spot-snapper": [
+    "/fish-species/black_spot_snapper.jpg"
+  ],
+  "spangled-emperor": [
+    "/fish-species/emperor-fish.jpg"
+  ],
+  "streaked-spinefoot": [
+    "/fish-species/farsh.jpg"
+  ],
+  "giant-moray": [
+    "/fish-species/giant_moray.jpg"
+  ],
+  "golden-trevally": [
+    "/fish-species/golden_trevally.jpg"
+  ],
+  "queenfish": [
+    "/fish-species/jesh.jpg"
+  ],
+  "mahi-mahi": [
+    "/fish-species/mahi_mahi.jpg"
+  ],
+  "largescaled-therapon": [
+    "/fish-species/terapon_jarbua.jpg"
+  ]
+}

@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "fetch-photos": "tsx scripts/fetch-spot-photos.ts",
-    "scan-photos": "tsx scripts/scan-photos.ts"
+    "scan-photos": "tsx scripts/scan-photos.ts",
+    "scan-species-photos": "tsx scripts/scan-species-photos.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
