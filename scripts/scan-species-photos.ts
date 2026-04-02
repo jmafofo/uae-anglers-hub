@@ -44,6 +44,11 @@ const ALIAS_MAP: Record<string, string> = {
   'longtail-tuna':         'longtail-tuna',
   'yellowfin-tuna':        'yellowfin-tuna',
 
+  // Filename normalisation fixes
+  'ramora':                'remora',             // typo in filename → correct slug
+  'long-finned-seabream':  'long-finned-sea-bream', // missing hyphen in filename
+  'orange-stripped-emperor': 'orange-striped-emperor', // misspelling in filename
+
   // Common alternative names — extend as needed
   'hammour-fish':          'hammour',
   'grouper':               'hammour',
