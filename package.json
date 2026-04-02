@@ -10,7 +10,7 @@
     "fetch-photos": "tsx scripts/fetch-spot-photos.ts",
     "scan-photos": "tsx scripts/scan-photos.ts",
     "scan-species-photos": "tsx scripts/scan-species-photos.ts",
-    "watch:species": "tsx scripts/watch-species-photos.ts"
+    "watch:species": "node scripts/watch-species-photos.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
