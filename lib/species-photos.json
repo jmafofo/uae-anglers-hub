@@ -5,6 +5,12 @@
   "one-spot-snapper": [
     "/fish-species/black_spot_snapper.jpg"
   ],
+  "blue-barred-parrotfish": [
+    "/fish-species/blue-barred_parrotfish.jpg"
+  ],
+  "blue-spot-mullet": [
+    "/fish-species/blue_spot_mullet.jpg"
+  ],
   "blue-spotted-grouper": [
     "/fish-species/blue_spotted_grouper.jpg"
   ],
@@ -54,6 +60,9 @@
   "mahi-mahi": [
     "/fish-species/mahi_mahi.jpg"
   ],
+  "orange-spotted-spinefoot": [
+    "/fish-species/orange-spotted_spinefoot.jpg"
+  ],
   "orange-striped-emperor": [
     "/fish-species/orange-stripped_emperor.jpg"
   ],
@@ -69,8 +78,14 @@
   "sergeant-major-damselfish": [
     "/fish-species/sergeant_major_damselfish.jpg"
   ],
+  "silver-bream": [
+    "/fish-species/silver_bream.jpg"
+  ],
   "sky-emperor": [
     "/fish-species/sky_emperor.jpg"
+  ],
+  "small-scaled-therapon": [
+    "/fish-species/small-scaled_therapon.jpg"
   ],
   "starry-blowfish": [
     "/fish-species/starry_blowfish.jpg"
