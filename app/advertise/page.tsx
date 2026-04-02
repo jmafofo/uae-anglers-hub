@@ -13,6 +13,8 @@ import {
   Trophy,
   BarChart3,
   MessageCircle,
+  PlusCircle,
+  Infinity as InfinityIcon,
 } from 'lucide-react';
 
 export const metadata: Metadata = {
@@ -30,9 +32,11 @@ const TIERS = [
     highlight: false,
     cta: 'Create Free Account',
     ctaHref: '/signup',
+    slotNote: '5 listing slots included · AED 5 / extra slot',
     features: [
+      '5 marketplace listing slots included',
+      'AED 5 per additional listing slot',
       'Basic shop profile page',
-      'Up to 5 product listings',
       'Standard marketplace placement',
       'WhatsApp contact button',
       'Community forum access',
@@ -40,8 +44,8 @@ const TIERS = [
     missing: [
       'Verified Retailer badge',
       'Priority listing placement',
-      'Sponsored spot pages',
       'Analytics dashboard',
+      'Sponsored spot pages',
       'Featured homepage banner',
     ],
   },
@@ -53,9 +57,10 @@ const TIERS = [
     highlight: true,
     cta: 'Start Pro — 14 Days Free',
     ctaHref: 'mailto:info@uaeangler.com?subject=Pro Retailer Subscription',
+    slotNote: '50 listing slots included',
     features: [
+      '50 marketplace listing slots included',
       'Verified Retailer badge on all listings',
-      'Up to 50 product listings',
       'Priority placement in marketplace search',
       'Dedicated shop profile page',
       'Analytics dashboard (views, clicks, leads)',
@@ -77,12 +82,13 @@ const TIERS = [
     highlight: false,
     cta: 'Contact Us',
     ctaHref: 'mailto:info@uaeangler.com?subject=Business Subscription Enquiry',
+    slotNote: 'Unlimited listing slots',
     features: [
-      'Everything in Pro',
+      'Unlimited marketplace listing slots',
+      'Everything in Pro Retailer',
       'Homepage featured banner (rotating)',
       'Sponsor up to 3 fishing spot pages',
       'Tournament sponsorship placement',
-      'Unlimited product listings',
       'Branded store page with custom header',
       'Priority customer support',
       'Quarterly performance report',
@@ -197,7 +203,20 @@ export default function AdvertisePage() {
                 <span className="text-3xl font-extrabold text-white">{tier.price}</span>
                 {tier.period && <span className="text-gray-400 text-sm mb-1">{tier.period}</span>}
               </div>
-              <p className="text-sm text-gray-400 mb-6">{tier.description}</p>
+              <p className="text-sm text-gray-400 mb-3">{tier.description}</p>
+
+              {/* Listing slots badge */}
+              <div className={`flex items-center gap-1.5 text-xs font-semibold rounded-lg px-3 py-2 mb-5 ${
+                tier.highlight
+                  ? 'bg-teal-500/20 text-teal-300'
+                  : 'bg-white/5 text-gray-400'
+              }`}>
+                {tier.name === 'Business'
+                  ? <InfinityIcon className="w-3.5 h-3.5 shrink-0" />
+                  : <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+                }
+                {tier.slotNote}
+              </div>
 
               <a
                 href={tier.ctaHref}
@@ -235,6 +254,69 @@ export default function AdvertisePage() {
           </a>{' '}
           for annual discount pricing.
         </p>
+
+        {/* ── Listing slots comparison table ── */}
+        <div className="mt-14 rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
+          <div className="px-6 py-4 border-b border-white/10">
+            <h3 className="text-base font-bold text-white">Marketplace Listing Slots — At a Glance</h3>
+            <p className="text-xs text-gray-500 mt-0.5">How many products you can list per plan</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-white/10">
+                  <th className="text-left px-6 py-3 text-gray-400 font-medium">Plan</th>
+                  <th className="text-center px-4 py-3 text-gray-400 font-medium">Included slots</th>
+                  <th className="text-center px-4 py-3 text-gray-400 font-medium">Extra slots</th>
+                  <th className="text-center px-4 py-3 text-gray-400 font-medium">Monthly cost</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-white/5">
+                  <td className="px-6 py-4 text-white font-medium">Free</td>
+                  <td className="px-4 py-4 text-center text-gray-300">5</td>
+                  <td className="px-4 py-4 text-center text-amber-400 font-semibold">AED 5 / slot</td>
+                  <td className="px-4 py-4 text-center text-gray-400">AED 0 + usage</td>
+                </tr>
+                <tr className="border-b border-white/5 bg-teal-500/5">
+                  <td className="px-6 py-4 text-white font-medium flex items-center gap-2">
+                    Pro Retailer
+                    <span className="text-xs bg-teal-500 text-white px-1.5 py-0.5 rounded-full">Popular</span>
+                  </td>
+                  <td className="px-4 py-4 text-center text-teal-300 font-semibold">50</td>
+                  <td className="px-4 py-4 text-center text-gray-500">Included</td>
+                  <td className="px-4 py-4 text-center text-gray-300">AED 299</td>
+                </tr>
+                <tr>
+                  <td className="px-6 py-4 text-white font-medium">Business</td>
+                  <td className="px-4 py-4 text-center text-teal-300 font-semibold">∞ Unlimited</td>
+                  <td className="px-4 py-4 text-center text-gray-500">N/A</td>
+                  <td className="px-4 py-4 text-center text-gray-300">AED 799</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* ── Pay-as-you-go extra slots callout ── */}
+        <div className="mt-6 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+            <PlusCircle className="w-5 h-5 text-amber-400" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-white mb-0.5">Need more than 5 slots on Free?</p>
+            <p className="text-xs text-gray-400">
+              Purchase additional listing slots at <span className="text-amber-400 font-semibold">AED 5 per slot</span> — no subscription required.
+              Slots are valid until the listing is removed or sold. Upgrade to Pro at any time to unlock 50 slots and all premium features.
+            </p>
+          </div>
+          <a
+            href="mailto:info@uaeangler.com?subject=Extra Listing Slots"
+            className="shrink-0 text-xs font-bold bg-amber-500 hover:bg-amber-400 text-white px-4 py-2.5 rounded-lg transition-colors"
+          >
+            Buy Extra Slots
+          </a>
+        </div>
       </section>
 
       {/* ── Boosted Listings ── */}
