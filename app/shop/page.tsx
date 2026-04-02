@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ShoppingBag, Plus, MapPin, Tag } from 'lucide-react';
+import { ShoppingBag, Plus, MapPin, Tag, Zap, BadgeCheck } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 
 export const metadata: Metadata = {
@@ -21,9 +21,10 @@ export default async function ShopPage() {
 
   const { data: listings } = await supabase
     .from('listings')
-    .select('*, profiles(display_name, username)')
+    .select('*, profiles(display_name, username, verified_retailer, account_type)')
     .eq('is_active', true)
     .eq('is_sold', false)
+    .order('is_boosted', { ascending: false })
     .order('created_at', { ascending: false })
     .limit(60);
 
@@ -39,6 +40,17 @@ export default async function ShopPage() {
             <Plus className="w-4 h-4" /> Sell Gear
           </Link>
         </div>
+
+        {/* Retailer CTA banner */}
+        <Link href="/advertise" className="flex items-center justify-between gap-4 rounded-xl bg-teal-500/5 border border-teal-500/20 hover:border-teal-500/40 px-5 py-3.5 mb-6 transition-colors group">
+          <div className="flex items-center gap-3">
+            <BadgeCheck className="w-5 h-5 text-teal-400 shrink-0" />
+            <p className="text-sm text-gray-300 group-hover:text-white transition-colors">
+              <span className="font-semibold text-teal-400">Tackle shop or brand?</span> Get a Verified Retailer badge and priority placement.
+            </p>
+          </div>
+          <span className="text-xs font-bold text-teal-400 whitespace-nowrap">See plans →</span>
+        </Link>
 
         {/* Category filter */}
         <div className="flex flex-wrap gap-2 mb-8">
@@ -57,41 +69,68 @@ export default async function ShopPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {listings.map((l) => (
-              <Link key={l.id} href={`/shop/${l.id}`} className="group rounded-xl bg-white/5 border border-white/10 hover:border-teal-500/40 transition-all overflow-hidden">
-                {l.photos?.[0] ? (
-                  <div className="w-full h-44 bg-white/10 overflow-hidden">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={l.photos[0]} alt={l.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                  </div>
-                ) : (
-                  <div className="w-full h-44 bg-white/5 flex items-center justify-center">
-                    <ShoppingBag className="w-10 h-10 text-gray-700" />
-                  </div>
-                )}
-                <div className="p-4">
-                  <h2 className="font-semibold text-white group-hover:text-teal-400 transition-colors truncate mb-1">{l.title}</h2>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-teal-400 font-bold text-lg">
-                      {l.price ? `AED ${l.price.toLocaleString()}` : 'Make an offer'}
-                    </span>
-                    <span className="text-xs bg-white/5 text-gray-400 border border-white/10 px-2 py-0.5 rounded-full">
-                      {CONDITIONS[l.condition] ?? l.condition}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span className="flex items-center gap-1">
-                      <Tag className="w-3 h-3" /> {l.category}
-                    </span>
-                    {l.emirate && (
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" /> {l.emirate}
-                      </span>
+            {listings.map((l) => {
+              const profile = l.profiles as { display_name: string; username: string; verified_retailer?: boolean; account_type?: string } | null;
+              const isBoosted = l.is_boosted && l.boosted_until && new Date(l.boosted_until) > new Date();
+              const isVerified = profile?.verified_retailer;
+              return (
+                <Link key={l.id} href={`/shop/${l.id}`}
+                  className={`group rounded-xl border hover:border-teal-500/40 transition-all overflow-hidden ${
+                    isBoosted
+                      ? 'bg-amber-500/5 border-amber-500/30 shadow-md shadow-amber-500/5'
+                      : 'bg-white/5 border-white/10'
+                  }`}>
+                  {/* Photo */}
+                  <div className="relative">
+                    {l.photos?.[0] ? (
+                      <div className="w-full h-44 bg-white/10 overflow-hidden">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={l.photos[0]} alt={l.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      </div>
+                    ) : (
+                      <div className="w-full h-44 bg-white/5 flex items-center justify-center">
+                        <ShoppingBag className="w-10 h-10 text-gray-700" />
+                      </div>
                     )}
+                    {/* Badges overlay */}
+                    <div className="absolute top-2 left-2 flex flex-col gap-1">
+                      {isBoosted && (
+                        <span className="flex items-center gap-1 text-xs font-bold bg-amber-500 text-white px-2 py-0.5 rounded-full shadow">
+                          <Zap className="w-3 h-3" /> Boosted
+                        </span>
+                      )}
+                      {isVerified && (
+                        <span className="flex items-center gap-1 text-xs font-semibold bg-teal-600 text-white px-2 py-0.5 rounded-full shadow">
+                          <BadgeCheck className="w-3 h-3" /> Verified Retailer
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+
+                  <div className="p-4">
+                    <h2 className="font-semibold text-white group-hover:text-teal-400 transition-colors truncate mb-1">{l.title}</h2>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-teal-400 font-bold text-lg">
+                        {l.price ? `AED ${l.price.toLocaleString()}` : 'Make an offer'}
+                      </span>
+                      <span className="text-xs bg-white/5 text-gray-400 border border-white/10 px-2 py-0.5 rounded-full">
+                        {CONDITIONS[l.condition] ?? l.condition}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <Tag className="w-3 h-3" /> {l.category}
+                      </span>
+                      {l.emirate && (
+                        <span className="flex items-center gap-1">
+                          <MapPin className="w-3 h-3" /> {l.emirate}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>

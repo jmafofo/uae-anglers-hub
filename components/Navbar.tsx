@@ -15,6 +15,7 @@ import {
   Plus,
   ShieldCheck,
   Beaker,
+  BadgeCheck,
 } from 'lucide-react';
 
 const navLinks = [
@@ -29,6 +30,7 @@ const navLinks = [
   { href: '/forum', label: 'Forum', icon: MessageSquare },
   { href: '/charters', label: 'Charters', icon: Anchor },
   { href: '/shop', label: 'Shop', icon: ShoppingBag },
+  { href: '/advertise', label: 'Advertise', icon: BadgeCheck },
 ];
 
 export default function Navbar() {
