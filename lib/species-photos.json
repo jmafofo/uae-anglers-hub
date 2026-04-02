@@ -1,46 +1,101 @@
 {
-  "one-spot-snapper": [
-    "/fish-species/black_spot_snapper.jpg"
+  "giant-catfish": [],
+  "long-finned-sea-bream": [
+    "/fish-species/long_finned_seabream.jpg"
   ],
-  "cobia": [
-    "/fish-species/cobia.jpg"
+  "starry-blowfish": [
+    "/fish-species/starry_blowfish.jpg"
   ],
-  "spangled-emperor": [
-    "/fish-species/emperor-fish.jpg"
+  "sergeant-major-damselfish": [
+    "/fish-species/sergeant_major_damselfish.jpg"
   ],
-  "streaked-spinefoot": [
-    "/fish-species/farsh.jpg"
+  "blue-spotted-grouper": [
+    "/fish-species/blue_spotted_grouper.jpg"
   ],
-  "giant-moray": [
-    "/fish-species/giant_moray.jpg"
+  "red-breasted-wrasse": [
+    "/fish-species/red-breasted_wrasse.jpg"
   ],
-  "golden-trevally": [
-    "/fish-species/golden_trevally.jpg"
-  ],
-  "greater-amberjack": [
-    "/fish-species/greater_amberjack.jpg"
+  "remora": [
+    "/fish-species/ramora.jpg"
   ],
   "hammour": [
     "/fish-species/hammour.jpg"
   ],
+  "greasy-grouper": [
+    "/fish-species/greasy_grouper.jpg"
+  ],
+  "golden-trevally": [
+    "/fish-species/golden_trevally.jpg"
+  ],
+  "common-mojarra": [
+    "/fish-species/common_mojarra.jpg"
+  ],
+  "pennant-coralfish": [
+    "/fish-species/pennant_coralfish.jpg"
+  ],
+  "whiptail-stingray": [
+    "/fish-species/whiptail_stingray.jpg"
+  ],
+  "spangled-emperor": [
+    "/fish-species/emperor-fish.jpg"
+  ],
+  "orange-striped-emperor": [
+    "/fish-species/orange-stripped_emperor.jpg"
+  ],
+  "sky-emperor": [
+    "/fish-species/sky_emperor.jpg"
+  ],
+  "one-spot-snapper": [
+    "/fish-species/black_spot_snapper.jpg"
+  ],
+  "large-scale-mullet": [
+    "/fish-species/large_scale_mullet.jpg"
+  ],
+  "yellowfin-seabream": [
+    "/fish-species/yellowfin_seabream.jpg"
+  ],
+  "black-seabream": [
+    "/fish-species/black_seabream.jpg"
+  ],
+  "sultan-ibrahim": [
+    "/fish-species/sultan_ibrahim.jpg"
+  ],
+  "blue-spotted-boxfish": [],
+  "lionfish": [],
+  "indian-flathead": [],
+  "cobia": [
+    "/fish-species/cobia.jpg"
+  ],
+  "indian-mackerel": [],
+  "streaked-spinefoot": [
+    "/fish-species/farsh.jpg"
+  ],
+  "orange-spotted-spinefoot": [],
+  "silver-bream": [],
+  "blue-barred-parrotfish": [],
+  "largescaled-therapon": [
+    "/fish-species/terapon_jarbua.jpg"
+  ],
+  "smallscaled-therapon": [],
+  "bluespot-mullet": [],
+  "giant-moray": [
+    "/fish-species/giant_moray.jpg"
+  ],
   "queenfish": [
     "/fish-species/queenfish.jpg",
     "/fish-species/jesh.jpg"
+  ],
+  "mahi-mahi": [
+    "/fish-species/mahi_mahi.jpg"
+  ],
+  "greater-amberjack": [
+    "/fish-species/greater_amberjack.jpg"
   ],
   "longnose-emperor": [
     "/fish-species/longnose_emperor_fish.jpg"
   ],
   "longtail-tuna": [
     "/fish-species/longtail_tuna.jpg"
-  ],
-  "mahi-mahi": [
-    "/fish-species/mahi_mahi.jpg"
-  ],
-  "sultan-ibrahim": [
-    "/fish-species/sultan_ibrahim.jpg"
-  ],
-  "largescaled-therapon": [
-    "/fish-species/terapon_jarbua.jpg"
   ],
   "yellowfin-tuna": [
     "/fish-species/yellowfin_tuna.jpg"
