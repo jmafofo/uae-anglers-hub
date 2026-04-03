@@ -169,10 +169,23 @@ create table if not exists public.boost_purchases (
   amount_aed    numeric(8,2) default 20.00,
   duration_days int         default 7,
   boosted_from  timestamptz default now(),
-  boosted_until timestamptz generated always as (boosted_from + (duration_days || ' days')::interval) stored,
+  boosted_until timestamptz,                    -- computed by trigger on insert
   payment_ref   text,                           -- Stripe payment intent ID when integrated
   created_at    timestamptz default now()
 );
+
+-- Compute boosted_until = boosted_from + duration_days on insert
+create or replace function public.set_boost_until()
+returns trigger as $$
+begin
+  NEW.boosted_until := NEW.boosted_from + (NEW.duration_days || ' days')::interval;
+  return NEW;
+end;
+$$ language plpgsql;
+
+create or replace trigger on_boost_purchase_set_until
+  before insert on public.boost_purchases
+  for each row execute procedure public.set_boost_until();
 
 alter table public.boost_purchases enable row level security;
 create policy "Users can view own boost purchases"
