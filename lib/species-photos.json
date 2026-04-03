@@ -3,8 +3,7 @@
     "/fish-species/areolate-grouper.jpg"
   ],
   "black-marlin": [
-    "/fish-species/black_marlin.jpg",
-    "/fish-species/black_marlin.jpeg"
+    "/fish-species/black_marlin.jpg"
   ],
   "black-seabream": [
     "/fish-species/black_seabream.jpg"
@@ -58,6 +57,7 @@
     "/fish-species/greater_amberjack.jpg"
   ],
   "hammour": [
+    "/fish-species/orange-spotted_grouper.jpg",
     "/fish-species/hammour.jpg"
   ],
   "indian-flathead": [
@@ -90,9 +90,6 @@
   ],
   "malabar-grouper": [
     "/fish-species/malabar-grouper.jpg"
-  ],
-  "orange-spotted-grouper": [
-    "/fish-species/orange-spotted_grouper.jpg"
   ],
   "orange-spotted-spinefoot": [
     "/fish-species/orange-spotted_spinefoot.jpg"
