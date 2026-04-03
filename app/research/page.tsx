@@ -150,14 +150,14 @@ export default function ResearchPage() {
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 bg-teal-500/10 border border-teal-500/30 rounded-full px-3 py-1 text-teal-400 text-xs mb-5">
               <Users className="w-3.5 h-3.5" />
-              Research Partnership
+              Research Vision
             </div>
-            <h2 className="text-2xl font-bold text-white mb-4">MOCCAE Collaboration</h2>
+            <h2 className="text-2xl font-bold text-white mb-4">Our Research Vision</h2>
             <div className="space-y-4 text-gray-300 leading-relaxed">
               <p>
-                UAE Anglers Hub is an active partner in marine genomics research in collaboration with the
-                Ministry of Climate Change and Environment (MOCCAE). Our community data informs evidence-based
-                fisheries management decisions.
+                UAE Anglers Hub is building a citizen science platform where community catch data can inform
+                evidence-based fisheries management decisions. Our goal is to contribute meaningful, ground-level
+                data to marine research efforts across UAE waters.
               </p>
               <p>
                 We support <strong className="text-white">non-lethal sampling</strong> and citizen science
@@ -166,7 +166,7 @@ export default function ResearchPage() {
                 resolution that researchers need.
               </p>
               <p>
-                Our community data directly supports the{' '}
+                Our community data is designed to support the{' '}
                 <strong className="text-white">UAE 2030 Fisheries Sustainability Targets</strong> — working
                 toward food security, ecosystem health, and sustainable use of UAE marine resources for
                 generations to come.

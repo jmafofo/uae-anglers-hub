@@ -16,6 +16,8 @@ import {
   PlusCircle,
   Infinity as InfinityIcon,
 } from 'lucide-react';
+import StripeCTA from '@/components/StripeCTA';
+import SlotPurchase from '@/components/SlotPurchase';
 
 export const metadata: Metadata = {
   title: 'Advertise on UAE Anglers Hub — Reach 10,000+ UAE Anglers',
@@ -128,7 +130,7 @@ const SPOT_SPONSORSHIP = [
 const STATS = [
   { value: '10,000+', label: 'Active anglers' },
   { value: '53', label: 'Fishing spot pages' },
-  { value: '41', label: 'UAE fish species' },
+  { value: '98', label: 'UAE fish species' },
   { value: 'UAE-wide', label: 'Coverage across all 7 emirates' },
 ];
 
@@ -218,16 +220,26 @@ export default function AdvertisePage() {
                 {tier.slotNote}
               </div>
 
-              <a
-                href={tier.ctaHref}
-                className={`w-full text-center py-3 rounded-xl font-bold text-sm mb-6 transition-colors ${
-                  tier.highlight
-                    ? 'bg-teal-500 hover:bg-teal-400 text-white'
-                    : 'border border-white/20 hover:border-teal-500/40 text-gray-300 hover:text-white'
-                }`}
-              >
-                {tier.cta}
-              </a>
+              {tier.name === 'Pro Retailer' ? (
+                <StripeCTA
+                  type="pro"
+                  className="w-full text-center py-3 rounded-xl font-bold text-sm mb-6 transition-colors bg-teal-500 hover:bg-teal-400 disabled:bg-teal-700 text-white"
+                  loadingText="Redirecting to checkout…"
+                >
+                  {tier.cta}
+                </StripeCTA>
+              ) : (
+                <a
+                  href={tier.ctaHref}
+                  className={`w-full text-center py-3 rounded-xl font-bold text-sm mb-6 transition-colors block ${
+                    tier.highlight
+                      ? 'bg-teal-500 hover:bg-teal-400 text-white'
+                      : 'border border-white/20 hover:border-teal-500/40 text-gray-300 hover:text-white'
+                  }`}
+                >
+                  {tier.cta}
+                </a>
+              )}
 
               <ul className="space-y-2.5 flex-1">
                 {tier.features.map((f) => (
@@ -303,19 +315,14 @@ export default function AdvertisePage() {
           <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
             <PlusCircle className="w-5 h-5 text-amber-400" />
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-white mb-0.5">Need more than 5 slots on Free?</p>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-400 mb-3">
               Purchase additional listing slots at <span className="text-amber-400 font-semibold">AED 5 per slot</span> — no subscription required.
-              Slots are valid until the listing is removed or sold. Upgrade to Pro at any time to unlock 50 slots and all premium features.
+              Slots are valid until the listing is removed or sold.
             </p>
+            <SlotPurchase />
           </div>
-          <a
-            href="mailto:info@uaeangler.com?subject=Extra Listing Slots"
-            className="shrink-0 text-xs font-bold bg-amber-500 hover:bg-amber-400 text-white px-4 py-2.5 rounded-lg transition-colors"
-          >
-            Buy Extra Slots
-          </a>
         </div>
       </section>
 
