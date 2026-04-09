@@ -515,6 +515,75 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
+          OCEAN SENTINEL APP PROMO
+      ═══════════════════════════════════════════════════════════ */}
+      <section className="py-16 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="relative rounded-3xl overflow-hidden border border-teal-500/20 bg-gradient-to-br from-[#061a2e] to-[#040d1a] p-8 sm:p-12">
+            {/* Background glow */}
+            <div className="absolute inset-0 pointer-events-none"
+              style={{ background: 'radial-gradient(ellipse 60% 80% at 0% 50%, rgba(0,180,150,0.10) 0%, transparent 60%)' }} />
+            <div className="relative z-10 flex flex-col sm:flex-row items-center gap-8">
+              {/* Phone mock */}
+              <div className="shrink-0 w-28 aspect-[9/19] rounded-3xl bg-gradient-to-b from-teal-900/80 to-[#0a0f1a] border border-white/15 flex flex-col items-center justify-center gap-2 p-3 shadow-2xl">
+                <div className="w-6 h-1.5 rounded-full bg-white/20" />
+                <div className="text-3xl mt-1">🐟</div>
+                <div className="w-full space-y-1.5 mt-2">
+                  <div className="h-2 bg-teal-400/25 rounded-full" />
+                  <div className="h-1.5 bg-white/10 rounded-full w-4/5" />
+                  <div className="h-1.5 bg-white/5 rounded-full w-2/3" />
+                </div>
+                <div className="w-full h-6 rounded-lg bg-teal-500/30 mt-auto flex items-center justify-center">
+                  <span className="text-[9px] text-teal-300 font-semibold">IDENTIFY</span>
+                </div>
+              </div>
+
+              {/* Copy */}
+              <div className="flex-1 text-center sm:text-left">
+                <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/25 rounded-full px-3 py-1 text-yellow-400 text-xs mb-3">
+                  <Smartphone className="w-3.5 h-3.5" />
+                  Coming Soon
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-2">
+                  Ocean Sentinel App
+                </h2>
+                <p className="text-gray-400 text-sm leading-relaxed mb-6 max-w-xl">
+                  Point your camera at any catch — AI identifies the species instantly. Works fully offline at sea.
+                  Built on UAE waters, trained on the same{' '}{speciesCount} MOCCAE-verified species in this database.
+                </p>
+                <Link
+                  href="/ocean-sentinel"
+                  className="inline-flex items-center gap-2 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/40 hover:border-teal-400 text-teal-400 hover:text-teal-300 font-semibold px-5 py-2.5 rounded-xl text-sm transition-all"
+                >
+                  <Smartphone className="w-4 h-4" />
+                  Learn more & get notified
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+
+              {/* Store badges */}
+              <div className="shrink-0 flex flex-col gap-2 sm:gap-3">
+                {[
+                  { icon: '🍎', top: 'Download on the', bottom: 'App Store' },
+                  { icon: '🤖', top: 'Get it on', bottom: 'Google Play' },
+                ].map(({ icon, top, bottom }) => (
+                  <Link key={bottom} href="/ocean-sentinel"
+                    className="flex items-center gap-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl px-4 py-2.5 transition-all">
+                    <span className="text-xl">{icon}</span>
+                    <div>
+                      <p className="text-[10px] text-gray-500 leading-none mb-0.5">{top}</p>
+                      <p className="text-white font-bold text-xs">{bottom}</p>
+                    </div>
+                    <span className="ml-1 text-[9px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-1.5 py-0.5 rounded-full">Soon</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
           FINAL CTA
       ═══════════════════════════════════════════════════════════ */}
       <section className="py-28 px-4 relative overflow-hidden">

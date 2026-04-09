@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import {
   MapPin,
@@ -16,6 +17,8 @@ import {
   ShieldCheck,
   Beaker,
   BadgeCheck,
+  Scale,
+  Smartphone,
 } from 'lucide-react';
 
 const navLinks = [
@@ -26,11 +29,13 @@ const navLinks = [
   { href: '/species', label: 'Species', icon: Fish },
   { href: '/conservation', label: 'Conservation', icon: ShieldCheck },
   { href: '/research', label: 'Research', icon: Beaker },
+  { href: '/regulations', label: 'Regulations', icon: Scale },
   { href: '/community', label: 'Community', icon: Users },
   { href: '/forum', label: 'Forum', icon: MessageSquare },
   { href: '/charters', label: 'Charters', icon: Anchor },
   { href: '/shop', label: 'Shop', icon: ShoppingBag },
   { href: '/advertise', label: 'Advertise', icon: BadgeCheck },
+  { href: '/ocean-sentinel', label: 'App', icon: Smartphone },
 ];
 
 export default function Navbar() {
@@ -41,9 +46,15 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 text-white font-bold text-sm">
-            <Anchor className="w-4 h-4 text-teal-400" />
-            <span>UAE Anglers Hub</span>
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/logo.png"
+              alt="UAE Anglers Hub"
+              width={120}
+              height={48}
+              className="h-10 w-auto object-contain"
+              priority
+            />
           </Link>
 
           {/* Desktop nav */}

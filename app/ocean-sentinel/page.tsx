@@ -1,13 +1,9 @@
-import type { Metadata } from 'next';
-import Link from 'next/link';
-import { Fish, WifiOff, Database, Link as LinkIcon, ChevronRight, Smartphone, Star } from 'lucide-react';
-import { fishSpecies } from '@/lib/species';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Ocean Sentinel — AI Fish Identification App for UAE Waters',
-  description:
-    'Ocean Sentinel identifies 34+ UAE fish species from a photo using TensorFlow AI. Works fully offline — perfect for boat trips. Scientific names, habitat, conservation status for every species.',
-};
+import Link from 'next/link';
+import { useState } from 'react';
+import { Fish, WifiOff, Database, Link as LinkIcon, ChevronRight, Smartphone, Star, X, Bell } from 'lucide-react';
+import { fishSpecies } from '@/lib/species';
 
 const APP_SCREENS = [
   {
@@ -44,6 +40,18 @@ const APP_SCREENS = [
 
 export default function OceanSentinelPage() {
   const speciesCount = fishSpecies.length;
+  const [showNotify, setShowNotify] = useState(false);
+  const [notified, setNotified] = useState(false);
+  const [email, setEmail] = useState('');
+
+  function handleDownloadClick() {
+    setShowNotify(true);
+  }
+
+  function handleNotifySubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setNotified(true);
+  }
 
   return (
     <div className="min-h-screen">
@@ -80,30 +88,101 @@ export default function OceanSentinelPage() {
 
           {/* Download buttons */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
-            <div className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-xl px-5 py-3 cursor-not-allowed opacity-75">
+            <button
+              onClick={handleDownloadClick}
+              className="flex items-center gap-3 bg-white/10 border border-white/20 hover:border-teal-500/50 hover:bg-white/15 rounded-xl px-5 py-3 transition-all group"
+            >
               <div className="text-2xl">🍎</div>
               <div className="text-left">
                 <p className="text-xs text-gray-400">Download on the</p>
                 <p className="text-white font-bold text-sm">App Store</p>
               </div>
               <span className="ml-auto text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2 py-0.5 rounded-full">Soon</span>
-            </div>
-            <div className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-xl px-5 py-3 cursor-not-allowed opacity-75">
+            </button>
+            <button
+              onClick={handleDownloadClick}
+              className="flex items-center gap-3 bg-white/10 border border-white/20 hover:border-teal-500/50 hover:bg-white/15 rounded-xl px-5 py-3 transition-all group"
+            >
               <div className="text-2xl">🤖</div>
               <div className="text-left">
                 <p className="text-xs text-gray-400">Get it on</p>
                 <p className="text-white font-bold text-sm">Google Play</p>
               </div>
               <span className="ml-auto text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2 py-0.5 rounded-full">Soon</span>
-            </div>
+            </button>
           </div>
 
           <p className="text-gray-600 text-sm">
-            Join the waitlist →{' '}
-            <Link href="/signup" className="text-teal-400 hover:text-teal-300 transition-colors">
-              Sign up for early access
-            </Link>
+            Notify me when it launches →{' '}
+            <button onClick={handleDownloadClick} className="text-teal-400 hover:text-teal-300 transition-colors underline underline-offset-2">
+              Get early access
+            </button>
           </p>
+
+          {/* Coming Soon Modal */}
+          {showNotify && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
+              onClick={(e) => { if (e.target === e.currentTarget) setShowNotify(false); }}
+            >
+              <div className="relative bg-[#0d1525] border border-white/15 rounded-2xl p-8 max-w-md w-full shadow-2xl">
+                <button
+                  onClick={() => setShowNotify(false)}
+                  className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-14 h-14 rounded-2xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center mb-5">
+                    <Smartphone className="w-7 h-7 text-teal-400" />
+                  </div>
+
+                  {notified ? (
+                    <>
+                      <h2 className="text-white text-xl font-bold mb-2">You&apos;re on the list!</h2>
+                      <p className="text-gray-400 text-sm leading-relaxed mb-6">
+                        We&apos;ll notify you at <span className="text-teal-400">{email}</span> the moment Ocean Sentinel is available to download.
+                      </p>
+                      <button
+                        onClick={() => { setShowNotify(false); setNotified(false); setEmail(''); }}
+                        className="text-sm text-gray-500 hover:text-gray-300 transition-colors"
+                      >
+                        Close
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/25 rounded-full px-3 py-1 text-yellow-400 text-xs mb-4">
+                        <Bell className="w-3.5 h-3.5" />
+                        Coming Soon
+                      </div>
+                      <h2 className="text-white text-xl font-bold mb-2">Ocean Sentinel is in development</h2>
+                      <p className="text-gray-400 text-sm leading-relaxed mb-6">
+                        The app is not yet available in the App Store or Google Play. Enter your email to be first in line when we launch.
+                      </p>
+                      <form onSubmit={handleNotifySubmit} className="w-full flex flex-col gap-3">
+                        <input
+                          type="email"
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="your@email.com"
+                          className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-teal-500/50"
+                        />
+                        <button
+                          type="submit"
+                          className="w-full bg-teal-500 hover:bg-teal-400 text-white font-semibold rounded-xl py-3 text-sm transition-colors"
+                        >
+                          Notify Me at Launch
+                        </button>
+                      </form>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
