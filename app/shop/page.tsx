@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ShoppingBag, Plus, MapPin, Tag, Zap, BadgeCheck } from 'lucide-react';
+import { ShoppingBag, Plus, MapPin, Tag, Zap, BadgeCheck, Percent, ChevronRight } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 
 export const metadata: Metadata = {
@@ -59,6 +59,42 @@ export default async function ShopPage() {
               {c}
             </span>
           ))}
+        </div>
+
+        {/* How selling works — commission model */}
+        <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden mb-10">
+          <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Percent className="w-4 h-4 text-teal-400" />
+              <h2 className="text-sm font-bold text-white">How selling works</h2>
+            </div>
+            <Link href="/advertise" className="text-xs text-teal-400 hover:text-teal-300 transition-colors flex items-center gap-1">
+              See all plans <ChevronRight className="w-3 h-3" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-white/10">
+            {[
+              { plan: 'Free', commission: '5%', slots: '5 listings', badge: null, color: 'text-gray-300' },
+              { plan: 'Pro Retailer', commission: '3%', slots: '50 listings', badge: 'AED 299/mo', color: 'text-teal-400' },
+              { plan: 'Business', commission: '0%', slots: 'Unlimited', badge: 'AED 799/mo', color: 'text-teal-300' },
+            ].map(({ plan, commission, slots, badge, color }) => (
+              <div key={plan} className="px-6 py-5 flex flex-col gap-1">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{plan}</span>
+                  {badge && <span className="text-xs text-gray-500">{badge}</span>}
+                </div>
+                <p className={`text-2xl font-extrabold ${color}`}>{commission}</p>
+                <p className="text-xs text-gray-500">platform fee per sale</p>
+                <p className="text-xs text-gray-600 mt-1">{slots} included</p>
+              </div>
+            ))}
+          </div>
+          <div className="px-6 py-3 bg-white/[0.02] border-t border-white/10">
+            <p className="text-xs text-gray-600">
+              Platform fee applies to completed sales only — no charge for listings. Upgrade to reduce or eliminate your commission.{' '}
+              <Link href="/advertise" className="text-teal-500 hover:underline">View plans →</Link>
+            </p>
+          </div>
         </div>
 
         {(!listings || listings.length === 0) ? (

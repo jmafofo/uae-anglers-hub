@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ChevronRight, Fish, Map, BarChart3, Waves, Thermometer, Users, Smartphone } from 'lucide-react';
+import { ChevronRight, Fish, Map, BarChart3, Waves, Thermometer, Users, Smartphone, Dna } from 'lucide-react';
 import { fishSpecies } from '@/lib/species';
 import { fishingSpots } from '@/lib/spots';
 
@@ -183,6 +183,68 @@ export default function ResearchPage() {
                   {tag}
                 </span>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Earth Biogenome Project */}
+        <section className="p-8 rounded-2xl bg-gradient-to-br from-violet-900/20 to-indigo-900/20 border border-violet-500/20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/30 rounded-full px-3 py-1 text-violet-400 text-xs mb-4">
+                <Dna className="w-3.5 h-3.5" />
+                Earth Biogenome Project
+              </div>
+              <h2 className="text-3xl font-bold text-white mb-4">UAE Marine Genomics Database</h2>
+              <p className="text-gray-400 leading-relaxed mb-4">
+                Explore genome sequencing status for UAE marine fish species under the Earth Biogenome Project —
+                the global initiative to sequence the genomes of all 1.5 million known eukaryotic species.
+              </p>
+              <p className="text-gray-400 leading-relaxed mb-6">
+                Browse the searchable sequencing database, explore interactive phylogenetic trees, and visualise
+                species distribution heatmaps across UAE and Omani waters.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href="/research/biogenome"
+                  className="inline-flex items-center gap-2 bg-violet-500 hover:bg-violet-400 text-white px-5 py-2.5 rounded-lg font-semibold text-sm transition-colors"
+                >
+                  <Dna className="w-4 h-4" />
+                  Open Genome Database
+                </Link>
+                <Link
+                  href="/species"
+                  className="inline-flex items-center gap-2 border border-violet-500/40 text-violet-400 hover:border-violet-400 px-5 py-2.5 rounded-lg font-medium text-sm transition-colors"
+                >
+                  Browse Species
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Visual placeholder */}
+            <div className="hidden lg:block relative h-48">
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-900/40 to-indigo-900/40 border border-violet-500/20 flex items-center justify-center">
+                <div className="text-center">
+                  <Dna className="w-12 h-12 text-violet-400/60 mx-auto mb-3" />
+                  <div className="flex items-center justify-center gap-2 flex-wrap px-4">
+                    {['Chromosome', 'Scaffold', 'Contig', 'Pending'].map((label, i) => (
+                      <span
+                        key={label}
+                        className="text-xs px-2.5 py-1 rounded-full border"
+                        style={{
+                          borderColor: ['rgba(0,212,170,0.4)', 'rgba(56,189,248,0.4)', 'rgba(251,191,36,0.4)', 'rgba(100,116,139,0.4)'][i],
+                          color: ['#00d4aa', '#38bdf8', '#fbbf24', '#64748b'][i],
+                          backgroundColor: ['rgba(0,212,170,0.08)', 'rgba(56,189,248,0.08)', 'rgba(251,191,36,0.08)', 'rgba(100,116,139,0.08)'][i],
+                        }}
+                      >
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-gray-600 text-xs mt-3">Phylogenetic tree · Heatmap · Sequencing DB</p>
+                </div>
+              </div>
             </div>
           </div>
         </section>

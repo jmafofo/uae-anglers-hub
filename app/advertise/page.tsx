@@ -14,6 +14,7 @@ import {
   BarChart3,
   MessageCircle,
   PlusCircle,
+  Percent,
   Infinity as InfinityIcon,
 } from 'lucide-react';
 import StripeCTA from '@/components/StripeCTA';
@@ -32,12 +33,15 @@ const TIERS = [
     period: '',
     description: 'Get listed and build your presence.',
     highlight: false,
+    commission: '5% per sale',
+    commissionColor: 'text-gray-400',
     cta: 'Create Free Account',
     ctaHref: '/signup',
     slotNote: '5 listing slots included · AED 5 / extra slot',
     features: [
       '5 marketplace listing slots included',
       'AED 5 per additional listing slot',
+      '5% platform fee on completed sales',
       'Basic shop profile page',
       'Standard marketplace placement',
       'WhatsApp contact button',
@@ -57,11 +61,14 @@ const TIERS = [
     period: '/month',
     description: 'For growing tackle shops wanting real visibility.',
     highlight: true,
+    commission: '3% per sale',
+    commissionColor: 'text-teal-300',
     cta: 'Start Pro — 14 Days Free',
     ctaHref: 'mailto:info@uaeangler.com?subject=Pro Retailer Subscription',
     slotNote: '50 listing slots included',
     features: [
       '50 marketplace listing slots included',
+      'Reduced 3% platform fee on sales',
       'Verified Retailer badge on all listings',
       'Priority placement in marketplace search',
       'Dedicated shop profile page',
@@ -82,11 +89,14 @@ const TIERS = [
     period: '/month',
     description: 'For brands and multi-location retailers seeking full-platform presence.',
     highlight: false,
+    commission: '0% — free to sell',
+    commissionColor: 'text-green-400',
     cta: 'Contact Us',
     ctaHref: 'mailto:info@uaeangler.com?subject=Business Subscription Enquiry',
     slotNote: 'Unlimited listing slots',
     features: [
       'Unlimited marketplace listing slots',
+      'Zero platform fee on all sales',
       'Everything in Pro Retailer',
       'Homepage featured banner (rotating)',
       'Sponsor up to 3 fishing spot pages',
@@ -205,7 +215,13 @@ export default function AdvertisePage() {
                 <span className="text-3xl font-extrabold text-white">{tier.price}</span>
                 {tier.period && <span className="text-gray-400 text-sm mb-1">{tier.period}</span>}
               </div>
-              <p className="text-sm text-gray-400 mb-3">{tier.description}</p>
+              <p className="text-sm text-gray-400 mb-2">{tier.description}</p>
+
+              {/* Commission rate */}
+              <div className="flex items-center gap-1.5 mb-3">
+                <Percent className="w-3.5 h-3.5 text-gray-500" />
+                <span className={`text-xs font-semibold ${tier.commissionColor}`}>{tier.commission}</span>
+              </div>
 
               {/* Listing slots badge */}
               <div className={`flex items-center gap-1.5 text-xs font-semibold rounded-lg px-3 py-2 mb-5 ${
@@ -280,6 +296,7 @@ export default function AdvertisePage() {
                   <th className="text-left px-6 py-3 text-gray-400 font-medium">Plan</th>
                   <th className="text-center px-4 py-3 text-gray-400 font-medium">Included slots</th>
                   <th className="text-center px-4 py-3 text-gray-400 font-medium">Extra slots</th>
+                  <th className="text-center px-4 py-3 text-gray-400 font-medium">Sale commission</th>
                   <th className="text-center px-4 py-3 text-gray-400 font-medium">Monthly cost</th>
                 </tr>
               </thead>
@@ -288,6 +305,7 @@ export default function AdvertisePage() {
                   <td className="px-6 py-4 text-white font-medium">Free</td>
                   <td className="px-4 py-4 text-center text-gray-300">5</td>
                   <td className="px-4 py-4 text-center text-amber-400 font-semibold">AED 5 / slot</td>
+                  <td className="px-4 py-4 text-center text-gray-400 font-semibold">5%</td>
                   <td className="px-4 py-4 text-center text-gray-400">AED 0 + usage</td>
                 </tr>
                 <tr className="border-b border-white/5 bg-teal-500/5">
@@ -297,12 +315,14 @@ export default function AdvertisePage() {
                   </td>
                   <td className="px-4 py-4 text-center text-teal-300 font-semibold">50</td>
                   <td className="px-4 py-4 text-center text-gray-500">Included</td>
+                  <td className="px-4 py-4 text-center text-teal-300 font-semibold">3%</td>
                   <td className="px-4 py-4 text-center text-gray-300">AED 299</td>
                 </tr>
                 <tr>
                   <td className="px-6 py-4 text-white font-medium">Business</td>
                   <td className="px-4 py-4 text-center text-teal-300 font-semibold">∞ Unlimited</td>
                   <td className="px-4 py-4 text-center text-gray-500">N/A</td>
+                  <td className="px-4 py-4 text-center text-green-400 font-semibold">0%</td>
                   <td className="px-4 py-4 text-center text-gray-300">AED 799</td>
                 </tr>
               </tbody>

@@ -5,6 +5,8 @@ import { notFound } from 'next/navigation';
 import { Fish, ChevronRight, MapPin, Ruler, Weight, Layers, AlertTriangle } from 'lucide-react';
 import { fishSpecies, getSpeciesBySlug, getRelatedSpecies, type FishSpecies, type ConservationStatus } from '@/lib/species';
 import speciesPhotos from '@/lib/species-photos.json';
+import ResearchPanel from './ResearchPanel';
+import RegulationAlert from './RegulationAlert';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -132,6 +134,9 @@ export default async function SpeciesDetailPage({ params }: PageProps) {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main content */}
             <div className="lg:col-span-2 space-y-8">
+              {/* Regulations — server component, shows only if rules exist */}
+              <RegulationAlert slug={species.slug} />
+
               {/* Description */}
               <section>
                 <p className="text-gray-300 text-lg leading-relaxed">{species.description}</p>
@@ -193,6 +198,9 @@ export default async function SpeciesDetailPage({ params }: PageProps) {
                   ))}
                 </ul>
               </section>
+
+              {/* Research papers */}
+              <ResearchPanel slug={species.slug} />
 
               {/* Regions */}
               <section>

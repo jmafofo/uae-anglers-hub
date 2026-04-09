@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Upload, X, AlertTriangle, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, Upload, X, AlertTriangle, ShoppingBag, Info } from 'lucide-react';
 import { getSupabase } from '@/lib/supabase';
 import { emirates } from '@/lib/spots';
 
