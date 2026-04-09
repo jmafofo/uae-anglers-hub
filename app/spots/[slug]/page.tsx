@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { MapPin, Fish, Clock, Building2, ArrowLeft, Navigation } from 'lucide-react';
+import { MapPin, Fish, Clock, Building2, ArrowLeft, Navigation, BadgeCheck } from 'lucide-react';
 import { fishingSpots, getSpotBySlug, getSpotImage, getSpotGallery } from '@/lib/spots';
 
 interface PageProps {
@@ -186,6 +186,25 @@ export default async function SpotPage({ params }: PageProps) {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* Featured Tackle Partner slot (Business tier sponsorship) */}
+        <div className="mb-8 rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+              <BadgeCheck className="w-4 h-4 text-teal-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] text-gray-600 uppercase tracking-wider mb-0.5">Featured Tackle Partner</p>
+              <p className="text-sm text-gray-500 italic">Sponsor this spot page — your shop here</p>
+            </div>
+          </div>
+          <Link
+            href="/advertise#pricing"
+            className="shrink-0 text-xs font-semibold text-teal-400 hover:text-teal-300 border border-teal-500/30 hover:border-teal-400 px-3 py-1.5 rounded-lg transition-all whitespace-nowrap"
+          >
+            Advertise here →
+          </Link>
         </div>
 
         {/* CTA */}

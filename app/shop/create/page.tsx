@@ -257,6 +257,17 @@ export default function CreateListingPage() {
             </div>
           </div>
 
+          {/* Platform fee disclosure */}
+          <div className="flex items-start gap-2.5 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3">
+            <Info className="w-4 h-4 text-gray-500 mt-0.5 shrink-0" />
+            <p className="text-xs text-gray-500 leading-relaxed">
+              A <span className="text-gray-300 font-semibold">5% platform fee</span> applies to completed sales on your Free account.
+              Upgrade to{' '}
+              <Link href="/advertise" className="text-teal-400 hover:underline">Pro Retailer (3%) or Business (0%)</Link>{' '}
+              to reduce or eliminate your commission. Listing is always free.
+            </p>
+          </div>
+
           <button type="submit" disabled={posting || !form.title.trim() || slotStatus !== 'ok'} className="w-full py-4 rounded-xl bg-teal-500 hover:bg-teal-400 disabled:bg-teal-700 disabled:cursor-not-allowed text-white font-bold transition-colors">
             {posting ? 'Posting...' : 'Post Listing'}
           </button>
