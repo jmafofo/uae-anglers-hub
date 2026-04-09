@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Shield, ChevronRight, AlertTriangle } from 'lucide-react';
 import { getSupabase } from '@/lib/supabase';
 import RegulationsClient, { type Regulation } from './RegulationsClient';
+import staticRegulations from '@/lib/regulations-data';
 
 export const revalidate = 3600;
 
@@ -22,11 +23,14 @@ async function getRegulations(): Promise<Regulation[]> {
       .order('regulation_type', { ascending: true })
       .order('title', { ascending: true });
 
-    if (error) throw error;
-    return (data ?? []) as Regulation[];
+    if (!error && data && data.length > 0) {
+      return data as Regulation[];
+    }
   } catch {
-    return [];
+    // fall through to static data
   }
+  // Use curated static regulations when DB is empty
+  return staticRegulations as unknown as Regulation[];
 }
 
 export default async function RegulationsPage() {
@@ -110,13 +114,15 @@ export default async function RegulationsPage() {
 
         {/* Footer links */}
         <div className="mt-12 pt-8 border-t border-white/10">
-          <h3 className="text-white font-semibold mb-4">Useful Links</h3>
+          <h3 className="text-white font-semibold mb-4">Official Sources & Useful Links</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
             {[
-              { label: 'MOCCAE Official Website', href: 'https://moccae.gov.ae', external: true },
-              { label: 'Fishing Licence Application', href: 'https://moccae.gov.ae/en/services/fishing-license.aspx', external: true },
+              { label: 'MOCCAE — Federal Authority', href: 'https://moccae.gov.ae', external: true },
+              { label: 'Fishing Licence Application (MOCCAE)', href: 'https://moccae.gov.ae/en/services/fishing-license.aspx', external: true },
+              { label: 'EAD — Abu Dhabi Environment Agency', href: 'https://www.ead.gov.ae', external: true },
+              { label: 'Dubai Municipality — Environment', href: 'https://www.dm.gov.ae', external: true },
               { label: 'Browse Species Guide', href: '/species', external: false },
-              { label: 'Catch Reporting (Citizen Science)', href: '/research', external: false },
+              { label: 'Log a Catch (Citizen Science)', href: '/log-catch', external: false },
             ].map(({ label, href, external }) => (
               external ? (
                 <a
