@@ -133,7 +133,7 @@ export default async function CommunityPage() {
                 </div>
               ) : (
                 recentCatches.map((c) => {
-                  const profile = c.profiles as { display_name: string; username: string } | null;
+                  const profile = c.profiles as unknown as { display_name: string; username: string } | null;
                   return (
                     <div key={c.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
                       <div className="w-9 h-9 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center shrink-0">
@@ -169,7 +169,7 @@ export default async function CommunityPage() {
                 </div>
               ) : (
                 recentThreads.map((t) => {
-                  const profile = t.profiles as { display_name: string } | null;
+                  const profile = t.profiles as unknown as { display_name: string } | null;
                   return (
                     <Link
                       key={t.id}
