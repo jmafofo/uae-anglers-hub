@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
-import { MapPin, Fish, Clock, ChevronRight } from 'lucide-react';
+import { MapPin, Fish, Clock, ChevronRight, Anchor } from 'lucide-react';
 import { fishingSpots, emirates, getSpotImage } from '@/lib/spots';
 
 export const metadata: Metadata = {
@@ -22,15 +22,63 @@ export default async function SpotsPage({ searchParams }: PageProps) {
     : fishingSpots;
 
   return (
-    <div className="min-h-screen pt-20 px-4 pb-16">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-10">
-          <h1 className="text-4xl font-extrabold text-white mb-3">UAE Fishing Spots</h1>
-          <p className="text-gray-400 text-lg">
+    <div className="min-h-screen pb-16">
+
+      {/* ── Hero ─────────────────────────────────────────────── */}
+      <section className="relative h-[420px] sm:h-[500px] w-full overflow-hidden">
+        {/* Background photo */}
+        <Image
+          src="/spot-photos/hameem-beach.jpg"
+          alt="Hameem Beach at sunset — UAE fishing"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+
+        {/* Dark overlay — heavier at bottom so text pops */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1a] via-[#0a0f1a]/60 to-[#0a0f1a]/20" />
+
+        {/* Content */}
+        <div className="absolute inset-0 flex flex-col justify-end px-4 pb-10 max-w-6xl mx-auto w-full left-0 right-0">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="inline-flex items-center gap-1.5 bg-teal-500/20 border border-teal-500/40 text-teal-400 text-xs font-medium px-3 py-1 rounded-full backdrop-blur-sm">
+              <Anchor className="w-3.5 h-3.5" />
+              UAE Fishing Spots
+            </span>
+          </div>
+
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-3 leading-tight drop-shadow-lg">
+            Find Your Next
+            <br />
+            <span className="text-transparent bg-clip-text"
+              style={{ backgroundImage: 'linear-gradient(135deg, #00d4aa, #8ab4d4)' }}>
+              Perfect Spot
+            </span>
+          </h1>
+
+          <p className="text-gray-300 text-base sm:text-lg max-w-xl leading-relaxed drop-shadow">
             {fishingSpots.length} verified locations across all 7 Emirates — GPS-tagged, species-listed, community-rated.
           </p>
+
+          {/* Quick stats */}
+          <div className="flex gap-5 mt-5 flex-wrap">
+            {[
+              { value: fishingSpots.length,                                        label: 'Spots' },
+              { value: fishingSpots.filter(s => s.accessType === 'Free').length,   label: 'Free Access' },
+              { value: [...new Set(fishingSpots.flatMap(s => s.species))].length,  label: 'Species' },
+            ].map(({ value, label }) => (
+              <div key={label} className="text-center">
+                <p className="text-2xl font-extrabold text-teal-400">{value}</p>
+                <p className="text-gray-400 text-xs">{label}</p>
+              </div>
+            ))}
+          </div>
         </div>
+      </section>
+
+      {/* ── Filters + grid ───────────────────────────────────── */}
+      <div className="max-w-6xl mx-auto px-4 pt-10">
 
         {/* Emirate filter */}
         <div className="flex flex-wrap gap-2 mb-10">
@@ -118,8 +166,8 @@ export default async function SpotsPage({ searchParams }: PageProps) {
               </div>
             </Link>
           ))}
-        </div>
-      </div>
+        </div>{/* end spots grid */}
+      </div>{/* end max-w-6xl */}
     </div>
   );
 }
