@@ -23,13 +23,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// Service-role client — reads across all users for public map data
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
-
 export async function GET(req: NextRequest) {
+  // Lazy-initialize inside the handler so missing env vars fail at request
+  // time (with a useful error) rather than crashing the build
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey  = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceKey) {
+    console.error('[sightings/map] Missing Supabase env vars');
+    return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
+  }
+
+  // Service-role client — reads across all users for public map data
+  const supabase = createClient(supabaseUrl, serviceKey);
   const { searchParams } = new URL(req.url);
 
   const bbox   = searchParams.get('bbox');   // "minLat,minLng,maxLat,maxLng"
