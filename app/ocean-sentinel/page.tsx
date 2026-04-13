@@ -5,37 +5,234 @@ import { useState } from 'react';
 import { Fish, WifiOff, Database, Link as LinkIcon, ChevronRight, Smartphone, Star, X, Bell } from 'lucide-react';
 import { fishSpecies } from '@/lib/species';
 
+// ── Realistic phone screen mockups ───────────────────────────────────────────
+
+function PhoneHomeScreen() {
+  return (
+    <div className="w-full h-full flex flex-col" style={{ background: '#0a1628', fontFamily: 'system-ui, sans-serif' }}>
+      {/* Status bar */}
+      <div className="flex justify-between items-center px-3 pt-2 pb-1">
+        <span style={{ color: '#8ab4d4', fontSize: 7 }}>9:41</span>
+        <div className="flex gap-1 items-center">
+          <div style={{ width: 8, height: 5, border: '1px solid #8ab4d4', borderRadius: 1.5, position: 'relative' }}>
+            <div style={{ position: 'absolute', top: 1, left: 1, right: 1, bottom: 1, background: '#00d4aa', borderRadius: 1 }} />
+          </div>
+        </div>
+      </div>
+      {/* Header */}
+      <div className="px-3 pt-1 pb-2" style={{ borderBottom: '1px solid #142954' }}>
+        <div style={{ color: '#e8f4fd', fontWeight: 800, fontSize: 11 }}>Ocean Sentinel</div>
+        <div style={{ color: '#8ab4d4', fontSize: 7, marginTop: 1 }}>UAE Fish Identification</div>
+      </div>
+      {/* Quick action */}
+      <div className="px-3 pt-2">
+        <div className="rounded-lg flex items-center justify-center gap-1.5" style={{ background: '#00d4aa', padding: '6px 0', marginBottom: 8 }}>
+          <span style={{ fontSize: 10 }}>📷</span>
+          <span style={{ color: '#0a1628', fontWeight: 700, fontSize: 8 }}>Scan Fish</span>
+        </div>
+        <div style={{ color: '#8ab4d4', fontSize: 7, marginBottom: 6, fontWeight: 600 }}>RECENT IDENTIFICATIONS</div>
+        {[
+          { name: 'Sobaity Seabream', conf: 85, time: '2h ago', color: '#00d4aa' },
+          { name: 'Yellowfin Tuna', conf: 91, time: '1d ago', color: '#00d4aa' },
+          { name: 'Unidentified ❓', conf: 32, time: '2d ago', color: '#ffb74d' },
+        ].map((item) => (
+          <div key={item.name} className="flex items-center justify-between rounded-lg mb-1.5" style={{ background: '#0f2044', padding: '5px 7px' }}>
+            <div>
+              <div style={{ color: '#e8f4fd', fontSize: 7.5, fontWeight: 600 }}>{item.name}</div>
+              <div style={{ color: '#8ab4d4', fontSize: 6.5 }}>{item.time}</div>
+            </div>
+            <div style={{ color: item.color, fontSize: 7.5, fontWeight: 700 }}>{item.conf}%</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PhoneCameraScreen() {
+  return (
+    <div className="w-full h-full flex flex-col relative" style={{ background: '#000' }}>
+      {/* Top bar */}
+      <div className="flex justify-between items-center px-3 py-2" style={{ background: 'rgba(0,0,0,0.6)' }}>
+        <span style={{ fontSize: 9 }}>⚡</span>
+        <span style={{ color: '#fff', fontWeight: 700, fontSize: 8 }}>Fish Scanner</span>
+        <span style={{ fontSize: 9 }}>🔄</span>
+      </div>
+      {/* Viewfinder area */}
+      <div className="flex-1 flex flex-col items-center justify-center relative">
+        {/* Simulated water/scene */}
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg, #0d3a4a 0%, #051a25 100%)' }} />
+        {/* Corner brackets */}
+        <div className="relative" style={{ width: 70, height: 70, zIndex: 2 }}>
+          {[
+            { top: 0, left: 0, borderTop: '2px solid #00d4aa', borderLeft: '2px solid #00d4aa', borderRadius: '2px 0 0 0' },
+            { top: 0, right: 0, borderTop: '2px solid #00d4aa', borderRight: '2px solid #00d4aa', borderRadius: '0 2px 0 0' },
+            { bottom: 0, left: 0, borderBottom: '2px solid #00d4aa', borderLeft: '2px solid #00d4aa', borderRadius: '0 0 0 2px' },
+            { bottom: 0, right: 0, borderBottom: '2px solid #00d4aa', borderRight: '2px solid #00d4aa', borderRadius: '0 0 2px 0' },
+          ].map((style, i) => (
+            <div key={i} style={{ position: 'absolute', width: 14, height: 14, ...style }} />
+          ))}
+          {/* Fish silhouette */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span style={{ fontSize: 22, opacity: 0.7 }}>🐟</span>
+          </div>
+        </div>
+        <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 6.5, marginTop: 6, zIndex: 2 }}>Centre the fish in the frame</div>
+        {/* GPS badge */}
+        <div className="flex items-center gap-1 rounded-full px-2 py-0.5 mt-2" style={{ background: 'rgba(0,212,170,0.2)', border: '1px solid #00d4aa', zIndex: 2 }}>
+          <span style={{ fontSize: 6 }}>📍</span>
+          <span style={{ color: '#00d4aa', fontSize: 6, fontWeight: 700 }}>GPS</span>
+        </div>
+      </div>
+      {/* Bottom controls */}
+      <div className="flex items-center justify-around px-4 py-3" style={{ background: 'rgba(0,0,0,0.6)' }}>
+        <span style={{ fontSize: 12 }}>🖼</span>
+        <div className="rounded-full flex items-center justify-center" style={{ width: 28, height: 28, border: '3px solid #fff' }}>
+          <div className="rounded-full" style={{ width: 20, height: 20, background: '#fff' }} />
+        </div>
+        <div style={{ width: 24 }} />
+      </div>
+    </div>
+  );
+}
+
+function PhoneResultScreen() {
+  return (
+    <div className="w-full h-full flex flex-col" style={{ background: '#0a1628' }}>
+      <div className="px-3 pt-3 pb-2 flex items-center gap-2" style={{ borderBottom: '1px solid #142954' }}>
+        <span style={{ fontSize: 10 }}>←</span>
+        <span style={{ color: '#e8f4fd', fontWeight: 700, fontSize: 9 }}>Identification Result</span>
+      </div>
+      {/* Fish image placeholder */}
+      <div className="mx-3 mt-2 rounded-xl flex items-center justify-center" style={{ background: '#0f2044', height: 44, border: '1px solid #142954' }}>
+        <span style={{ fontSize: 26 }}>🐟</span>
+      </div>
+      {/* Top result */}
+      <div className="mx-3 mt-2 rounded-xl p-2" style={{ background: '#0f2044', border: '1px solid #142954' }}>
+        <div className="flex justify-between items-start mb-1">
+          <div>
+            <div style={{ color: '#e8f4fd', fontWeight: 800, fontSize: 9 }}>Sobaity Seabream</div>
+            <div style={{ color: '#8ab4d4', fontSize: 7, fontStyle: 'italic' }}>Sparidentex hasta</div>
+          </div>
+          <div style={{ background: 'rgba(0,212,170,0.15)', border: '1px solid #00d4aa', borderRadius: 6, padding: '2px 5px' }}>
+            <span style={{ color: '#00d4aa', fontWeight: 700, fontSize: 8 }}>85%</span>
+          </div>
+        </div>
+        {/* Confidence bar */}
+        <div className="rounded-full overflow-hidden" style={{ height: 4, background: '#142954' }}>
+          <div className="h-full rounded-full" style={{ width: '85%', background: '#00d4aa' }} />
+        </div>
+        <div style={{ color: '#8ab4d4', fontSize: 6, marginTop: 3 }}>🐟 Pointed snout · yellow fin tips · Persian Gulf</div>
+      </div>
+      {/* Alternatives */}
+      <div className="px-3 mt-2">
+        <div style={{ color: '#8ab4d4', fontSize: 6.5, fontWeight: 600, marginBottom: 4 }}>ALTERNATIVES</div>
+        {[{ name: 'Emperor Bream', pct: 52 }, { name: 'Silver Grunt', pct: 31 }].map((a) => (
+          <div key={a.name} className="flex items-center justify-between rounded-lg mb-1" style={{ background: '#0f2044', padding: '4px 7px' }}>
+            <span style={{ color: '#c5dff0', fontSize: 7 }}>{a.name}</span>
+            <span style={{ color: '#8ab4d4', fontSize: 7 }}>{a.pct}%</span>
+          </div>
+        ))}
+      </div>
+      {/* Save button */}
+      <div className="mx-3 mt-auto mb-2 rounded-xl flex items-center justify-center gap-1" style={{ background: '#00d4aa', padding: '7px 0' }}>
+        <span style={{ fontSize: 8 }}>✓</span>
+        <span style={{ color: '#0a1628', fontWeight: 700, fontSize: 8 }}>Save to Diary</span>
+      </div>
+    </div>
+  );
+}
+
+function PhoneDetailScreen() {
+  return (
+    <div className="w-full h-full flex flex-col" style={{ background: '#0a1628' }}>
+      <div className="px-3 pt-3 pb-2 flex items-center gap-2" style={{ borderBottom: '1px solid #142954' }}>
+        <span style={{ fontSize: 10 }}>←</span>
+        <span style={{ color: '#e8f4fd', fontWeight: 700, fontSize: 9 }}>Species Detail</span>
+      </div>
+      <div className="px-3 pt-2">
+        <div style={{ color: '#e8f4fd', fontWeight: 800, fontSize: 11 }}>Sobaity Seabream</div>
+        <div style={{ color: '#8ab4d4', fontSize: 7.5, fontStyle: 'italic', marginBottom: 6 }}>Sparidentex hasta</div>
+        {/* Chips */}
+        <div className="flex flex-wrap gap-1 mb-3">
+          {[
+            { label: 'Reef', color: '#00d4aa' },
+            { label: 'Persian Gulf', color: '#4fc3f7' },
+            { label: 'Edible', color: '#81c784' },
+            { label: 'LC', color: '#aaa' },
+          ].map((chip) => (
+            <span key={chip.label} style={{ background: '#0f2044', color: chip.color, fontSize: 6.5, fontWeight: 600, borderRadius: 5, padding: '2px 6px', border: `1px solid ${chip.color}30` }}>
+              {chip.label}
+            </span>
+          ))}
+        </div>
+        {/* Info rows */}
+        {[
+          { k: 'Max size', v: '75 cm' },
+          { k: 'Max weight', v: '12 kg' },
+          { k: 'Depth', v: '10–80 m' },
+          { k: 'Diet', v: 'Crustaceans, fish' },
+        ].map(({ k, v }) => (
+          <div key={k} className="flex justify-between mb-1" style={{ borderBottom: '1px solid #0f2044', paddingBottom: 3 }}>
+            <span style={{ color: '#8ab4d4', fontSize: 6.5 }}>{k}</span>
+            <span style={{ color: '#e8f4fd', fontSize: 6.5, fontWeight: 600 }}>{v}</span>
+          </div>
+        ))}
+        <div style={{ color: '#c5dff0', fontSize: 6.5, lineHeight: 1.5, marginTop: 5 }}>
+          A prized sport fish of the Arabian Gulf, often found around rocky reefs and coral patches...
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PhoneCatchesScreen() {
+  return (
+    <div className="w-full h-full flex flex-col" style={{ background: '#0a1628' }}>
+      <div className="px-3 pt-3 pb-2" style={{ borderBottom: '1px solid #142954' }}>
+        <div style={{ color: '#e8f4fd', fontWeight: 800, fontSize: 11 }}>My Catches</div>
+        <div style={{ color: '#8ab4d4', fontSize: 7 }}>3 recorded this week</div>
+      </div>
+      <div className="px-3 pt-2 flex-1">
+        {[
+          { name: 'Sobaity Seabream', sci: 'Sparidentex hasta', time: 'Today, 09:14', loc: 'Dubai Marina', conf: 85 },
+          { name: 'Yellowfin Tuna', sci: 'Thunnus albacares', time: 'Yesterday', loc: 'Fujairah offshore', conf: 91 },
+          { name: 'Unidentified', sci: 'unnamed_0007', time: '2 days ago', loc: 'Abu Dhabi', conf: 32 },
+        ].map((c, i) => (
+          <div key={i} className="rounded-xl mb-2 p-2" style={{ background: '#0f2044', border: '1px solid #142954' }}>
+            <div className="flex justify-between items-start">
+              <div>
+                <div style={{ color: '#e8f4fd', fontSize: 8, fontWeight: 700 }}>{c.name}</div>
+                <div style={{ color: '#8ab4d4', fontSize: 6, fontStyle: 'italic' }}>{c.sci}</div>
+              </div>
+              <div style={{ color: c.conf > 60 ? '#00d4aa' : '#ffb74d', fontSize: 7.5, fontWeight: 700 }}>{c.conf}%</div>
+            </div>
+            <div className="flex gap-2 mt-1">
+              <span style={{ color: '#4a7fa8', fontSize: 6 }}>🕐 {c.time}</span>
+              <span style={{ color: '#4a7fa8', fontSize: 6 }}>📍 {c.loc}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      {/* Tab bar */}
+      <div className="flex justify-around items-center py-2" style={{ borderTop: '1px solid #142954' }}>
+        {['🏠', '📷', '🗺️', '📋'].map((icon, i) => (
+          <div key={i} className="flex flex-col items-center gap-0.5">
+            <span style={{ fontSize: 10, opacity: i === 3 ? 1 : 0.4 }}>{icon}</span>
+            <div style={{ width: 3, height: 3, borderRadius: '50%', background: i === 3 ? '#00d4aa' : 'transparent' }} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const APP_SCREENS = [
-  {
-    label: 'Home Screen',
-    gradient: 'from-teal-900/80 to-[#0a0f1a]',
-    icon: '🏠',
-    desc: 'Quick access to camera and recent IDs',
-  },
-  {
-    label: 'Camera Capture',
-    gradient: 'from-blue-900/80 to-teal-900/80',
-    icon: '📷',
-    desc: 'Point & shoot — works in any light',
-  },
-  {
-    label: 'Species Result',
-    gradient: 'from-cyan-900/80 to-blue-900/80',
-    icon: '🐟',
-    desc: 'Instant ID with confidence score',
-  },
-  {
-    label: 'Species Detail',
-    gradient: 'from-indigo-900/80 to-cyan-900/80',
-    icon: '📖',
-    desc: 'Full info: diet, habitat, conservation',
-  },
-  {
-    label: 'My Catches',
-    gradient: 'from-teal-900/80 to-indigo-900/80',
-    icon: '📊',
-    desc: 'Personal catch history & sync',
-  },
+  { label: 'Home Screen',    desc: 'Quick access to camera and recent IDs', Screen: PhoneHomeScreen },
+  { label: 'Camera Capture', desc: 'Point & shoot with GPS lock',            Screen: PhoneCameraScreen },
+  { label: 'Species Result', desc: 'Top-3 candidates with visual evidence',  Screen: PhoneResultScreen },
+  { label: 'Species Detail', desc: 'Full info: diet, habitat, conservation', Screen: PhoneDetailScreen },
+  { label: 'My Catches',     desc: 'Personal catch history & cloud sync',    Screen: PhoneCatchesScreen },
 ];
 
 export default function OceanSentinelPage() {
@@ -82,8 +279,8 @@ export default function OceanSentinelPage() {
           </h1>
           <p className="text-2xl font-semibold text-teal-400 mb-5">AI Fish Identification App</p>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto mb-8">
-            Identify any fish species instantly — works fully offline, perfect for boat trips.
-            Powered by TensorFlow AI, trained on UAE waters.
+            Photograph a fish, get the species name in seconds — with GPS-matched results filtered
+            to your exact UAE coast. Powered by Claude Vision AI, built for the angling community.
           </p>
 
           {/* Download buttons */}
@@ -194,15 +391,15 @@ export default function OceanSentinelPage() {
             {[
               {
                 icon: Star,
-                title: 'AI-Powered ID',
-                desc: `TensorFlow AI identifies ${speciesCount}+ UAE species from a photo. Top-3 predictions with confidence scores so you always have context.`,
+                title: 'Claude Vision AI',
+                desc: `Anthropic Claude Vision identifies ${speciesCount}+ UAE species from a single photo. Returns top-3 candidates with confidence scores and the visual features that led to each ID.`,
                 color: 'text-teal-400 bg-teal-500/10',
                 badge: null,
               },
               {
                 icon: WifiOff,
-                title: 'Works Offline',
-                desc: 'Download once, identify anywhere — no signal needed at sea. The full AI model and species database runs entirely on your device.',
+                title: 'GPS-Filtered Results',
+                desc: 'Your GPS position determines which coast you\'re fishing — Persian Gulf or Gulf of Oman. The AI only considers species native to that zone, cutting false matches dramatically.',
                 color: 'text-blue-400 bg-blue-500/10',
                 badge: 'Key Feature',
               },
@@ -244,25 +441,25 @@ export default function OceanSentinelPage() {
           <h2 className="text-2xl font-bold text-white mb-3 text-center">App Preview</h2>
           <p className="text-gray-400 text-center mb-10 text-sm">5 screens designed for use in bright sunlight, one-handed, on a moving boat.</p>
           <div className="flex flex-wrap justify-center gap-5">
-            {APP_SCREENS.map((screen) => (
-              <div key={screen.label} className="flex flex-col items-center gap-3">
+            {APP_SCREENS.map(({ label, desc, Screen }) => (
+              <div key={label} className="flex flex-col items-center gap-3">
                 {/* Phone frame */}
                 <div
-                  className={`w-36 aspect-[9/19] rounded-3xl bg-gradient-to-b ${screen.gradient} border border-white/10 flex flex-col items-center justify-center gap-2 p-3 shadow-2xl`}
+                  className="relative overflow-hidden shadow-2xl"
+                  style={{
+                    width: 144,
+                    aspectRatio: '9/19',
+                    borderRadius: 24,
+                    border: '2px solid rgba(255,255,255,0.12)',
+                    boxShadow: '0 0 0 1px rgba(0,212,170,0.15), 0 25px 50px rgba(0,0,0,0.6)',
+                  }}
                 >
-                  <div className="w-8 h-1.5 rounded-full bg-white/20 mb-1" /> {/* notch */}
-                  <div className="text-3xl">{screen.icon}</div>
-                  <div className="w-full space-y-1.5 mt-2">
-                    <div className="h-2 bg-white/10 rounded-full" />
-                    <div className="h-1.5 bg-white/5 rounded-full w-4/5" />
-                    <div className="h-1.5 bg-white/5 rounded-full w-2/3" />
-                  </div>
-                  <div className="w-full h-6 rounded-lg bg-teal-500/30 mt-auto flex items-center justify-center">
-                    <div className="h-1.5 w-16 bg-teal-400/40 rounded-full" />
-                  </div>
+                  {/* Notch */}
+                  <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', zIndex: 10, width: 32, height: 6, background: 'rgba(0,0,0,0.8)', borderRadius: '0 0 8px 8px' }} />
+                  <Screen />
                 </div>
-                <p className="text-white text-xs font-medium">{screen.label}</p>
-                <p className="text-gray-500 text-xs text-center max-w-[144px]">{screen.desc}</p>
+                <p className="text-white text-xs font-semibold">{label}</p>
+                <p className="text-gray-500 text-xs text-center" style={{ maxWidth: 144 }}>{desc}</p>
               </div>
             ))}
           </div>
@@ -273,12 +470,12 @@ export default function OceanSentinelPage() {
           <h2 className="text-2xl font-bold text-white mb-6">Technical Details</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-sm">
             {[
-              { label: 'AI Framework', value: 'TensorFlow Lite' },
-              { label: 'Model Size', value: '~8 MB on device' },
-              { label: 'Species Coverage', value: `${speciesCount}+ UAE species` },
-              { label: 'Accuracy', value: '91%+ top-1 accuracy' },
-              { label: 'Platforms', value: 'iOS 15+ / Android 10+' },
-              { label: 'Connectivity', value: 'Full offline support' },
+              { label: 'AI Model',          value: 'Claude Vision (Sonnet)' },
+              { label: 'Location Aware',    value: 'GPS coast filtering' },
+              { label: 'Species Coverage',  value: `${speciesCount}+ UAE species` },
+              { label: 'ID Candidates',     value: 'Top 3 with evidence' },
+              { label: 'Platforms',         value: 'iOS 15+ / Android 10+' },
+              { label: 'Data Sync',         value: 'uaeangler.com cloud' },
             ].map(({ label, value }) => (
               <div key={label}>
                 <p className="text-gray-500 text-xs mb-1">{label}</p>
