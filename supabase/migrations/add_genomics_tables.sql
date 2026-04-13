@@ -171,7 +171,7 @@ VALUES
    'Reef','Persian Gulf',NULL,'pending','Community',
    NULL,NULL,NULL,NULL,NULL,
    NULL,NULL,NULL,
-   ARRAY[],'pending',NULL,'pending'),
+   ARRAY[]::text[],'pending',NULL,'pending'),
 
   ('spangled-emperor','Spangled Emperor','Lethrinus nebulosus','Lethrinidae','Perciformes',
    'Reef','Both','GCA_014529365.1','scaffold','NCBI',
