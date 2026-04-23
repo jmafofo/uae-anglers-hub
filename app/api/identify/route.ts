@@ -26,7 +26,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { ImageBlockParam } from '@anthropic-ai/sdk/resources/messages';
 import Anthropic from '@anthropic-ai/sdk';
-import { requireAuth, getUserSupabase } from '@/lib/api-auth';
+import { getUserSupabase } from '@/lib/api-auth';
+import { createClient } from '@supabase/supabase-js';
 import { fishSpecies, type FishSpecies } from '@/lib/species';
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -74,9 +75,21 @@ async function generateUnnamedKey(token: string): Promise<string> {
 // ── Route handler ─────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
-  // ── Auth ──────────────────────────────────────────────────────────────────
-  const auth = await requireAuth(req);
-  if (!auth.ok) return auth.response;
+  // ── Optional auth — identification works for all users ────────────────────
+  // Authenticated users get unnamed_key generation for catch logging.
+  // Unauthenticated users (guests, offline anglers) can still identify fish.
+  const authHeader = req.headers.get('authorization');
+  let userToken: string | null = null;
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.slice(7);
+    const sb = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { global: { headers: { Authorization: `Bearer ${token}` } } },
+    );
+    const { data: { user } } = await sb.auth.getUser();
+    if (user) userToken = token;
+  }
 
   // ── Parse body ────────────────────────────────────────────────────────────
   let body: {
@@ -113,24 +126,70 @@ export async function POST(req: NextRequest) {
     .join('\n');
 
   // ── System prompt ─────────────────────────────────────────────────────────
-  const systemPrompt = `You are a senior marine biologist specialising in UAE and Arabian Gulf fish species.
-Identify the fish in the photo from the species list below. Respond ONLY with valid JSON.
+  const systemPrompt = `You are a senior marine biologist specialising in the fish fauna of the UAE, Arabian Gulf, and Gulf of Oman. You have decades of field experience identifying fish from angler beach photos.
+Identify the fish in the photo. Respond ONLY with valid JSON — no markdown, no text outside the JSON object.
 
 ${locationCtx ? locationCtx + '\n' : ''}${coast ? `Focus on ${coast} species — the angler is fishing in this region.\n` : ''}
-Known UAE species (${relevantSpecies.length} species):
+━━━ CRITICAL FIELD CONDITIONS ━━━
+UAE beach fishing photos are taken immediately after landing. The fish is typically:
+• Alive and thrashing on wet sand — coated in a layer of sand, mud, or algae
+• Lying at an awkward angle; may be partially buried
+• Shot quickly with a phone camera in harsh light
+
+CONSEQUENCE: Colour, scale pattern, lateral stripe colour, and fin colour are COMPLETELY UNRELIABLE and must be IGNORED.
+You MUST identify from body structure and geometry alone.
+
+━━━ STEP 1 — TRIAGE WHAT IS VISIBLE ━━━
+Note which body parts you can actually resolve through the dirt/sand before classifying:
+• RELIABLE EVEN WHEN DIRTY: body outline/silhouette, caudal fin shape, mouth shape, snout profile, eye position, body depth-to-length ratio
+• OFTEN VISIBLE: dorsal fin count and general shape, head profile, pectoral fin length
+• UNRELIABLE WHEN DIRTY: scale pattern, stripe colour, fin colour, belly markings
+
+━━━ STEP 2 — MEASURE THE SILHOUETTE ━━━
+Estimate body depth / standard length (depth at deepest point ÷ length excluding tail):
+  • > 0.45 → very deep/disc-shaped (deep Sparidae, Siganidae)
+  • 0.30–0.45 → moderately deep (Haemulidae, most Lethrinidae, Serranidae)
+  • 0.15–0.30 → elongated/fusiform (Mugilidae, Carangidae, Scombridae)
+  • < 0.15 → very elongated (Sphyraenidae, Trichiuridae)
+Also note: head size (large vs normal), caudal peduncle (slender vs thick), dorsal hump position.
+
+━━━ STEP 3 — DIRT-RESISTANT STRUCTURAL FEATURES ━━━
+Observe what IS visible:
+• Snout: blunt/rounded vs pointed/conical vs depressed/flat
+• Mouth: terminal/inferior/superior; size relative to head
+• Eye: large vs small; high on head vs mid-lateral
+• Dorsal fin: single continuous vs two separate fins; notched or smooth
+• Caudal fin: deeply forked / lunate / emarginate / truncate / rounded — often mud-free
+• Lateral line path: curves sharply downward (Carangidae), runs straight, or arched
+• Preopercle edge: smooth vs serrated
+
+━━━ STEP 4 — MATCH TO UAE SPECIES LIST ━━━
+Known UAE species available for this region (${relevantSpecies.length} species):
 ${speciesRef}
 
-Response schema — return your top 3 candidates in descending confidence order:
+Structural guide for common UAE families:
+• Deep body (>0.45) + small mouth → Sparidae or Siganidae
+• Moderate depth (0.30–0.45) + blunt snout + small inferior mouth → Haemulidae (Grunters)
+• Moderate depth + long pointed snout + large mouth → Lethrinidae (Emperors)
+• Moderate depth + large head + wide terminal mouth + rounded tail → Serranidae (Groupers)
+• Elongated (0.15–0.30) + forked tail + lateral line curves down → Carangidae (Jacks/Trevally)
+• Elongated + blunt head + thick fleshy lips → Mugilidae (Mullets)
+• Very elongated (<0.15) + pointed snout + two separated dorsal fins → Sphyraenidae (Barracuda)
+• Very elongated + tapered + two dorsal fins close together → Scombridae/Scomberomorus (Mackerel)
+• Depressed flat head + ridged body → Platycephalidae (Flathead)
+
+━━━ RESPONSE SCHEMA ━━━
+Return top 5 candidates in descending confidence order:
 {
   "candidates": [
     {
       "matched": true | false,
-      "species_name": "<exact name from list, or null>",
+      "species_name": "<exact name from species list above, or null>",
       "scientific_name": "<scientific name, or null>",
       "confidence": "high" | "medium" | "low",
       "confidence_pct": <0.00–1.00>,
-      "key_features": "<2-3 visual features: fin shape, body profile, coloration, markings>",
-      "reasoning": "<one concise sentence>"
+      "key_features": ["body depth ratio estimate", "snout/mouth description", "fin structure observed", "caudal fin shape"],
+      "reasoning": "<Walk through: which features were visible vs obscured, the proportion estimate, snout/mouth/fin details, and exactly why that points to this species over the alternatives.>"
     }
   ],
   "overall_confidence": "high" | "medium" | "low",
@@ -139,12 +198,14 @@ Response schema — return your top 3 candidates in descending confidence order:
 }
 
 Rules:
-- Only set matched=true when confident the species appears in the list above
-- Always provide up to 3 candidates even if confidence is low — alternatives help curation
-- If truly unidentifiable, return one candidate with matched=false
+- Only set matched=true when confident the species name appears in the list above
+- Always provide up to 5 candidates — alternatives help expert curation
+- If unidentifiable, return one candidate with matched=false
 - Never invent species names not in the list
-- Consider: fin count/shape, body depth ratio, caudal fin shape, lateral line, colour bands/spots
-- UAE fish may differ from textbook photos due to age, sex, season, or turbid water`;
+- key_features MUST be an array of strings, not a single string
+- confidence_pct > 0.85 only when snout, mouth, body proportions, AND caudal fin are all clearly visible
+- If fish is heavily sand-caked and only silhouette is visible, cap confidence_pct at 0.60
+- Never let colour alone drive the ranking`;
 
   // ── Image block ───────────────────────────────────────────────────────────
   const validMime = (mimeType ?? 'image/jpeg') as
@@ -161,8 +222,8 @@ Rules:
   let raw: string;
   try {
     const response = await client.messages.create({
-      model: 'claude-sonnet-4-5-20251001',
-      max_tokens: 1024,
+      model: 'claude-sonnet-4-6',
+      max_tokens: 2048,
       system: systemPrompt,
       messages: [
         {
@@ -171,7 +232,7 @@ Rules:
             imageBlock,
             {
               type: 'text',
-              text: 'Identify this fish. Provide top 3 species candidates with visual evidence. JSON only.',
+              text: 'This fish was just landed on a UAE beach — it may be coated in wet sand or mud. Identify it using structural features only (body proportions, snout, mouth, fin shapes). Return top 5 candidates as JSON only.',
             },
           ],
         },
@@ -191,7 +252,7 @@ Rules:
       scientific_name: string | null;
       confidence: string;
       confidence_pct: number;
-      key_features?: string;
+      key_features?: string | string[];
       reasoning: string;
     }>;
     overall_confidence: string;
@@ -221,11 +282,19 @@ Rules:
       );
       if (!species) return null;
 
+      // Normalise key_features to string[] regardless of what Claude returns
+      const rawFeatures = c.key_features;
+      const key_features: string[] | null = Array.isArray(rawFeatures)
+        ? rawFeatures
+        : typeof rawFeatures === 'string' && rawFeatures.trim()
+          ? rawFeatures.split(/[·•\n]/).map(f => f.trim()).filter(Boolean)
+          : null;
+
       return {
         species,
         confidence: c.confidence ?? 'low',
         confidence_pct: c.confidence_pct ?? CONF_FALLBACK[c.confidence] ?? 0.30,
-        key_features: c.key_features ?? null,
+        key_features,
         reasoning: c.reasoning ?? '',
         rank: idx + 1,
       };
@@ -250,8 +319,8 @@ Rules:
     });
   }
 
-  // ── No match — generate unnamed key ──────────────────────────────────────
-  const unnamed_key = await generateUnnamedKey(auth.token);
+  // ── No match — generate unnamed key (authenticated users only) ───────────
+  const unnamed_key = userToken ? await generateUnnamedKey(userToken) : null;
   return NextResponse.json({
     status:           'unnamed',
     unnamed_key,
