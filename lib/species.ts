@@ -33,6 +33,10 @@ export interface FishSpecies {
   coast: 'Persian Gulf' | 'Gulf of Oman' | 'Both';
   description: string;
   funFacts: string[];
+  /** Dirt-resistant structural morphology hint for AI identification.
+   *  Covers: body depth ratio (BD), snout type, mouth type, caudal fin shape,
+   *  and any unique silhouette features visible even when fish is sand/mud coated. */
+  morphology?: string;
 }
 
 export function slugify(name: string): string {
@@ -2012,6 +2016,120 @@ export const fishSpecies: FishSpecies[] = [
     ],
   },
 ];
+
+// ── Per-species morphology hints ─────────────────────────────────────────────
+// Keyed by species id. These describe dirt-resistant structural features:
+// body depth ratio (BD = max depth ÷ standard length), snout profile, mouth,
+// caudal fin shape, and any unique silhouette marker visible through mud/sand.
+// Used by the AI identification prompt — DO NOT use colour as a marker here.
+export const speciesMorphologyMap: Record<string, string> = {
+  // Serranidae — Groupers (Hammour family)
+  'hammour': 'BD~0.35; large rounded head, wide gaping terminal mouth; single broadly rounded caudal fin; body moderately deep tapering strongly to tail; lower jaw slightly projecting; eyes small relative to large head',
+  'greasy-grouper': 'BD~0.33; similar to Hammour but slightly more elongated; large rounded head; wide terminal mouth; caudal fin truncate to faintly rounded; preopercle with 3 flat spines',
+  'malabar-grouper': 'BD~0.32; very large (to 2m+); elongated body; angular lower jaw projects clearly; caudal fin squared-off/truncate; large head with strongly concave dorsal profile above eye',
+  'blue-spotted-grouper': 'BD~0.38; compact and rounded; very large eye; small pointed head; rounded caudal fin; small protruding lower jaw',
+  'areolate-grouper': 'BD~0.30; moderately elongated; rounded head; truncate to slightly rounded caudal fin; similar silhouette to Greasy Grouper but smaller max size',
+  'duskytail-grouper': 'BD~0.33; moderate depth; rounded head; caudal fin truncate with darkened margin; body stocky',
+  'epaulet-grouper': 'BD~0.35; compact small body (max 50cm); rounded head; rounded caudal; shallow-water build',
+  'minstrel-sweetlip': 'BD~0.38; deep robust body; thick fleshy lips; rounded snout; caudal fin emarginate; Haemulidae build — deeper bodied than emperors',
+  'striped-grouper': 'BD~0.32; small compact grouper; rounded head; rounded caudal; similar to Greasy but much smaller',
+
+  // Lethrinidae — Emperors (Sha\'an family)
+  'spangled-emperor': 'BD~0.35; moderately deep; snout medium-length slightly pointed; strong jaw with fleshy lips; cheek largely scaleless; caudal fin emarginate to forked; continuous dorsal',
+  'longnose-emperor': 'BD~0.30; most elongated Lethrinus; snout very long and pointed — visibly longer than eye diameter by 2×, like a beak; caudal fin forked; clearly distinctive pointed profile',
+  'sky-emperor': 'BD~0.32; moderately elongated; snout medium, slight concave forehead; caudal fin forked; slightly more slender than L. nebulosus',
+  'smalltooth-emperor': 'BD~0.33; moderate depth; snout moderately pointed; small fine teeth; caudal fin emarginate; cheek scaleless; grey-bodied',
+  'snubnose-emperor': 'BD~0.35; snout distinctly blunt and rounded — shortest snout of any UAE Lethrinus; small mouth; caudal fin emarginate; shallow-water build',
+  'orange-striped-emperor': 'BD~0.33; moderate body depth; snout moderate; caudal fin emarginate; smaller emperor (max 50cm)',
+  'pink-ear-emperor': 'BD~0.34; moderate depth; snout medium; caudal fin emarginate; pink-red patch near gill cover (may be visible even when dirty)',
+  'longtail-emperor': 'BD~0.30; elongated; long pointed snout; caudal deeply forked',
+
+  // Sparidae — Sea Breams
+  'long-finned-sea-bream': 'BD~0.48; very deep disc-shaped body; third and fourth dorsal spines greatly elongated (2× rest of fin height) — unique silhouette marker; small terminal mouth; caudal fin emarginate',
+  'sobaity-seabream': 'BD~0.42; deep oval body; blunt rounded snout; small terminal mouth; caudal fin forked; robust sparid build; slightly pointed snout vs Acanthopagrus',
+  'yellowfin-seabream': 'BD~0.42; deep oval body; blunt rounded snout; small terminal mouth; caudal fin forked; robust compact sparid; similar to Sobaity but smaller',
+  'black-seabream': 'BD~0.40; deep oval body; blunt snout; small terminal mouth; caudal fin forked; robust sparid build',
+  'silver-bream': 'BD~0.40; deep oval sparid body; slightly more pointed snout than Acanthopagrus; small terminal mouth; caudal fin forked',
+  'picnic-seabream': 'BD~0.40; deep oval body; blunt snout; small terminal mouth; caudal forked; very common inshore sparid',
+  'onespot-seabream': 'BD~0.38; moderately deep; snout slightly pointed; prominent black spot at pectoral fin base (may be visible through mud); caudal emarginate',
+  'arabian-pandora': 'BD~0.32; slender elongated sparid; pointed snout; small terminal mouth; caudal forked; more elongated than other UAE sparids',
+
+  // Carangidae — Trevally, Jacks, Queenfish, Scads
+  'golden-trevally': 'BD~0.32; moderately deep carangid; toothless very blunt rounded snout (unique — no other UAE trevally has this); lateral line curves sharply downward; caudal deeply forked; enlarged scutes on posterior lateral line',
+  'greater-amberjack': 'BD~0.25; elongated robust; single continuous narrow dorsal fin; deeply forked lunate caudal; caudal peduncle very narrow with keels; lateral line curves only slightly; large head',
+  'blacktip-trevally': 'BD~0.30; moderate depth; oval compressed carangid build; blunt head; deeply forked caudal; curved lateral line with scutes',
+  'malabar-trevally': 'BD~0.28; moderate depth; compressed oval; blunt head; forked caudal; typical carangid build',
+  'queenfish': 'BD~0.20; elongated compressed; small head; large terminal mouth; two separate dorsal fins; deeply forked caudal; very slender elongated body',
+  'needlescaled-queenfish': 'BD~0.18; very slender elongated; small head; large mouth; two dorsal fins; forked caudal; more slender than S. commersonnianus',
+  'snubnose-pompano': 'BD~0.42; very deep disc-shaped carangid; very blunt rounded head (profile nearly vertical); deeply forked caudal; no scutes on lateral line',
+  'indian-pompano': 'BD~0.38; deep carangid; blunt rounded head; forked caudal; smaller than Snubnose Pompano',
+  'indian-threadfish': 'BD~0.35; deep carangid; blunt rounded head; juveniles have very long trailing dorsal/anal fin filaments; adults have forked caudal; steep forehead',
+  'yellow-scad': 'BD~0.20; small slender carangid; small head; yellow lateral stripe (may be visible); forked caudal',
+  'mahi-mahi': 'BD~0.28; compressed elongated; males have steep blunt forehead (near-vertical); single long dorsal fin running almost entire body length; deeply forked caudal; body tapers sharply to peduncle',
+
+  // Scombridae — Mackerel, Tuna, Bonito
+  'spanish-mackerel': 'BD~0.15; very elongated fusiform; two dorsal fins (first triangular, second small); finlets behind second dorsal and anal fin; lunate caudal; narrow caudal peduncle with lateral keels; large terminal mouth',
+  'longtail-tuna': 'BD~0.22; torpedo build; two closely-spaced dorsal fins; small finlets behind; lunate caudal; very narrow caudal peduncle with keels; large head; no swim bladder',
+  'yellowfin-tuna': 'BD~0.22; torpedo build; second dorsal and anal fins elongated sickle-shaped in adults; small finlets; lunate caudal; very narrow caudal peduncle with keels',
+  'mackerel-tuna': 'BD~0.20; small compact tuna torpedo; two dorsal fins; finlets; lunate caudal; wavy dark dorsal markings (may be visible)',
+  'striped-bonito': 'BD~0.18; elongated fusiform; two dorsal fins; lunate caudal; narrow peduncle',
+  'indian-mackerel': 'BD~0.18; small elongated scombrid; two dorsal fins close together; small finlets; forked caudal; large eyes',
+
+  // Lutjanidae — Snappers
+  'mangrove-red-snapper': 'BD~0.32; moderately deep snapper; slightly concave profile above eye; pointed snout; large terminal mouth with visible canine teeth; caudal fin emarginate to slightly forked; continuous dorsal with notch',
+  'malabar-blood-snapper': 'BD~0.35; deep-bodied snapper; pointed snout; large mouth with prominent canines; caudal emarginate; more deep-bodied than other UAE snappers',
+  'crimson-snapper': 'BD~0.35; deep-bodied; pointed snout; large mouth; caudal emarginate; similar to Malabar blood snapper',
+  'one-spot-snapper': 'BD~0.30; moderately deep snapper; pointed snout; single black spot at lateral line under dorsal fin (visible through mud); caudal emarginate',
+  'five-lined-snapper': 'BD~0.30; moderately deep; pointed snout; caudal emarginate; small (max 38cm)',
+  'bigeye-snapper': 'BD~0.28; slender snapper; notably large eyes (diagnostic); pointed snout; caudal slightly forked',
+  'pinjal-snapper': 'BD~0.33; moderately deep; pointed snout; large mouth; caudal emarginate; larger snapper (max 80cm)',
+
+  // Haemulidae — Grunts / Sweetlips
+  'silver-grunt': 'BD~0.38; stout oval body; blunt rounded snout; small inferior-to-terminal mouth; thick lips; caudal emarginate; robust build',
+  'black-spotted-rubberlip': 'BD~0.40; deep robust body; notably thick rubbery lips; blunt rounded snout; caudal emarginate to rounded; Haemulidae build',
+  'painted-sweetlips': 'BD~0.38; deep robust body; thick lips; blunt snout; caudal emarginate; adults mottled grey-yellow; juveniles dramatically different',
+
+  // Nemipteridae — Threadfin Bream
+  'sultan-ibrahim': 'BD~0.25; slender elongated; lower caudal lobe extends into long trailing filament (unique in UAE — highly diagnostic); pointed snout; moderate mouth',
+  'notchedfin-threadfin-bream': 'BD~0.25; slender; distinctive notch in lower caudal lobe; pink-red body',
+  'arabian-monocle-bream': 'BD~0.30; moderate; silvery; preorbital spine before eye characteristic of genus',
+
+  // Platycephalidae — Flathead
+  'indian-flathead': 'BD~0.08; extremely depressed flat head — viewed from side looks like a shovel; body very elongated and tapered; eyes on top of head; two separate dorsal fins; caudal rounded; ridged head with sharp spines on gill covers',
+
+  // Rachycentridae — Cobia
+  'cobia': 'BD~0.15; long torpedo-shaped body; broad flat head; lower jaw slightly projecting; 8-9 short isolated spines before long second dorsal fin; caudal fin lunate; elongated body with dark brown back',
+
+  // Mugilidae — Mullet
+  'large-scale-mullet': 'BD~0.22; elongated cylindrical; blunt flat-topped head; thick fleshy lips; two widely separated dorsal fins; forked caudal; no lateral line; large scales clearly visible',
+  'bluespot-mullet': 'BD~0.22; elongated cylindrical; blunt flat-topped head; thick lips; two separated dorsal fins; forked caudal; similar to Liza but brighter iridescent spot at pectoral base',
+
+  // Siganidae — Rabbitfish
+  'streaked-spinefoot': 'BD~0.40; deep oval body; small rabbit-like terminal mouth; venomous spines prominent on dorsal and ventral fins; caudal forked; snout blunt rounded',
+  'orange-spotted-spinefoot': 'BD~0.38; similar to Streaked Spinefoot; deep oval; small terminal mouth; prominent spines; forked caudal',
+  'white-spotted-rabbitfish': 'BD~0.38; deep oval; small terminal mouth; prominent spines; forked caudal; smaller (max 30cm)',
+
+  // Ariidae — Sea Catfish
+  'giant-catfish': 'BD~0.18; broad flat depressed head; no scales; three pairs of long barbels (2 maxillary, 4 mental); strong first dorsal and pectoral spines; adipose fin present; inferior mouth; elongated body',
+
+  // Sphyraenidae — Barracuda
+  'great-barracuda': 'BD~0.10; very elongated; two widely separated dorsal fins; pointed snout with prominent underbite (lower jaw protrudes); large terminal mouth with visible fang-like teeth; lunate caudal; lateral line runs almost straight',
+
+  // Sillaginidae — Sillago
+  'silver-sillago': 'BD~0.15; very slender elongated; pointed snout; small terminal mouth; two dorsal fins; caudal slightly forked; tapered tail region',
+
+  // Scorpaenidae
+  'lionfish': 'BD~0.35; compressed body; extremely large fan-like pectoral fins spread wide; 13 long dorsal spines; small head with small mouth; rounded caudal; unmistakable body outline',
+
+  // Muraenidae
+  'giant-moray': 'BD~n/a; eel body — no pectoral fins; continuous dorsal-caudal-anal fin ribbon; large mouth with visible teeth; very thick muscular body tapering to tail; no scales',
+
+  // Remora
+  'remora': 'BD~0.12; elongated; distinctive oval suction disc on top of flat head (modified first dorsal fin); flattened head; long slender body; forked caudal',
+
+  // Belonidae
+  'yellowfin-needlefish': 'BD~0.04; extremely elongated needle-like body; both jaws greatly extended forming long beak; no visible spines; small forked caudal; skims at surface',
+};
 
 export const habitatCategories: HabitatCategory[] = [
   'Reef', 'Pelagic', 'Demersal', 'Coastal', 'Open Ocean', 'Other',
