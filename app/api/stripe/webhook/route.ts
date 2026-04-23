@@ -34,7 +34,14 @@ export async function POST(req: NextRequest) {
     const { userId, type, qty, listingId } = session.metadata ?? {};
     if (!userId) return NextResponse.json({ ok: true });
 
-    if (type === 'pro') {
+    if (type === 'ocean_sentinel') {
+      await sb.from('profiles').update({
+        ocean_sentinel_premium: true,
+        ocean_sentinel_premium_until: null, // null = active subscription, no hard expiry
+      }).eq('id', userId);
+    }
+
+    else if (type === 'pro') {
       await sb.from('profiles').update({
         subscription_tier: 'pro',
         subscription_status: 'active',
@@ -87,18 +94,26 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ── customer.subscription.deleted → downgrade to free ────────
+  // ── customer.subscription.deleted → downgrade ────────────────
   if (event.type === 'customer.subscription.deleted') {
     const subscription = event.data.object as Stripe.Subscription;
     const userId = subscription.metadata?.userId;
+    const type = subscription.metadata?.type;
     if (userId) {
-      await sb.from('profiles').update({
-        subscription_tier: 'free',
-        subscription_status: 'cancelled',
-        account_type: 'individual',
-        listing_slots_included: 5,
-        verified_retailer: false,
-      }).eq('id', userId);
+      if (type === 'ocean_sentinel') {
+        await sb.from('profiles').update({
+          ocean_sentinel_premium: false,
+          ocean_sentinel_premium_until: new Date().toISOString(),
+        }).eq('id', userId);
+      } else {
+        await sb.from('profiles').update({
+          subscription_tier: 'free',
+          subscription_status: 'cancelled',
+          account_type: 'individual',
+          listing_slots_included: 5,
+          verified_retailer: false,
+        }).eq('id', userId);
+      }
     }
   }
 

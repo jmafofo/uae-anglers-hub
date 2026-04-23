@@ -25,6 +25,26 @@ export async function POST(req: NextRequest) {
   const origin = req.headers.get('origin') ?? 'https://uaeangler.com';
 
   // ── Create Stripe Checkout session by type ────────────────────
+  if (type === 'ocean_sentinel') {
+    const priceId = process.env.STRIPE_PRICE_OCEAN_SENTINEL;
+    if (!priceId) {
+      return NextResponse.json(
+        { error: 'Missing env var STRIPE_PRICE_OCEAN_SENTINEL' },
+        { status: 500 }
+      );
+    }
+    const session = await getStripe().checkout.sessions.create({
+      mode: 'subscription',
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${origin}/ocean-sentinel?subscribed=1`,
+      cancel_url: `${origin}/ocean-sentinel#pricing`,
+      customer_email: user.email,
+      metadata: { userId, type: 'ocean_sentinel' },
+      subscription_data: { metadata: { userId, type: 'ocean_sentinel' } },
+    });
+    return NextResponse.json({ url: session.url });
+  }
+
   if (type === 'pro' || type === 'business') {
     // Recurring subscription — requires Price IDs created in Stripe Dashboard
     const priceId = type === 'pro'

@@ -1,8 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { Fish, WifiOff, Database, Link as LinkIcon, ChevronRight, Smartphone, Star, X, Bell } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Fish, WifiOff, Database, Link as LinkIcon, ChevronRight, Smartphone, Star, X, Bell, Check, Zap, Download } from 'lucide-react';
+
+// Direct APK download from EAS — update this URL once the build completes
+const ANDROID_APK_URL = 'https://expo.dev/artifacts/eas/vP2xhbwXSyiQjMGsTngPCr.apk';
 import { fishSpecies } from '@/lib/species';
 
 // ── Realistic phone screen mockups ───────────────────────────────────────────
@@ -237,17 +240,29 @@ const APP_SCREENS = [
 
 export default function OceanSentinelPage() {
   const speciesCount = fishSpecies.length;
-  const [showNotify, setShowNotify] = useState(false);
-  const [notified, setNotified] = useState(false);
-  const [email, setEmail] = useState('');
+  const [justSubscribed, setJustSubscribed] = useState(false);
 
-  function handleDownloadClick() {
-    setShowNotify(true);
-  }
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.search.includes('subscribed=1')) {
+      setJustSubscribed(true);
+    }
+  }, []);
 
-  function handleNotifySubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setNotified(true);
+  async function handleSubscribe() {
+    // Redirect to login first if not authenticated; the checkout handles the rest
+    const token = typeof window !== 'undefined' ? localStorage.getItem('supabase_token') : null;
+    if (!token) {
+      window.location.href = '/login?next=/ocean-sentinel%23pricing';
+      return;
+    }
+    const res = await fetch('/api/stripe/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ type: 'ocean_sentinel' }),
+    });
+    const { url, error } = await res.json();
+    if (url) window.location.href = url;
+    else alert(error ?? 'Something went wrong');
   }
 
   return (
@@ -270,9 +285,14 @@ export default function OceanSentinelPage() {
         />
 
         <div className="relative z-10 max-w-4xl mx-auto text-center">
+          {justSubscribed && (
+            <div className="inline-flex items-center gap-2 bg-teal-500/20 border border-teal-500/50 rounded-full px-4 py-1.5 text-teal-300 text-sm mb-4">
+              <Check className="w-4 h-4" /> Premium activated — enjoy an ad-free experience!
+            </div>
+          )}
           <div className="inline-flex items-center gap-2 bg-teal-500/10 border border-teal-500/30 rounded-full px-4 py-1.5 text-teal-400 text-sm mb-6">
             <Smartphone className="w-4 h-4" />
-            Mobile App — Coming Soon
+            Now Available on Android
           </div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-4">
             Ocean Sentinel
@@ -284,102 +304,35 @@ export default function OceanSentinelPage() {
           </p>
 
           {/* Download buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
-            <button
-              onClick={handleDownloadClick}
-              className="flex items-center gap-3 bg-white/10 border border-white/20 hover:border-teal-500/50 hover:bg-white/15 rounded-xl px-5 py-3 transition-all group"
-            >
-              <div className="text-2xl">🍎</div>
-              <div className="text-left">
-                <p className="text-xs text-gray-400">Download on the</p>
-                <p className="text-white font-bold text-sm">App Store</p>
-              </div>
-              <span className="ml-auto text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2 py-0.5 rounded-full">Soon</span>
-            </button>
-            <button
-              onClick={handleDownloadClick}
-              className="flex items-center gap-3 bg-white/10 border border-white/20 hover:border-teal-500/50 hover:bg-white/15 rounded-xl px-5 py-3 transition-all group"
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4">
+            <a
+              href={ANDROID_APK_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 bg-teal-500/15 border border-teal-500/40 hover:border-teal-400 hover:bg-teal-500/25 rounded-xl px-5 py-3 transition-all group"
             >
               <div className="text-2xl">🤖</div>
               <div className="text-left">
-                <p className="text-xs text-gray-400">Get it on</p>
-                <p className="text-white font-bold text-sm">Google Play</p>
+                <p className="text-xs text-gray-400">Direct download</p>
+                <p className="text-white font-bold text-sm">Android APK</p>
+              </div>
+              <Download className="ml-auto w-4 h-4 text-teal-400 group-hover:text-teal-300" />
+            </a>
+            <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-5 py-3 opacity-60 cursor-not-allowed">
+              <div className="text-2xl">🍎</div>
+              <div className="text-left">
+                <p className="text-xs text-gray-500">Download on the</p>
+                <p className="text-white font-bold text-sm">App Store</p>
               </div>
               <span className="ml-auto text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2 py-0.5 rounded-full">Soon</span>
-            </button>
-          </div>
-
-          <p className="text-gray-600 text-sm">
-            Notify me when it launches →{' '}
-            <button onClick={handleDownloadClick} className="text-teal-400 hover:text-teal-300 transition-colors underline underline-offset-2">
-              Get early access
-            </button>
-          </p>
-
-          {/* Coming Soon Modal */}
-          {showNotify && (
-            <div
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
-              onClick={(e) => { if (e.target === e.currentTarget) setShowNotify(false); }}
-            >
-              <div className="relative bg-[#0d1525] border border-white/15 rounded-2xl p-8 max-w-md w-full shadow-2xl">
-                <button
-                  onClick={() => setShowNotify(false)}
-                  className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-
-                <div className="flex flex-col items-center text-center">
-                  <div className="w-14 h-14 rounded-2xl bg-teal-500/15 border border-teal-500/30 flex items-center justify-center mb-5">
-                    <Smartphone className="w-7 h-7 text-teal-400" />
-                  </div>
-
-                  {notified ? (
-                    <>
-                      <h2 className="text-white text-xl font-bold mb-2">You&apos;re on the list!</h2>
-                      <p className="text-gray-400 text-sm leading-relaxed mb-6">
-                        We&apos;ll notify you at <span className="text-teal-400">{email}</span> the moment Ocean Sentinel is available to download.
-                      </p>
-                      <button
-                        onClick={() => { setShowNotify(false); setNotified(false); setEmail(''); }}
-                        className="text-sm text-gray-500 hover:text-gray-300 transition-colors"
-                      >
-                        Close
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/25 rounded-full px-3 py-1 text-yellow-400 text-xs mb-4">
-                        <Bell className="w-3.5 h-3.5" />
-                        Coming Soon
-                      </div>
-                      <h2 className="text-white text-xl font-bold mb-2">Ocean Sentinel is in development</h2>
-                      <p className="text-gray-400 text-sm leading-relaxed mb-6">
-                        The app is not yet available in the App Store or Google Play. Enter your email to be first in line when we launch.
-                      </p>
-                      <form onSubmit={handleNotifySubmit} className="w-full flex flex-col gap-3">
-                        <input
-                          type="email"
-                          required
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="your@email.com"
-                          className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-teal-500/50"
-                        />
-                        <button
-                          type="submit"
-                          className="w-full bg-teal-500 hover:bg-teal-400 text-white font-semibold rounded-xl py-3 text-sm transition-colors"
-                        >
-                          Notify Me at Launch
-                        </button>
-                      </form>
-                    </>
-                  )}
-                </div>
-              </div>
             </div>
-          )}
+          </div>
+          <p className="text-gray-600 text-xs mb-2">
+            Android: enable <span className="text-gray-400">Install from unknown sources</span> before installing · iOS coming after App Store review
+          </p>
+          <a href="#pricing" className="text-teal-400 hover:text-teal-300 transition-colors text-sm underline underline-offset-2">
+            View pricing — free with ads, or AED&nbsp;39/yr ad-free →
+          </a>
         </div>
       </section>
 
@@ -482,6 +435,73 @@ export default function OceanSentinelPage() {
                 <p className="text-white font-semibold">{value}</p>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* Pricing */}
+        <section id="pricing">
+          <h2 className="text-2xl font-bold text-white mb-3 text-center">Simple Pricing</h2>
+          <p className="text-gray-400 text-center text-sm mb-10">Use the app for free, go premium to drop the ads.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+            {/* Free */}
+            <div className="p-7 rounded-2xl bg-white/5 border border-white/10 flex flex-col">
+              <p className="text-gray-400 text-sm font-semibold mb-1">Free</p>
+              <p className="text-4xl font-extrabold text-white mb-1">AED 0</p>
+              <p className="text-gray-500 text-xs mb-6">Forever free</p>
+              <ul className="space-y-2.5 text-sm text-gray-300 flex-1 mb-8">
+                {[
+                  'Fish identification (Claude Vision AI)',
+                  `${speciesCount}+ UAE species database`,
+                  'GPS coast filtering',
+                  'Catch history (local)',
+                  'Banner ads shown',
+                ].map((f) => (
+                  <li key={f} className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-teal-500 mt-0.5 shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <a
+                href={ANDROID_APK_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-center bg-white/10 hover:bg-white/15 border border-white/15 text-white font-semibold rounded-xl py-3 text-sm transition-all"
+              >
+                Download Free
+              </a>
+            </div>
+            {/* Premium */}
+            <div className="p-7 rounded-2xl bg-gradient-to-br from-teal-900/40 to-blue-900/30 border border-teal-500/40 flex flex-col relative">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-teal-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                BEST VALUE
+              </div>
+              <p className="text-teal-400 text-sm font-semibold mb-1">Premium</p>
+              <p className="text-4xl font-extrabold text-white mb-1">AED 39</p>
+              <p className="text-gray-500 text-xs mb-6">per year · cancel anytime</p>
+              <ul className="space-y-2.5 text-sm text-gray-300 flex-1 mb-8">
+                {[
+                  'Everything in Free',
+                  'Ad-free experience',
+                  'Unlimited identifications',
+                  'Cloud sync catch history',
+                  'Priority identification queue',
+                  'Early access to new features',
+                ].map((f) => (
+                  <li key={f} className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-teal-400 mt-0.5 shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={handleSubscribe}
+                className="flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-400 text-white font-semibold rounded-xl py-3 text-sm transition-all"
+              >
+                <Zap className="w-4 h-4" />
+                Go Ad-Free — AED 39/yr
+              </button>
+            </div>
           </div>
         </section>
 
