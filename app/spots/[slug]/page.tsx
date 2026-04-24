@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { MapPin, Fish, Clock, Building2, ArrowLeft, Navigation, BadgeCheck } from 'lucide-react';
 import { fishingSpots, getSpotBySlug, getSpotImage, getSpotGallery } from '@/lib/spots';
+import { CreatorWaypoints } from '@/components/CreatorWaypoints';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -220,6 +221,9 @@ export default async function SpotPage({ params }: PageProps) {
             Join UAE Anglers Hub — Free
           </Link>
         </div>
+
+        {/* Community pins + creator chips */}
+        <CreatorWaypoints slug={slug} />
 
         {/* Structured data for SEO */}
         <script

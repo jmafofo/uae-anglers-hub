@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
-import { MapPin, Fish, Clock, ChevronRight, Anchor } from 'lucide-react';
+import { MapPin, Fish, Clock, ChevronRight, Anchor, Plus } from 'lucide-react';
 import { fishingSpots, emirates, getSpotImage } from '@/lib/spots';
 
 export const metadata: Metadata = {
@@ -80,8 +80,8 @@ export default async function SpotsPage({ searchParams }: PageProps) {
       {/* ── Filters + grid ───────────────────────────────────── */}
       <div className="max-w-6xl mx-auto px-4 pt-10">
 
-        {/* Emirate filter */}
-        <div className="flex flex-wrap gap-2 mb-10">
+        {/* Emirate filter + community CTA */}
+        <div className="flex flex-wrap items-center gap-2 mb-10">
           <Link
             href="/spots"
             className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
@@ -108,6 +108,13 @@ export default async function SpotsPage({ searchParams }: PageProps) {
               </Link>
             );
           })}
+          <Link
+            href="/spots/suggest"
+            className="ml-auto inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium border border-dashed border-teal-500/40 text-teal-400 hover:bg-teal-500/10 hover:border-teal-500 transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Suggest a spot
+          </Link>
         </div>
 
         {/* Results count */}
