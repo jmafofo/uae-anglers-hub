@@ -8,8 +8,11 @@ import {
 import { fishingSpots, emirates } from '@/lib/spots';
 import { fishSpecies } from '@/lib/species';
 import speciesPhotos from '@/lib/species-photos.json';
+import { TrendingNews } from '@/components/TrendingNews';
 
-export default function HomePage() {
+export const revalidate = 300;
+
+export default async function HomePage() {
   const spotCount    = fishingSpots.length;
   const speciesCount = fishSpecies.length;
 
@@ -155,6 +158,11 @@ export default function HomePage() {
           <div className="w-px h-10 bg-gradient-to-b from-teal-500/50 to-transparent" />
         </div>
       </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          TRENDING NEWS + SEASONAL BANS
+      ═══════════════════════════════════════════════════════════ */}
+      <TrendingNews />
 
       {/* ═══════════════════════════════════════════════════════════
           THE MISSING LINK — science positioning (not partnership claim)
