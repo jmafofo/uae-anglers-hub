@@ -28,6 +28,17 @@ export default function SignUpPage() {
 
     if (error) {
       setMessage({ type: 'error', text: error.message });
+      // Fire-and-forget: record the error so we can watch patterns
+      // post-launch without relying on Supabase Auth logs alone.
+      void fetch('/api/signup-errors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          error_message: error.message,
+          email,
+          path: '/signup',
+        }),
+      }).catch(() => {});
     } else {
       setMessage({
         type: 'success',
