@@ -20,7 +20,10 @@
  * Response (unnamed):
  *   { status, unnamed_key, confidence, reasoning, location_context }
  *
- * Auth: Bearer token required
+ * Auth: Bearer token required. Guests are rejected — vision calls are
+ * expensive, and the daily-quota ledger needs a user_id to attribute
+ * usage to. Free users get 5 calls/day; Ocean Sentinel premium is
+ * unlimited.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -31,6 +34,20 @@ import { createClient } from '@supabase/supabase-js';
 import { fishSpecies, speciesMorphologyMap, type FishSpecies } from '@/lib/species';
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+// Free-tier daily cap. Ocean Sentinel premium users bypass this.
+// Guests (unauthenticated) get the same cap tracked by a separate
+// mechanism upstream (e.g. IP rate limit at the CDN) — this route
+// simply refuses to write audit rows for guests.
+const FREE_IDENTIFY_PER_DAY = 5;
+
+function adminSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { persistSession: false } },
+  );
+}
 
 // ── Geography helpers ─────────────────────────────────────────────────────────
 
@@ -75,20 +92,48 @@ async function generateUnnamedKey(token: string): Promise<string> {
 // ── Route handler ─────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
-  // ── Optional auth — identification works for all users ────────────────────
-  // Authenticated users get unnamed_key generation for catch logging.
-  // Unauthenticated users (guests, offline anglers) can still identify fish.
+  // ── Required auth ─────────────────────────────────────────────────────────
   const authHeader = req.headers.get('authorization');
-  let userToken: string | null = null;
-  if (authHeader?.startsWith('Bearer ')) {
-    const token = authHeader.slice(7);
-    const sb = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { global: { headers: { Authorization: `Bearer ${token}` } } },
+  if (!authHeader?.startsWith('Bearer ')) {
+    return NextResponse.json(
+      { error: 'Sign in to identify fish. Free accounts get 5 identifications per day.' },
+      { status: 401 },
     );
-    const { data: { user } } = await sb.auth.getUser();
-    if (user) userToken = token;
+  }
+  const userToken = authHeader.slice(7);
+  const sb = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { global: { headers: { Authorization: `Bearer ${userToken}` } } },
+  );
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
+  }
+  const userId = user.id;
+
+  const { data: profile } = await sb
+    .from('profiles')
+    .select('ocean_sentinel_premium')
+    .eq('id', userId)
+    .single();
+  const isPremium = Boolean(profile?.ocean_sentinel_premium);
+
+  // ── Free-tier daily quota ───────────────────────────────────────────────
+  if (!isPremium) {
+    const { data: countRaw } = await sb.rpc('identify_count_today', { p_user_id: userId });
+    const used = Number(countRaw ?? 0);
+    if (used >= FREE_IDENTIFY_PER_DAY) {
+      return NextResponse.json(
+        {
+          error: 'Daily identify limit reached',
+          limit: FREE_IDENTIFY_PER_DAY,
+          used,
+          upgrade: 'Subscribe to Ocean Sentinel for unlimited identifications.',
+        },
+        { status: 402 },
+      );
+    }
   }
 
   // ── Parse body ────────────────────────────────────────────────────────────
@@ -333,33 +378,94 @@ Rules:
     })
     .filter((c): c is NonNullable<typeof c> => c !== null);
 
+  // ── Write audit row (authed users only) ──────────────────────────────────
+  // Uses service role because identify_audits has no INSERT policy — clients
+  // must not be able to forge audit rows to later redeem on a catch.
+  async function recordAudit(
+    status: 'identified' | 'unnamed',
+    species: string | null,
+    scientificName: string | null,
+    confidencePct: number | null,
+    candidates: unknown,
+  ): Promise<string | null> {
+    const admin = adminSupabase();
+    const { data, error } = await admin
+      .from('identify_audits')
+      .insert({
+        user_id:         userId,
+        status,
+        species,
+        scientific_name: scientificName,
+        confidence_pct:  confidencePct,
+        candidates,
+        latitude:        latitude ?? null,
+        longitude:       longitude ?? null,
+        image_url:       imageUrl ?? null,
+      })
+      .select('id')
+      .single();
+    if (error) {
+      console.error('[identify] audit insert failed:', error);
+      return null;
+    }
+    return data.id;
+  }
+
   // ── Return identified result ──────────────────────────────────────────────
   if (resolvedCandidates.length > 0) {
     const top = resolvedCandidates[0];
+    const identifyId = await recordAudit(
+      'identified',
+      top.species.name,
+      top.species.scientificName,
+      top.confidence_pct,
+      resolvedCandidates.map(c => ({
+        species: c.species.name,
+        scientific_name: c.species.scientificName,
+        confidence_pct: c.confidence_pct,
+        rank: c.rank,
+      })),
+    );
+
+    // Free tier gets the winner + top-3 alternates; premium gets the full
+    // ranked list.
+    const publicCandidates = isPremium ? resolvedCandidates : resolvedCandidates.slice(0, 3);
+
     return NextResponse.json({
       status:           'identified',
+      identify_id:      identifyId,
       // Primary fields — backward compatible with older mobile clients
       species:          top.species,
       confidence:       top.confidence,
       confidence_pct:   top.confidence_pct,
       reasoning:        top.reasoning,
       // Extended fields — used by updated mobile clients
-      candidates:       resolvedCandidates,
+      candidates:       publicCandidates,
       location_context: coast ? `${coast}, UAE` : null,
       image_quality:    parsed.image_quality ?? null,
       notes:            parsed.notes ?? null,
+      premium:          isPremium,
     });
   }
 
-  // ── No match — generate unnamed key (authenticated users only) ───────────
-  const unnamed_key = userToken ? await generateUnnamedKey(userToken) : null;
+  // ── No match — generate unnamed key ──────────────────────────────────────
+  const unnamed_key = await generateUnnamedKey(userToken);
+  const identifyId = await recordAudit(
+    'unnamed',
+    null,
+    null,
+    null,
+    parsed.candidates ?? [],
+  );
   return NextResponse.json({
     status:           'unnamed',
+    identify_id:      identifyId,
     unnamed_key,
     confidence:       parsed.overall_confidence ?? 'low',
     reasoning:        parsed.candidates?.[0]?.reasoning ?? 'Species not found in UAE database',
     location_context: coast ? `${coast}, UAE` : null,
     image_quality:    parsed.image_quality ?? null,
     notes:            parsed.notes ?? null,
+    premium:          isPremium,
   });
 }

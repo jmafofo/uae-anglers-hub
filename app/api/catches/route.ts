@@ -33,7 +33,7 @@
  *   pollution_severity?  string
  *   water_temp_c?        number
  *   visibility_m?        number
- *   youtube_url?         string   — YouTube video URL where this catch appears (content creators)
+ *   video_url?           string   — video URL where this catch appears (YouTube/TikTok/Reels/Facebook)
  *   source?              string   — 'web' | 'app' | 'ocean_sentinel'  default 'web'
  *
  * Auth: Bearer token required
@@ -184,7 +184,7 @@ export async function POST(req: NextRequest) {
       pollution_severity:    body.pollution_severity ?? null,
       water_temp_c:          body.water_temp_c      != null ? Number(body.water_temp_c) : null,
       visibility_m:          body.visibility_m      != null ? Number(body.visibility_m) : null,
-      youtube_url:           body.youtube_url       ?? null,
+      video_url:             body.video_url         ?? null,
       source:                (body.source as string) ?? 'app',
     })
     .select()

@@ -28,11 +28,39 @@ export async function POST(req: NextRequest) {
 
   const sb = adminClient();
 
+  // ── Idempotency — skip events we've already processed ────────
+  // Stripe retries on 2xx failures or network hiccups; without this
+  // a single paid checkout could grant slots/boosts multiple times.
+  const { error: dedupErr } = await sb
+    .from('stripe_events')
+    .insert({ event_id: event.id, type: event.type });
+  if (dedupErr) {
+    // 23505 = unique_violation — event already recorded. Acknowledge
+    // so Stripe stops retrying, but don't re-run side effects.
+    if ((dedupErr as { code?: string }).code === '23505') {
+      return NextResponse.json({ ok: true, duplicate: true });
+    }
+    console.error('[webhook] failed to record event', dedupErr);
+    return NextResponse.json({ error: 'Event log failed' }, { status: 500 });
+  }
+
   // ── checkout.session.completed ───────────────────────────────
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
     const { userId, type, qty, listingId } = session.metadata ?? {};
     if (!userId) return NextResponse.json({ ok: true });
+
+    // Persist the Stripe customer id so the next checkout for this
+    // user reuses the same Customer instead of creating a new one.
+    const customerId = typeof session.customer === 'string'
+      ? session.customer
+      : session.customer?.id ?? null;
+    if (customerId) {
+      await sb.from('profiles')
+        .update({ stripe_customer_id: customerId })
+        .eq('id', userId)
+        .is('stripe_customer_id', null);
+    }
 
     if (type === 'ocean_sentinel') {
       await sb.from('profiles').update({

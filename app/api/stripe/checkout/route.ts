@@ -2,6 +2,36 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getStripe } from '@/lib/stripe';
 import { createClient } from '@supabase/supabase-js';
 
+function adminSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { persistSession: false } },
+  );
+}
+
+/**
+ * Returns either `{ customer: id }` if this profile is already linked to a
+ * Stripe Customer, or `{ customer_email: email }` so Stripe creates one and
+ * the webhook persists it on checkout.session.completed.
+ *
+ * Reads via the service role because the user's own anon client would bump
+ * into the updated RLS policy that blocks `stripe_customer_id` reads by
+ * design (the column is billing metadata, not profile content).
+ */
+async function resolveCustomerParam(
+  userId: string,
+  email: string | null | undefined,
+): Promise<{ customer: string } | { customer_email: string | undefined }> {
+  const { data } = await adminSupabase()
+    .from('profiles')
+    .select('stripe_customer_id')
+    .eq('id', userId)
+    .maybeSingle();
+  if (data?.stripe_customer_id) return { customer: data.stripe_customer_id };
+  return { customer_email: email ?? undefined };
+}
+
 export async function POST(req: NextRequest) {
   // ── Verify user session ───────────────────────────────────────
   const auth = req.headers.get('authorization');
@@ -23,6 +53,7 @@ export async function POST(req: NextRequest) {
   const { type, qty = 1, listingId } = await req.json();
   const userId = user.id;
   const origin = req.headers.get('origin') ?? 'https://uaeangler.com';
+  const customerParam = await resolveCustomerParam(userId, user.email);
 
   // ── Create Stripe Checkout session by type ────────────────────
   if (type === 'ocean_sentinel') {
@@ -38,7 +69,7 @@ export async function POST(req: NextRequest) {
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${origin}/ocean-sentinel?subscribed=1`,
       cancel_url: `${origin}/ocean-sentinel#pricing`,
-      customer_email: user.email,
+      ...customerParam,
       metadata: { userId, type: 'ocean_sentinel' },
       subscription_data: { metadata: { userId, type: 'ocean_sentinel' } },
     });
@@ -63,7 +94,7 @@ export async function POST(req: NextRequest) {
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${origin}/advertise/success?session_id={CHECKOUT_SESSION_ID}&plan=${type}`,
       cancel_url: `${origin}/advertise#pricing`,
-      customer_email: user.email,
+      ...customerParam,
       metadata: { userId, type },
       subscription_data: { metadata: { userId, type } },
     });
@@ -88,7 +119,7 @@ export async function POST(req: NextRequest) {
       }],
       success_url: `${origin}/shop/create?slots_added=${slots}`,
       cancel_url: `${origin}/advertise#slots`,
-      customer_email: user.email,
+      ...customerParam,
       metadata: { userId, type: 'slots', qty: String(slots) },
     });
 
@@ -114,7 +145,7 @@ export async function POST(req: NextRequest) {
       }],
       success_url: `${origin}/shop/${listingId}?boosted=1`,
       cancel_url: `${origin}/shop/${listingId}`,
-      customer_email: user.email,
+      ...customerParam,
       metadata: { userId, type: 'boost', listingId },
     });
 
