@@ -21,13 +21,18 @@
 --   • PostGIS st_estimatedextent: internal planner function.
 --     Revoke from anon and authenticated — app never calls it directly.
 --
--- Functions in scope
--- ──────────────────
+-- Functions in scope (complete list from Security Advisor export)
+-- ──────────────────────────────────────────────────────────────
 --   Trigger-only (revoke anon + authenticated):
 --     handle_new_user, resolve_catch_spot, recount_waypoint_votes,
 --     sync_listing_slot_count, update_catch_count, increment_reply_count
 --
---   RPC helpers (revoke anon only):
+--   Stripe / server-only (revoke anon + authenticated):
+--     apply_slot_purchase    — called by Stripe webhook via service_role only
+--     apply_tier_slot_defaults — called by subscription tier change handler
+--     expire_boosts          — called by scheduled job, not by end users
+--
+--   RPC helpers (revoke anon only — authenticated app calls preserved):
 --     listing_slots_available(profile_id uuid)
 --     waypoint_within_spot(uuid, numeric, numeric, integer)
 --
@@ -65,7 +70,26 @@ revoke execute on function public.increment_reply_count()
   from anon, authenticated;
 
 
--- ── 2. RPC helpers — revoke anon, keep authenticated ────────────────────────
+-- ── 2. Stripe / server-side functions — revoke all direct user access ─────────
+--
+-- These are invoked server-side by the Stripe webhook handler or subscription
+-- management code using the service_role key. End users (anon or authenticated)
+-- must never be able to trigger them directly via the REST API.
+
+-- Applies a completed Stripe slot purchase to the buyer's profile
+revoke execute on function public.apply_slot_purchase()
+  from anon, authenticated;
+
+-- Sets default slot counts when a subscription tier is assigned/changed
+revoke execute on function public.apply_tier_slot_defaults()
+  from anon, authenticated;
+
+-- Expires listing boosts whose end_date has passed (called by pg_cron or webhook)
+revoke execute on function public.expire_boosts()
+  from anon, authenticated;
+
+
+-- ── 3. RPC helpers — revoke anon, keep authenticated ────────────────────────
 
 -- Called by the app to check how many listing slots a creator has left
 revoke execute on function public.listing_slots_available(uuid)
@@ -76,7 +100,7 @@ revoke execute on function public.waypoint_within_spot(uuid, numeric, numeric, i
   from anon;
 
 
--- ── 3. PostGIS st_estimatedextent — revoke all direct user access ────────────
+-- ── 4. PostGIS st_estimatedextent — revoke all direct user access ────────────
 --
 -- These are PostGIS planner-support functions installed in public schema.
 -- They should never be called directly through the REST API.
