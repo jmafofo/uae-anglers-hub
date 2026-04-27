@@ -1,115 +1,71 @@
 -- ── Fix: SECURITY DEFINER functions exposed to anon / authenticated ──────────
 --
--- Supabase Security Advisor flags two categories:
+-- ROOT CAUSE: PostgreSQL grants EXECUTE to the special PUBLIC pseudo-role by
+-- default when any function is created. Revoking from specific roles (anon,
+-- authenticated) has no effect while PUBLIC still holds the grant — those
+-- roles inherit through PUBLIC. The correct fix is:
 --
---   "Public Can Execute SECURITY DEFINER Function"
---     → anon role can call internal functions directly via PostgREST
+--   REVOKE EXECUTE ON FUNCTION ... FROM PUBLIC;
 --
---   "Signed-In Users Can Execute SECURITY DEFINER Function"
---     → authenticated role can call internal trigger / helper functions
---       that were never meant to be user-invokable
---
--- Fix strategy
--- ─────────────
---   • Trigger functions (called only by DB triggers, never by the app
---     via RPC): revoke EXECUTE from BOTH anon AND authenticated.
---
---   • RPC helper functions (legitimately called by the app via
---     supabase.rpc()):  revoke EXECUTE from anon only.
---     Authenticated users keep access.
---
---   • PostGIS st_estimatedextent: internal planner function.
---     Revoke from anon and authenticated — app never calls it directly.
+-- For RPC helpers that authenticated users legitimately need to call, we
+-- revoke from PUBLIC then explicitly grant back to authenticated.
 --
 -- Functions in scope (complete list from Security Advisor export)
 -- ──────────────────────────────────────────────────────────────
---   Trigger-only (revoke anon + authenticated):
+--   Full lockdown — revoke PUBLIC (trigger / Stripe / PostGIS internal):
 --     handle_new_user, resolve_catch_spot, recount_waypoint_votes,
---     sync_listing_slot_count, update_catch_count, increment_reply_count
+--     sync_listing_slot_count, update_catch_count, increment_reply_count,
+--     apply_slot_purchase, apply_tier_slot_defaults, expire_boosts,
+--     st_estimatedextent (×3)
 --
---   Stripe / server-only (revoke anon + authenticated):
---     apply_slot_purchase    — called by Stripe webhook via service_role only
---     apply_tier_slot_defaults — called by subscription tier change handler
---     expire_boosts          — called by scheduled job, not by end users
---
---   RPC helpers (revoke anon only — authenticated app calls preserved):
+--   Revoke PUBLIC, re-grant to authenticated (RPC helpers):
 --     listing_slots_available(profile_id uuid)
 --     waypoint_within_spot(uuid, numeric, numeric, integer)
---
---   PostGIS internal (revoke anon + authenticated):
---     st_estimatedextent(text,text)
---     st_estimatedextent(text,text,text)
---     st_estimatedextent(text,text,text,boolean)
 -- ─────────────────────────────────────────────────────────────────────────────
 
 
--- ── 1. Trigger-only functions — revoke all direct user access ────────────────
+-- ── 1. Trigger-only functions ────────────────────────────────────────────────
 
 -- Fires on auth.users INSERT to create a profile row
-revoke execute on function public.handle_new_user()
-  from anon, authenticated;
+revoke execute on function public.handle_new_user() from public;
 
 -- Fires on catches INSERT to resolve nearest spot
-revoke execute on function public.resolve_catch_spot()
-  from anon, authenticated;
+revoke execute on function public.resolve_catch_spot() from public;
 
 -- Fires on waypoint_votes changes to maintain denormalised vote count
-revoke execute on function public.recount_waypoint_votes()
-  from anon, authenticated;
+revoke execute on function public.recount_waypoint_votes() from public;
 
 -- Fires on listing_slots changes to keep slot count denormalised
-revoke execute on function public.sync_listing_slot_count()
-  from anon, authenticated;
+revoke execute on function public.sync_listing_slot_count() from public;
 
 -- Fires on catches changes to keep per-user catch count denormalised
-revoke execute on function public.update_catch_count()
-  from anon, authenticated;
+revoke execute on function public.update_catch_count() from public;
 
 -- Fires on spot_replies INSERT/DELETE to maintain reply_count
-revoke execute on function public.increment_reply_count()
-  from anon, authenticated;
+revoke execute on function public.increment_reply_count() from public;
 
 
--- ── 2. Stripe / server-side functions — revoke all direct user access ─────────
---
--- These are invoked server-side by the Stripe webhook handler or subscription
--- management code using the service_role key. End users (anon or authenticated)
--- must never be able to trigger them directly via the REST API.
+-- ── 2. Stripe / server-side functions ───────────────────────────────────────
+-- Called only by webhook handler / subscription code via service_role key.
 
--- Applies a completed Stripe slot purchase to the buyer's profile
-revoke execute on function public.apply_slot_purchase()
-  from anon, authenticated;
-
--- Sets default slot counts when a subscription tier is assigned/changed
-revoke execute on function public.apply_tier_slot_defaults()
-  from anon, authenticated;
-
--- Expires listing boosts whose end_date has passed (called by pg_cron or webhook)
-revoke execute on function public.expire_boosts()
-  from anon, authenticated;
+revoke execute on function public.apply_slot_purchase()        from public;
+revoke execute on function public.apply_tier_slot_defaults()   from public;
+revoke execute on function public.expire_boosts()              from public;
 
 
--- ── 3. RPC helpers — revoke anon, keep authenticated ────────────────────────
+-- ── 3. RPC helpers — lock PUBLIC, re-grant to authenticated only ─────────────
 
 -- Called by the app to check how many listing slots a creator has left
-revoke execute on function public.listing_slots_available(uuid)
-  from anon;
+revoke execute on function public.listing_slots_available(uuid) from public;
+grant  execute on function public.listing_slots_available(uuid) to authenticated;
 
 -- Called by the app for geo-proximity checks (is a GPS point inside a spot?)
-revoke execute on function public.waypoint_within_spot(uuid, numeric, numeric, integer)
-  from anon;
+revoke execute on function public.waypoint_within_spot(uuid, numeric, numeric, integer) from public;
+grant  execute on function public.waypoint_within_spot(uuid, numeric, numeric, integer) to authenticated;
 
 
--- ── 4. PostGIS st_estimatedextent — revoke all direct user access ────────────
---
--- These are PostGIS planner-support functions installed in public schema.
--- They should never be called directly through the REST API.
+-- ── 4. PostGIS st_estimatedextent — planner-internal, never REST-callable ────
 
-revoke execute on function public.st_estimatedextent(text, text)
-  from anon, authenticated;
-
-revoke execute on function public.st_estimatedextent(text, text, text)
-  from anon, authenticated;
-
-revoke execute on function public.st_estimatedextent(text, text, text, boolean)
-  from anon, authenticated;
+revoke execute on function public.st_estimatedextent(text, text)           from public;
+revoke execute on function public.st_estimatedextent(text, text, text)     from public;
+revoke execute on function public.st_estimatedextent(text, text, text, boolean) from public;
