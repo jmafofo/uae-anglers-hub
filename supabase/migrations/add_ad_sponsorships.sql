@@ -34,9 +34,11 @@ create table if not exists public.ad_sponsors (
 
 alter table public.ad_sponsors enable row level security;
 
+drop policy if exists "Sponsors viewable by all" on public.ad_sponsors;
 create policy "Sponsors viewable by all"
   on public.ad_sponsors for select using (true);
 
+drop policy if exists "Admins manage sponsors" on public.ad_sponsors;
 create policy "Admins manage sponsors"
   on public.ad_sponsors for all
   using (exists (
@@ -94,9 +96,11 @@ create index if not exists ad_campaigns_emirates_ix
 
 alter table public.ad_campaigns enable row level security;
 
+drop policy if exists "Campaigns viewable by all" on public.ad_campaigns;
 create policy "Campaigns viewable by all"
   on public.ad_campaigns for select using (true);
 
+drop policy if exists "Admins manage campaigns" on public.ad_campaigns;
 create policy "Admins manage campaigns"
   on public.ad_campaigns for all
   using (exists (
@@ -123,8 +127,9 @@ create index if not exists ad_impressions_campaign_ix
   on public.ad_impressions (campaign_id, created_at desc);
 
 alter table public.ad_impressions enable row level security;
--- No policies — service-role only writes (via API routes).
+-- No write policies — service-role only writes (via API routes).
 -- Admins read via the joined campaigns table for analytics.
+drop policy if exists "Admins read impressions" on public.ad_impressions;
 create policy "Admins read impressions"
   on public.ad_impressions for select
   using (exists (
@@ -145,6 +150,7 @@ create index if not exists ad_clicks_campaign_ix
   on public.ad_clicks (campaign_id, created_at desc);
 
 alter table public.ad_clicks enable row level security;
+drop policy if exists "Admins read clicks" on public.ad_clicks;
 create policy "Admins read clicks"
   on public.ad_clicks for select
   using (exists (
