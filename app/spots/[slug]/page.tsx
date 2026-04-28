@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { MapPin, Fish, Clock, Building2, ArrowLeft, Navigation, BadgeCheck } from 'lucide-react';
 import { fishingSpots, getSpotBySlug, getSpotImage, getSpotGallery } from '@/lib/spots';
 import { CreatorWaypoints } from '@/components/CreatorWaypoints';
+import { AdSlot } from '@/components/AdSlot';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -220,6 +221,11 @@ export default async function SpotPage({ params }: PageProps) {
           >
             Join UAE Anglers Hub — Free
           </Link>
+        </div>
+
+        {/* Sponsored placement — emirate-targeted */}
+        <div className="mt-8">
+          <AdSlot placement="spot_sidebar" context={{ emirate: spot.emirate }} />
         </div>
 
         {/* Community pins + creator chips */}
