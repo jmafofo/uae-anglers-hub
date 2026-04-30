@@ -2,7 +2,8 @@
  * POST /api/assistant
  *
  * Chat completion via Claude Haiku 4.5 — UAE-fishing-tuned system prompt
- * with optional live weather context appended.
+ * with optional live weather context appended. Streams text deltas back
+ * to the client as a `text/plain` chunked response.
  *
  * Body (JSON):
  *   messages   { role: 'user' | 'assistant'; content: string }[]   required
@@ -10,18 +11,28 @@
  *
  * Auth: Bearer token required. Anonymous calls are rejected so the
  * Anthropic spend can be attributed to a user and capped per-user.
+ *
+ * Quotas:
+ *   - Free users: FREE_ASSISTANT_PER_DAY/day (DB-backed via
+ *     assistant_count_today RPC). Returns 402 when exceeded.
+ *   - Ocean Sentinel premium users: unlimited.
+ *   - In-memory burst limit (MAX_TURNS_PER_USER per RATE_WINDOW_MS) is
+ *     a per-instance fallback that also runs when the RPC is unavailable
+ *     (e.g. before the migration is applied).
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import { requireAuth } from '@/lib/api-auth';
+import { requireAuth, getUserSupabase } from '@/lib/api-auth';
+import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-const MAX_MESSAGES        = 20;     // keep last N from client
-const MAX_CONTENT_CHARS   = 2000;   // per message
-const MAX_TURNS_PER_USER  = 30;     // soft cap per window
-const RATE_WINDOW_MS      = 10 * 60 * 1000; // 10 minutes
+const MAX_MESSAGES           = 20;     // keep last N from client
+const MAX_CONTENT_CHARS      = 2000;   // per message
+const MAX_TURNS_PER_USER     = 30;     // burst cap per window (in-memory fallback)
+const RATE_WINDOW_MS         = 10 * 60 * 1000; // 10 minutes
+const FREE_ASSISTANT_PER_DAY = 100;    // free-tier daily turns
 
 const SYSTEM_PROMPT = `You are the UAE Anglers Hub AI Fishing Assistant — an expert fishing guide specialising in UAE waters. You help anglers fish smarter across all 7 Emirates: Abu Dhabi, Dubai, Sharjah, Ajman, Umm Al Quwain, Ras Al Khaimah, and Fujairah.
 
@@ -36,11 +47,12 @@ Your expertise includes:
 
 Tone: Friendly, knowledgeable, concise. Keep responses focused and practical. When asked about conditions, always consider current season (UAE has hot summers Apr-Oct and cooler productive winters Nov-Mar). Suggest specific spots when relevant.`;
 
-// Instance-local rate limit. Resets on cold start; tightening to a
-// DB-backed quota (à la identify_count_today) is a follow-up.
+// Instance-local burst limit. Catches spammy clients within a single
+// instance even if the DB quota is bypassed (e.g. RPC unavailable
+// during deploys). Resets on cold start.
 const rateLog = new Map<string, number[]>();
 
-function checkRate(userId: string): { ok: true } | { ok: false; retryAfterSec: number } {
+function checkBurst(userId: string): { ok: true } | { ok: false; retryAfterSec: number } {
   const now = Date.now();
   const windowStart = now - RATE_WINDOW_MS;
   const hits = (rateLog.get(userId) ?? []).filter((t) => t > windowStart);
@@ -93,12 +105,47 @@ export async function POST(req: NextRequest) {
   const auth = await requireAuth(req);
   if (!auth.ok) return auth.response;
 
-  const rate = checkRate(auth.user.id);
-  if (!rate.ok) {
+  const burst = checkBurst(auth.user.id);
+  if (!burst.ok) {
     return NextResponse.json(
-      { error: 'Rate limit reached — try again shortly', retryAfterSec: rate.retryAfterSec },
-      { status: 429, headers: { 'Retry-After': String(rate.retryAfterSec) } },
+      { error: 'Rate limit reached — try again shortly', retryAfterSec: burst.retryAfterSec },
+      { status: 429, headers: { 'Retry-After': String(burst.retryAfterSec) } },
     );
+  }
+
+  // ── Daily quota (DB-backed, premium bypass) ─────────────────
+  // Mirrors /api/identify. We only block free users — premium
+  // bypasses entirely. Errors querying the RPC fall through:
+  // the in-memory burst limit above is the floor.
+  const sb = getUserSupabase(auth.token);
+  const { data: profile } = await sb
+    .from('profiles')
+    .select('ocean_sentinel_premium')
+    .eq('id', auth.user.id)
+    .maybeSingle();
+  const isPremium = Boolean(profile?.ocean_sentinel_premium);
+
+  let usedToday: number | null = null;
+  if (!isPremium) {
+    const { data: countRaw, error: countErr } = await sb.rpc('assistant_count_today', { p_user_id: auth.user.id });
+    if (countErr) {
+      // Migration not applied yet, or transient DB error. Log and
+      // fall through — burst limiter still protects us.
+      console.warn('[assistant POST] assistant_count_today unavailable:', countErr.message);
+    } else {
+      usedToday = Number(countRaw ?? 0);
+      if (usedToday >= FREE_ASSISTANT_PER_DAY) {
+        return NextResponse.json(
+          {
+            error: 'Daily assistant limit reached',
+            limit: FREE_ASSISTANT_PER_DAY,
+            used: usedToday,
+            upgrade: 'Subscribe to Ocean Sentinel for unlimited assistant chats.',
+          },
+          { status: 402 },
+        );
+      }
+    }
   }
 
   let body: { messages?: unknown; weather?: unknown };
@@ -121,23 +168,77 @@ export async function POST(req: NextRequest) {
     ? `\n\nCurrent conditions provided by user: Temperature ${weather.temp}°C, Wind ${weather.wind} km/h, Weather: ${weather.description}, Wave height: ${weather.wave}m, Fishing score: ${weather.score}/100.`
     : '';
 
-  try {
-    const response = await client.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
-      // Cache the static UAE expert prompt across turns; weather suffix
-      // varies and stays uncached.
-      system: [
-        { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
-        ...(weatherSuffix ? [{ type: 'text' as const, text: weatherSuffix }] : []),
-      ],
-      messages: messages.slice(-MAX_MESSAGES),
-    });
+  const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user');
+  const promptChars = lastUserMsg?.content.length ?? 0;
 
-    const text = response.content[0]?.type === 'text' ? response.content[0].text : '';
-    return NextResponse.json({ reply: text });
-  } catch (err) {
-    console.error('[assistant POST]', err);
-    return NextResponse.json({ error: 'AI unavailable' }, { status: 500 });
-  }
+  // Stream text deltas as a plain `text/plain` chunked response. The
+  // client reads the body with a ReadableStream and appends incrementally —
+  // simpler than SSE and avoids shipping the Anthropic SDK to the browser.
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    async start(controller) {
+      let responseChars = 0;
+      let succeeded = false;
+      try {
+        const anthropicStream = client.messages.stream({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 1024,
+          system: [
+            { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
+            ...(weatherSuffix ? [{ type: 'text' as const, text: weatherSuffix }] : []),
+          ],
+          messages: messages.slice(-MAX_MESSAGES),
+        });
+
+        for await (const event of anthropicStream) {
+          if (
+            event.type === 'content_block_delta' &&
+            event.delta.type === 'text_delta'
+          ) {
+            const delta = event.delta.text;
+            responseChars += delta.length;
+            controller.enqueue(encoder.encode(delta));
+          }
+        }
+        succeeded = true;
+        controller.close();
+      } catch (err) {
+        console.error('[assistant POST]', err);
+        // Surface a terminal sentinel the client can detect.
+        try {
+          controller.enqueue(encoder.encode('\n\n[error: AI unavailable]'));
+        } catch { /* controller may already be closed */ }
+        controller.close();
+      }
+
+      // Record the turn after the stream finishes. Only logged on
+      // success — we don't want failed Anthropic calls counting
+      // against the user's quota. Errors are non-fatal (route already
+      // returned the response by this point). Service-role client
+      // because assistant_usage RLS denies user-token writes.
+      if (succeeded) {
+        try {
+          const admin = getSupabaseAdmin();
+          const { error: insertErr } = await admin.from('assistant_usage').insert({
+            user_id: auth.user.id,
+            prompt_chars: promptChars,
+            response_chars: responseChars,
+          });
+          if (insertErr) {
+            console.warn('[assistant POST] usage insert failed:', insertErr.message);
+          }
+        } catch (err) {
+          console.warn('[assistant POST] usage insert threw:', err);
+        }
+      }
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'no-store',
+      'X-Accel-Buffering': 'no',
+    },
+  });
 }

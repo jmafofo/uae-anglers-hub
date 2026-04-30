@@ -1,10 +1,15 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Bot, Send, RefreshCw, Fish, Waves, Wind, Thermometer } from 'lucide-react';
-import { EMIRATES } from '@/lib/emirates';
+import Link from 'next/link';
+import { Bot, Send, RefreshCw, Fish, Waves, Wind, Thermometer, LogIn } from 'lucide-react';
+import { EMIRATES, calcFishingScore, describeWeatherCode } from '@/lib/emirates';
+import { getSupabase } from '@/lib/supabase';
+
+const MAX_INPUT_CHARS = 2000;
 
 interface Message { role: 'user' | 'assistant'; content: string }
+interface Weather  { temp: number; wind: number; description: string; wave: number; score: number }
 
 const SUGGESTIONS = [
   'Best spots for Kingfish in Dubai this week?',
@@ -20,7 +25,10 @@ export default function AssistantPage() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedEmirate, setSelectedEmirate] = useState(EMIRATES[0]);
-  const [weather, setWeather] = useState<{ temp: number; wind: number; description: string; wave: number; score: number } | null>(null);
+  const [weather, setWeather] = useState<Weather | null>(null);
+  const [weatherError, setWeatherError] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -29,24 +37,55 @@ export default function AssistantPage() {
   }, [messages]);
 
   useEffect(() => {
-    // Fetch weather context for selected emirate
+    const sb = getSupabase();
+    sb.auth.getSession().then(({ data: { session } }) => {
+      setToken(session?.access_token ?? null);
+      setAuthChecked(true);
+    });
+    const { data: sub } = sb.auth.onAuthStateChange((_event, session) => {
+      setToken(session?.access_token ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setWeatherError(false);
     fetch(`/api/weather?lat=${selectedEmirate.latitude}&lon=${selectedEmirate.longitude}`)
-      .then((r) => r.json())
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`weather ${r.status}`))))
       .then((data) => {
-        if (data.weather?.current) {
-          const c = data.weather.current;
-          const { calcFishingScore, describeWeatherCode } = require('@/lib/emirates');
-          const wave = data.marine?.current?.wave_height ?? 0;
-          const score = calcFishingScore({ weatherCode: c.weather_code, windSpeed: c.wind_speed_10m, waveHeight: wave, humidity: c.relative_humidity_2m });
-          setWeather({ temp: Math.round(c.temperature_2m), wind: Math.round(c.wind_speed_10m), description: describeWeatherCode(c.weather_code).label, wave, score });
-        }
+        if (cancelled) return;
+        const c = data.weather?.current;
+        if (!c) return;
+        const wave = data.marine?.current?.wave_height ?? 0;
+        const score = calcFishingScore({
+          weatherCode: c.weather_code,
+          windSpeed: c.wind_speed_10m,
+          waveHeight: wave,
+          humidity: c.relative_humidity_2m,
+        });
+        setWeather({
+          temp: Math.round(c.temperature_2m),
+          wind: Math.round(c.wind_speed_10m),
+          description: describeWeatherCode(c.weather_code).label,
+          wave,
+          score,
+        });
       })
-      .catch(() => {});
+      .catch((err) => {
+        if (cancelled) return;
+        console.warn('[assistant] weather fetch failed:', err);
+        setWeather(null);
+        setWeatherError(true);
+      });
+    return () => { cancelled = true; };
   }, [selectedEmirate]);
 
   async function sendMessage(text: string) {
-    if (!text.trim() || loading) return;
-    const userMsg: Message = { role: 'user', content: text.trim() };
+    const trimmed = text.trim();
+    if (!trimmed || loading || !token) return;
+    if (trimmed.length > MAX_INPUT_CHARS) return;
+    const userMsg: Message = { role: 'user', content: trimmed };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInput('');
@@ -55,19 +94,75 @@ export default function AssistantPage() {
     try {
       const res = await fetch('/api/assistant', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ messages: newMessages, weather }),
       });
-      const data = await res.json();
-      if (data.reply) setMessages((m) => [...m, { role: 'assistant', content: data.reply }]);
+
+      // Auth/validation/rate-limit errors come back as JSON, not a stream.
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        const msg = res.status === 429
+          ? `Rate limit reached. Try again in about ${data.retryAfterSec ?? 60}s.`
+          : data.error || 'Sorry, I could not connect. Please try again.';
+        setMessages((m) => [...m, { role: 'assistant', content: msg }]);
+        return;
+      }
+
+      if (!res.body) throw new Error('No response body');
+
+      // Push an empty assistant message and append text deltas as they arrive.
+      setMessages((m) => [...m, { role: 'assistant', content: '' }]);
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let acc = '';
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        acc += decoder.decode(value, { stream: true });
+        setMessages((m) => {
+          const next = m.slice();
+          const last = next[next.length - 1];
+          if (last && last.role === 'assistant') {
+            next[next.length - 1] = { ...last, content: acc };
+          }
+          return next;
+        });
+      }
     } catch {
       setMessages((m) => [...m, { role: 'assistant', content: 'Sorry, I could not connect. Please try again.' }]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input); }
+  }
+
+  if (authChecked && !token) {
+    return (
+      <div className="min-h-screen pt-14 flex items-center justify-center px-4">
+        <div className="max-w-md w-full text-center bg-white/5 border border-white/10 rounded-2xl p-8">
+          <div className="w-12 h-12 rounded-full bg-teal-500/10 border border-teal-500/30 flex items-center justify-center mx-auto mb-4">
+            <Bot className="w-6 h-6 text-teal-400" />
+          </div>
+          <h1 className="text-white font-bold text-lg mb-2">Sign in to chat</h1>
+          <p className="text-gray-400 text-sm mb-6">
+            The AI Fishing Assistant is for registered anglers — sign in to ask about spots, species and conditions.
+          </p>
+          <Link
+            href="/login"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-white text-sm font-semibold transition-colors"
+          >
+            <LogIn className="w-4 h-4" />
+            Sign in
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -107,12 +202,22 @@ export default function AssistantPage() {
               </span>
             </div>
           )}
+          {weatherError && !weather && (
+            <div className="p-2.5 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-xs text-yellow-400">
+              Couldn&apos;t load current conditions — chat still works without them.
+            </div>
+          )}
         </div>
       </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-6">
-        <div className="max-w-3xl mx-auto space-y-4">
+        <div
+          className="max-w-3xl mx-auto space-y-4"
+          role="log"
+          aria-live="polite"
+          aria-label="Assistant conversation"
+        >
           {messages.length === 0 && (
             <div className="text-center py-8">
               <Fish className="w-12 h-12 text-teal-400/30 mx-auto mb-4" />
@@ -147,7 +252,7 @@ export default function AssistantPage() {
           ))}
 
           {loading && (
-            <div className="flex justify-start">
+            <div className="flex justify-start" aria-label="Assistant is typing">
               <div className="w-7 h-7 rounded-full bg-teal-500/10 border border-teal-500/30 flex items-center justify-center mr-2 shrink-0">
                 <Bot className="w-3.5 h-3.5 text-teal-400" />
               </div>
@@ -166,15 +271,21 @@ export default function AssistantPage() {
           <textarea
             ref={inputRef}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => setInput(e.target.value.slice(0, MAX_INPUT_CHARS))}
             onKeyDown={handleKeyDown}
             rows={1}
+            maxLength={MAX_INPUT_CHARS}
+            aria-label="Ask the fishing assistant"
             placeholder="Ask about spots, species, conditions, regulations..."
             className="flex-1 bg-white/5 border border-white/20 focus:border-teal-500 rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none text-sm resize-none"
             style={{ maxHeight: '120px' }}
           />
-          <button onClick={() => sendMessage(input)} disabled={loading || !input.trim()}
-            className="w-11 h-11 rounded-xl bg-teal-500 hover:bg-teal-400 disabled:bg-teal-700 disabled:cursor-not-allowed flex items-center justify-center transition-colors shrink-0">
+          <button
+            onClick={() => sendMessage(input)}
+            disabled={loading || !input.trim() || !token}
+            aria-label="Send message"
+            className="w-11 h-11 rounded-xl bg-teal-500 hover:bg-teal-400 disabled:bg-teal-700 disabled:cursor-not-allowed flex items-center justify-center transition-colors shrink-0"
+          >
             <Send className="w-4 h-4 text-white" />
           </button>
         </div>
