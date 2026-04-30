@@ -41,11 +41,11 @@ export default async function HomePage() {
         {/* Multi-layer ocean depth background */}
         <div className="absolute inset-0" style={{
           background: `
-            radial-gradient(ellipse 130% 80% at 50% 115%, rgba(0,200,180,0.20) 0%, transparent 55%),
-            radial-gradient(ellipse 70% 50% at 90% 15%,  rgba(0,100,220,0.12) 0%, transparent 50%),
-            radial-gradient(ellipse 50% 40% at 5%  75%,  rgba(0,160,210,0.09) 0%, transparent 45%),
-            radial-gradient(ellipse 40% 30% at 60% 30%,  rgba(0,80,180,0.07)  0%, transparent 40%),
-            linear-gradient(180deg, #04091200 0%, #060e1c 30%, #041020 100%)
+            radial-gradient(ellipse 130% 80% at 50% 115%, rgba(0,212,170,0.32) 0%, transparent 60%),
+            radial-gradient(ellipse 70% 50% at 90% 15%,  rgba(45,140,220,0.22) 0%, transparent 55%),
+            radial-gradient(ellipse 50% 40% at 5%  75%,  rgba(0,180,210,0.16) 0%, transparent 50%),
+            radial-gradient(ellipse 40% 30% at 60% 30%,  rgba(60,120,200,0.14) 0%, transparent 45%),
+            linear-gradient(180deg, #0d1f33 0%, #102a44 35%, #0a2238 100%)
           `,
         }} />
 
@@ -144,7 +144,7 @@ export default async function HomePage() {
               { value: '7',               label: 'Emirates Covered',     icon: Anchor    },
               { value: '2',               label: 'Coastlines Mapped',    icon: Waves     },
             ].map(({ value, label, icon: Icon }) => (
-              <div key={label} className="bg-[#070d1a] px-5 py-4 flex flex-col items-center text-center">
+              <div key={label} className="bg-[#0a1828] px-5 py-4 flex flex-col items-center text-center">
                 <Icon className="w-4 h-4 text-teal-400 mb-1.5" />
                 <span className="text-2xl sm:text-3xl font-black text-white">{value}</span>
                 <span className="text-gray-500 text-xs mt-0.5">{label}</span>
@@ -167,7 +167,7 @@ export default async function HomePage() {
       {/* ═══════════════════════════════════════════════════════════
           THE MISSING LINK — science positioning (not partnership claim)
       ═══════════════════════════════════════════════════════════ */}
-      <section className="py-24 px-4 relative overflow-hidden bg-[#06101c]">
+      <section className="py-24 px-4 relative overflow-hidden bg-[#0d1f33]">
         {/* DNA helix accent — right edge */}
         <div className="absolute right-0 top-0 bottom-0 w-72 pointer-events-none hidden xl:block opacity-[0.06]"
           style={{
@@ -348,7 +348,7 @@ export default async function HomePage() {
       {/* ═══════════════════════════════════════════════════════════
           SPECIES SHOWCASE
       ═══════════════════════════════════════════════════════════ */}
-      <section className="py-24 px-4 bg-[#06101c]">
+      <section className="py-24 px-4 bg-[#0d1f33]">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
             <div>
@@ -477,7 +477,7 @@ export default async function HomePage() {
       {/* ═══════════════════════════════════════════════════════════
           PLATFORM FEATURES
       ═══════════════════════════════════════════════════════════ */}
-      <section className="py-24 px-4 bg-[#06101c]">
+      <section className="py-24 px-4 bg-[#0d1f33]">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
             <p className="text-teal-400 text-xs font-semibold uppercase tracking-[0.2em] mb-3">The Platform</p>
