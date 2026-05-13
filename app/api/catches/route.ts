@@ -41,6 +41,35 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, getUserSupabase } from '@/lib/api-auth';
+import { z } from 'zod';
+
+const postSchema = z.object({
+  species: z.string().optional(),
+  scientific_name: z.string().optional(),
+  weight_kg: z.number().optional(),
+  length_cm: z.number().optional(),
+  bait: z.string().optional(),
+  technique: z.string().optional(),
+  location_name: z.string().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  emirate: z.string().optional(),
+  photo_url: z.string().optional(),
+  notes: z.string().optional(),
+  is_public: z.boolean().optional(),
+  caught_at: z.string().optional(),
+  rfid_tag: z.string().optional(),
+  identification_status: z.enum(['identified', 'unnamed', 'pending_curation']).optional(),
+  unnamed_key: z.string().optional(),
+  identify_id: z.string().optional(),
+  water_colour: z.string().optional(),
+  pollution_type: z.string().optional(),
+  pollution_severity: z.string().optional(),
+  water_temp_c: z.number().optional(),
+  visibility_m: z.number().optional(),
+  video_url: z.string().optional(),
+  source: z.string().optional(),
+});
 
 export async function GET(req: NextRequest) {
   const auth = await requireAuth(req);
@@ -66,134 +95,140 @@ export async function GET(req: NextRequest) {
   const { data, error, count } = await query;
   if (error) {
     console.error('[catches GET]', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 
   return NextResponse.json({ catches: data, count: count ?? data?.length ?? 0 });
 }
 
 export async function POST(req: NextRequest) {
-  const auth = await requireAuth(req);
-  if (!auth.ok) return auth.response;
-
-  let body: Record<string, unknown>;
   try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
-  }
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
 
-  const status = (body.identification_status as string) ?? 'identified';
-
-  // Species is required unless the catch is unnamed/pending curation, OR the
-  // client supplied an identify_id — in that case the server pulls species
-  // from the audit row further down.
-  if (!body.species && !body.identify_id && status === 'identified') {
-    return NextResponse.json({ error: 'species is required for identified catches' }, { status: 400 });
-  }
-
-  // Validate GPS bounds
-  if (body.latitude != null) {
-    const lat = Number(body.latitude);
-    if (lat < -90 || lat > 90) {
-      return NextResponse.json({ error: `Invalid latitude: ${lat}` }, { status: 400 });
+    const body = await req.json();
+    const parsed = postSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid request body', issues: parsed.error.issues },
+        { status: 400 },
+      );
     }
-  }
-  if (body.longitude != null) {
-    const lon = Number(body.longitude);
-    if (lon < -180 || lon > 180) {
-      return NextResponse.json({ error: `Invalid longitude: ${lon}` }, { status: 400 });
-    }
-  }
+    const data = parsed.data;
 
-  const sb = getUserSupabase(auth.token);
+    const status = data.identification_status ?? 'identified';
 
-  // ── Resolve identify_id → trusted species + confidence ─────────────────
-  // When the client passes an identify_id from a prior /api/identify call,
-  // we overwrite any species/scientific_name/confidence the client supplied
-  // with the values the server actually returned. This stops a logged catch
-  // from claiming a different species or inflated confidence than what
-  // Claude actually saw.
-  let identifyId: string | null = null;
-  let identifyConfidence: number | null = null;
-  let trustedSpecies: string | null = null;
-  let trustedScientificName: string | null = null;
-
-  if (body.identify_id != null) {
-    const { data: audit, error: auditErr } = await sb
-      .from('identify_audits')
-      .select('id, status, species, scientific_name, confidence_pct, expires_at')
-      .eq('id', body.identify_id as string)
-      .maybeSingle();
-    if (auditErr) {
-      console.error('[catches POST] identify lookup failed:', auditErr);
-      return NextResponse.json({ error: auditErr.message }, { status: 500 });
-    }
-    if (!audit) {
-      return NextResponse.json({ error: 'identify_id not found or not owned by you' }, { status: 404 });
-    }
-    if (new Date(audit.expires_at) < new Date()) {
-      return NextResponse.json({ error: 'identify_id expired — identify the fish again' }, { status: 410 });
+    // Species is required unless the catch is unnamed/pending curation, OR the
+    // client supplied an identify_id — in that case the server pulls species
+    // from the audit row further down.
+    if (!data.species && !data.identify_id && status === 'identified') {
+      return NextResponse.json({ error: 'species is required for identified catches' }, { status: 400 });
     }
 
-    identifyId = audit.id;
-    identifyConfidence = audit.confidence_pct;
-    if (audit.status === 'identified') {
-      trustedSpecies = audit.species;
-      trustedScientificName = audit.scientific_name;
+    // Validate GPS bounds
+    if (data.latitude != null) {
+      if (data.latitude < -90 || data.latitude > 90) {
+        return NextResponse.json({ error: `Invalid latitude: ${data.latitude}` }, { status: 400 });
+      }
     }
-  }
+    if (data.longitude != null) {
+      if (data.longitude < -180 || data.longitude > 180) {
+        return NextResponse.json({ error: `Invalid longitude: ${data.longitude}` }, { status: 400 });
+      }
+    }
 
-  const effectiveStatus = identifyId && trustedSpecies
-    ? 'identified'
-    : identifyId
-      ? 'unnamed'
-      : status;
+    const sb = getUserSupabase(auth.token);
 
-  const effectiveSpecies =
-    trustedSpecies
-    ?? (body.species as string | undefined)
-    ?? (body.unnamed_key as string | undefined)
-    ?? 'Unknown';
+    // ── Resolve identify_id → trusted species + confidence ─────────────────
+    // When the client passes an identify_id from a prior /api/identify call,
+    // we overwrite any species/scientific_name/confidence the client supplied
+    // with the values the server actually returned. This stops a logged catch
+    // from claiming a different species or inflated confidence than what
+    // Claude actually saw.
+    let identifyId: string | null = null;
+    let identifyConfidence: number | null = null;
+    let trustedSpecies: string | null = null;
+    let trustedScientificName: string | null = null;
 
-  const { data, error } = await sb
-    .from('catches')
-    .insert({
-      user_id:               auth.user.id,
-      species:               effectiveSpecies,
-      scientific_name:       trustedScientificName ?? body.scientific_name ?? null,
-      identify_id:           identifyId,
-      identify_confidence:   identifyConfidence,
-      weight_kg:             body.weight_kg         != null ? Number(body.weight_kg)    : null,
-      length_cm:             body.length_cm         != null ? Number(body.length_cm)    : null,
-      bait:                  body.bait              ?? null,
-      technique:             body.technique         ?? null,
-      location_name:         body.location_name     ?? null,
-      latitude:              body.latitude          != null ? Number(body.latitude)     : null,
-      longitude:             body.longitude         != null ? Number(body.longitude)    : null,
-      emirate:               body.emirate           ?? null,
-      photo_url:             body.photo_url         ?? null,
-      notes:                 body.notes             ?? null,
-      is_public:             body.is_public         != null ? Boolean(body.is_public)   : true,
-      caught_at:             body.caught_at         ?? new Date().toISOString(),
-      rfid_tag:              body.rfid_tag          ?? null,
-      identification_status: effectiveStatus,
-      unnamed_key:           body.unnamed_key       ?? null,
-      water_colour:          body.water_colour      ?? null,
-      pollution_type:        body.pollution_type    ?? null,
-      pollution_severity:    body.pollution_severity ?? null,
-      water_temp_c:          body.water_temp_c      != null ? Number(body.water_temp_c) : null,
-      visibility_m:          body.visibility_m      != null ? Number(body.visibility_m) : null,
-      video_url:             body.video_url         ?? null,
-      source:                (body.source as string) ?? 'app',
-    })
-    .select()
-    .single();
+    if (data.identify_id != null) {
+      const { data: audit, error: auditErr } = await sb
+        .from('identify_audits')
+        .select('id, status, species, scientific_name, confidence_pct, expires_at')
+        .eq('id', data.identify_id)
+        .maybeSingle();
+      if (auditErr) {
+        console.error('[catches POST] identify lookup failed:', auditErr);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+      }
+      if (!audit) {
+        return NextResponse.json({ error: 'identify_id not found or not owned by you' }, { status: 404 });
+      }
+      if (new Date(audit.expires_at) < new Date()) {
+        return NextResponse.json({ error: 'identify_id expired — identify the fish again' }, { status: 410 });
+      }
 
-  if (error) {
+      identifyId = audit.id;
+      identifyConfidence = audit.confidence_pct;
+      if (audit.status === 'identified') {
+        trustedSpecies = audit.species;
+        trustedScientificName = audit.scientific_name;
+      }
+    }
+
+    const effectiveStatus = identifyId && trustedSpecies
+      ? 'identified'
+      : identifyId
+        ? 'unnamed'
+        : status;
+
+    const effectiveSpecies =
+      trustedSpecies
+      ?? data.species
+      ?? data.unnamed_key
+      ?? 'Unknown';
+
+    const { data: inserted, error } = await sb
+      .from('catches')
+      .insert({
+        user_id:               auth.user.id,
+        species:               effectiveSpecies,
+        scientific_name:       trustedScientificName ?? data.scientific_name ?? null,
+        identify_id:           identifyId,
+        identify_confidence:   identifyConfidence,
+        weight_kg:             data.weight_kg         ?? null,
+        length_cm:             data.length_cm         ?? null,
+        bait:                  data.bait              ?? null,
+        technique:             data.technique         ?? null,
+        location_name:         data.location_name     ?? null,
+        latitude:              data.latitude          ?? null,
+        longitude:             data.longitude         ?? null,
+        emirate:               data.emirate           ?? null,
+        photo_url:             data.photo_url         ?? null,
+        notes:                 data.notes             ?? null,
+        is_public:             data.is_public         ?? true,
+        caught_at:             data.caught_at         ?? new Date().toISOString(),
+        rfid_tag:              data.rfid_tag          ?? null,
+        identification_status: effectiveStatus,
+        unnamed_key:           data.unnamed_key       ?? null,
+        water_colour:          data.water_colour      ?? null,
+        pollution_type:        data.pollution_type    ?? null,
+        pollution_severity:    data.pollution_severity ?? null,
+        water_temp_c:          data.water_temp_c      ?? null,
+        visibility_m:          data.visibility_m      ?? null,
+        video_url:             data.video_url         ?? null,
+        source:                data.source            ?? 'app',
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[catches POST]', error);
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
+
+    return NextResponse.json({ catch: inserted }, { status: 201 });
+  } catch (error) {
     console.error('[catches POST]', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-
-  return NextResponse.json({ catch: data }, { status: 201 });
 }

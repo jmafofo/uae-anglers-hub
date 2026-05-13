@@ -93,7 +93,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
   if (error) {
     console.error('[catches PUT]', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
   if (!data) {
     return NextResponse.json({ error: 'Catch not found or not owned by you' }, { status: 404 });
@@ -117,7 +117,7 @@ export async function DELETE(req: NextRequest, { params }: Params) {
 
   if (error) {
     console.error('[catches DELETE]', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
   if (!count) {
     return NextResponse.json({ error: 'Catch not found or not owned by you' }, { status: 404 });

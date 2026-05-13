@@ -25,6 +25,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
+import { z } from 'zod';
 
 const hits = new Map<string, { count: number; resetAt: number }>();
 const LIMIT_PER_HOUR = 60;
@@ -53,62 +54,81 @@ function adminSupabase() {
   );
 }
 
+const bodySchema = z.object({
+  error_message: z.string().max(500),
+  email_domain: z.string().optional(),
+  email: z.string().optional(),
+  path: z.string().optional(),
+});
+
 export async function POST(req: NextRequest) {
-  const ip =
-    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    req.headers.get('x-real-ip') ||
-    'unknown';
-
-  if (rateLimited(ip)) {
-    return NextResponse.json({ ok: true, rateLimited: true }, { status: 202 });
-  }
-
-  let body: Record<string, unknown>;
   try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
-  }
+    const ip =
+      req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      req.headers.get('x-real-ip') ||
+      'unknown';
 
-  const errorMessage = String(body.error_message ?? '').slice(0, 500);
-  if (!errorMessage) {
-    return NextResponse.json({ error: 'error_message required' }, { status: 400 });
-  }
+    if (rateLimited(ip)) {
+      return NextResponse.json({ ok: true, rateLimited: true }, { status: 202 });
+    }
 
-  const emailDomain = typeof body.email === 'string' && body.email.includes('@')
-    ? body.email.split('@').pop()!.toLowerCase().slice(0, 80)
-    : null;
-  const path = body.path == null ? null : String(body.path).slice(0, 120);
-  const userAgent = req.headers.get('user-agent')?.slice(0, 240) ?? null;
-  const ipHash = hashIp(ip);
+    let rawBody: unknown;
+    try {
+      rawBody = await req.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    }
 
-  const sb = adminSupabase();
+    const parsed = bodySchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid request body', issues: parsed.error.issues },
+        { status: 400 },
+      );
+    }
 
-  // SQL-side dedupe — skip inserts for the same message + ip in the last minute.
-  const since = new Date(Date.now() - DEDUPE_WINDOW_MS).toISOString();
-  const { count } = await sb
-    .from('signup_errors')
-    .select('id', { count: 'exact', head: true })
-    .eq('error_message', errorMessage)
-    .eq('ip_hash', ipHash)
-    .gte('created_at', since);
+    const body = parsed.data;
+    const errorMessage = body.error_message;
+    const emailDomain =
+      body.email_domain?.slice(0, 80).toLowerCase() ||
+      (body.email?.includes('@')
+        ? body.email.split('@').pop()!.toLowerCase().slice(0, 80)
+        : null);
+    const path = body.path?.slice(0, 120) ?? null;
+    const userAgent = req.headers.get('user-agent')?.slice(0, 240) ?? null;
+    const ipHash = hashIp(ip);
 
-  if ((count ?? 0) > 0) {
-    return NextResponse.json({ ok: true, deduped: true });
-  }
+    const sb = adminSupabase();
 
-  const { error } = await sb.from('signup_errors').insert({
-    error_message: errorMessage,
-    email_domain:  emailDomain,
-    user_agent:    userAgent,
-    path,
-    ip_hash:       ipHash,
-  });
+    // SQL-side dedupe — skip inserts for the same message + ip in the last minute.
+    const since = new Date(Date.now() - DEDUPE_WINDOW_MS).toISOString();
+    const { count } = await sb
+      .from('signup_errors')
+      .select('id', { count: 'exact', head: true })
+      .eq('error_message', errorMessage)
+      .eq('ip_hash', ipHash)
+      .gte('created_at', since);
 
-  if (error) {
+    if ((count ?? 0) > 0) {
+      return NextResponse.json({ ok: true, deduped: true });
+    }
+
+    const { error } = await sb.from('signup_errors').insert({
+      error_message: errorMessage,
+      email_domain:  emailDomain,
+      user_agent:    userAgent,
+      path,
+      ip_hash:       ipHash,
+    });
+
+    if (error) {
+      console.error('[signup-errors]', error);
+      return NextResponse.json({ ok: false }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
     console.error('[signup-errors]', error);
-    return NextResponse.json({ ok: false }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-
-  return NextResponse.json({ ok: true });
 }

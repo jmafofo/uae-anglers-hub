@@ -60,7 +60,10 @@ export async function GET(req: NextRequest) {
     .select('*')
     .order('published_at', { ascending: false })
     .limit(200);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error('[admin/news]', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
   return NextResponse.json({ items: data ?? [] });
 }
 
@@ -122,6 +125,9 @@ export async function POST(req: NextRequest) {
     })
     .select('*')
     .single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error('[admin/news]', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
   return NextResponse.json({ item: data }, { status: 201 });
 }

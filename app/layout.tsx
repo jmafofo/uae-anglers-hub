@@ -1,10 +1,16 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 const inter = Inter({ subsets: ['latin'] });
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#0a0f1a',
+};
 
 export const metadata: Metadata = {
   title: {
@@ -37,7 +43,7 @@ export const metadata: Metadata = {
       "The UAE's premier fishing community. 50+ verified spots, AI fishing assistant, catch logs, tournaments and more.",
     images: [
       {
-        url: 'https://uaeangler.com/og-image.jpg',
+        url: 'https://uaeangler.com/api/og',
         width: 1200,
         height: 630,
         alt: 'UAE Anglers Hub',
@@ -69,7 +75,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" dir="ltr">
       <body className={`${inter.className} bg-[#0a0f1a] text-white antialiased`}>
         <Navbar />
         <main>{children}</main>

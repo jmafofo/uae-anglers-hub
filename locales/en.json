@@ -1,0 +1,55 @@
+{
+  "metadata": {
+    "title": "UAE Anglers Hub — UAE's Premier Shore Fishing Community",
+    "description": "Discover 50+ verified fishing spots across all 7 Emirates. Log catches, join tournaments, connect with UAE anglers, and get AI-powered fishing forecasts."
+  },
+  "nav": {
+    "home": "Home",
+    "aiAssistant": "AI Assistant",
+    "spots": "Spots",
+    "species": "Species",
+    "conservation": "Conservation",
+    "research": "Research",
+    "regulations": "Regulations",
+    "community": "Community",
+    "charters": "Charters",
+    "shop": "Shop",
+    "advertise": "Advertise",
+    "app": "App",
+    "logCatch": "Log Catch"
+  },
+  "auth": {
+    "login": "Sign in",
+    "signup": "Create account",
+    "logout": "Sign out",
+    "email": "Email",
+    "password": "Password",
+    "displayName": "Display Name",
+    "forgotPassword": "Forgot password?",
+    "resetPassword": "Reset password",
+    "passwordRequirements": "Min. 8 characters with a number or special character",
+    "checkEmail": "Check your email for a confirmation link."
+  },
+  "hero": {
+    "badge": "UAE's Premier Angling Community",
+    "headline": "Catch More. Explore Smarter. Connect Deeper.",
+    "subheadline": "45+ verified spots across all 7 Emirates. The UAE's first community-powered coastal fish database.",
+    "ctaPrimary": "Explore Spots",
+    "ctaSecondary": "Join Community"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Try again",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "showMore": "Show more",
+    "showLess": "Show less"
+  }
+}

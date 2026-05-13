@@ -91,7 +91,10 @@ export async function GET(req: NextRequest, { params }: Params) {
   if (kind) q = q.eq('kind', kind);
   const { data: verified, error } = await q;
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error('[spots/waypoints GET]', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 
   return NextResponse.json({
     spot,
@@ -156,7 +159,10 @@ export async function POST(req: NextRequest, { params }: Params) {
     .eq('slug', slug)
     .eq('verified', true)
     .maybeSingle();
-  if (spotErr) return NextResponse.json({ error: spotErr.message }, { status: 500 });
+  if (spotErr) {
+    console.error('[spots/waypoints POST]', spotErr);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
   if (!spot) return NextResponse.json({ error: 'Spot not found' }, { status: 404 });
 
   const hourAgo = new Date(Date.now() - 3_600_000).toISOString();
@@ -174,7 +180,10 @@ export async function POST(req: NextRequest, { params }: Params) {
 
   const { data: inRange, error: rpcErr } = await sb
     .rpc('waypoint_within_spot', { p_spot_id: spot.id, p_lat: lat, p_lon: lon });
-  if (rpcErr) return NextResponse.json({ error: rpcErr.message }, { status: 500 });
+  if (rpcErr) {
+    console.error('[spots/waypoints POST]', rpcErr);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
   if (!inRange) {
     return NextResponse.json(
       { error: 'Coordinates are outside this spot. Submit a new-spot proposal instead.' },
@@ -201,7 +210,10 @@ export async function POST(req: NextRequest, { params }: Params) {
     .select('*')
     .single();
 
-  if (insErr) return NextResponse.json({ error: insErr.message }, { status: 500 });
+  if (insErr) {
+    console.error('[spots/waypoints POST]', insErr);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 
   return NextResponse.json({ waypoint: inserted }, { status: 201 });
 }

@@ -95,7 +95,10 @@ export async function POST(req: NextRequest, { params }: Params) {
         reviewed_at: new Date().toISOString(),
       })
       .eq('id', id);
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) {
+      console.error('[admin/contributions]', error);
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
     return NextResponse.json({ ok: true, status: 'rejected' });
   }
 
@@ -131,7 +134,10 @@ export async function POST(req: NextRequest, { params }: Params) {
     })
     .select('id, slug')
     .single();
-  if (insErr) return NextResponse.json({ error: insErr.message }, { status: 500 });
+  if (insErr) {
+    console.error('[admin/contributions]', insErr);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 
   const { error: updErr } = await admin
     .from('spot_contributions')
@@ -143,7 +149,10 @@ export async function POST(req: NextRequest, { params }: Params) {
       approved_spot_id: newSpot.id,
     })
     .eq('id', id);
-  if (updErr) return NextResponse.json({ error: updErr.message }, { status: 500 });
+  if (updErr) {
+    console.error('[admin/contributions]', updErr);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 
   return NextResponse.json({ ok: true, status: 'approved', spot: newSpot });
 }

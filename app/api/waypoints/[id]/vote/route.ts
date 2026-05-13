@@ -55,7 +55,11 @@ export async function POST(req: NextRequest, { params }: Params) {
       { onConflict: 'waypoint_id,user_id' },
     );
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error('[waypoints/vote POST]', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+
 
   const { data: tally } = await sb
     .from('spot_waypoints')
@@ -79,6 +83,9 @@ export async function DELETE(req: NextRequest, { params }: Params) {
     .eq('waypoint_id', id)
     .eq('user_id', auth.user.id);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error('[waypoints/vote DELETE]', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
   return NextResponse.json({ ok: true });
 }

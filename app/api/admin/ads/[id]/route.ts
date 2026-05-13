@@ -65,7 +65,10 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     .eq('id', id)
     .select('*, sponsor:ad_sponsors(id, name, logo_url, emirate)')
     .single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error('[admin/ads]', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
   return NextResponse.json({ campaign: data });
 }
 
@@ -75,6 +78,9 @@ export async function DELETE(req: NextRequest, { params }: Params) {
   const { id } = await params;
 
   const { error } = await guard.sb.from('ad_campaigns').delete().eq('id', id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error('[admin/ads]', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
   return NextResponse.json({ ok: true });
 }

@@ -25,6 +25,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { requireAuth, getUserSupabase } from '@/lib/api-auth';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { z } from 'zod';
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -65,180 +66,166 @@ function checkBurst(userId: string): { ok: true } | { ok: false; retryAfterSec: 
   return { ok: true };
 }
 
-type AssistantMessage = { role: 'user' | 'assistant'; content: string };
-type WeatherCtx = { temp: number; wind: number; description: string; wave: number; score: number };
-
-function validateMessages(raw: unknown): AssistantMessage[] | null {
-  if (!Array.isArray(raw) || raw.length === 0) return null;
-  const out: AssistantMessage[] = [];
-  for (const m of raw) {
-    if (!m || typeof m !== 'object') return null;
-    const { role, content } = m as Record<string, unknown>;
-    if (role !== 'user' && role !== 'assistant') return null;
-    if (typeof content !== 'string' || content.length === 0) return null;
-    if (content.length > MAX_CONTENT_CHARS) return null;
-    out.push({ role, content });
-  }
-  return out;
-}
-
-function validateWeather(raw: unknown): WeatherCtx | null {
-  if (!raw || typeof raw !== 'object') return null;
-  const w = raw as Record<string, unknown>;
-  if (
-    typeof w.temp        !== 'number' ||
-    typeof w.wind        !== 'number' ||
-    typeof w.wave        !== 'number' ||
-    typeof w.score       !== 'number' ||
-    typeof w.description !== 'string'
-  ) return null;
-  return {
-    temp: w.temp,
-    wind: w.wind,
-    wave: w.wave,
-    score: w.score,
-    description: w.description.slice(0, 80),
-  };
-}
+const bodySchema = z.object({
+  messages: z.array(
+    z.object({
+      role: z.enum(['user', 'assistant']),
+      content: z.string().min(1).max(2000),
+    }),
+  ).min(1).max(20),
+  weather: z.object({
+    temp: z.number(),
+    wind: z.number(),
+    description: z.string(),
+    wave: z.number(),
+    score: z.number(),
+  }).optional(),
+});
 
 export async function POST(req: NextRequest) {
-  const auth = await requireAuth(req);
-  if (!auth.ok) return auth.response;
+  try {
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
 
-  const burst = checkBurst(auth.user.id);
-  if (!burst.ok) {
-    return NextResponse.json(
-      { error: 'Rate limit reached — try again shortly', retryAfterSec: burst.retryAfterSec },
-      { status: 429, headers: { 'Retry-After': String(burst.retryAfterSec) } },
-    );
-  }
+    const burst = checkBurst(auth.user.id);
+    if (!burst.ok) {
+      return NextResponse.json(
+        { error: 'Rate limit reached — try again shortly', retryAfterSec: burst.retryAfterSec },
+        { status: 429, headers: { 'Retry-After': String(burst.retryAfterSec) } },
+      );
+    }
 
-  // ── Daily quota (DB-backed, premium bypass) ─────────────────
-  // Mirrors /api/identify. We only block free users — premium
-  // bypasses entirely. Errors querying the RPC fall through:
-  // the in-memory burst limit above is the floor.
-  const sb = getUserSupabase(auth.token);
-  const { data: profile } = await sb
-    .from('profiles')
-    .select('ocean_sentinel_premium')
-    .eq('id', auth.user.id)
-    .maybeSingle();
-  const isPremium = Boolean(profile?.ocean_sentinel_premium);
+    // ── Daily quota (DB-backed, premium bypass) ─────────────────
+    // Mirrors /api/identify. We only block free users — premium
+    // bypasses entirely. Errors querying the RPC fall through:
+    // the in-memory burst limit above is the floor.
+    const sb = getUserSupabase(auth.token);
+    const { data: profile } = await sb
+      .from('profiles')
+      .select('ocean_sentinel_premium')
+      .eq('id', auth.user.id)
+      .maybeSingle();
+    const isPremium = Boolean(profile?.ocean_sentinel_premium);
 
-  let usedToday: number | null = null;
-  if (!isPremium) {
-    const { data: countRaw, error: countErr } = await sb.rpc('assistant_count_today', { p_user_id: auth.user.id });
-    if (countErr) {
-      // Migration not applied yet, or transient DB error. Log and
-      // fall through — burst limiter still protects us.
-      console.warn('[assistant POST] assistant_count_today unavailable:', countErr.message);
-    } else {
-      usedToday = Number(countRaw ?? 0);
-      if (usedToday >= FREE_ASSISTANT_PER_DAY) {
-        return NextResponse.json(
-          {
-            error: 'Daily assistant limit reached',
-            limit: FREE_ASSISTANT_PER_DAY,
-            used: usedToday,
-            upgrade: 'Subscribe to Ocean Sentinel for unlimited assistant chats.',
-          },
-          { status: 402 },
-        );
+    let usedToday: number | null = null;
+    if (!isPremium) {
+      const { data: countRaw, error: countErr } = await sb.rpc('assistant_count_today', { p_user_id: auth.user.id });
+      if (countErr) {
+        // Migration not applied yet, or transient DB error. Log and
+        // fall through — burst limiter still protects us.
+        console.warn('[assistant POST] assistant_count_today unavailable:', countErr.message);
+      } else {
+        usedToday = Number(countRaw ?? 0);
+        if (usedToday >= FREE_ASSISTANT_PER_DAY) {
+          return NextResponse.json(
+            {
+              error: 'Daily assistant limit reached',
+              limit: FREE_ASSISTANT_PER_DAY,
+              used: usedToday,
+              upgrade: 'Subscribe to Ocean Sentinel for unlimited assistant chats.',
+            },
+            { status: 402 },
+          );
+        }
       }
     }
-  }
 
-  let body: { messages?: unknown; weather?: unknown };
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
-  }
+    let rawBody: unknown;
+    try {
+      rawBody = await req.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    }
 
-  const messages = validateMessages(body.messages);
-  if (!messages) {
-    return NextResponse.json({ error: 'messages must be a non-empty array of {role, content}' }, { status: 400 });
-  }
-  const weather = body.weather === undefined ? null : validateWeather(body.weather);
-  if (body.weather !== undefined && weather === null) {
-    return NextResponse.json({ error: 'weather payload malformed' }, { status: 400 });
-  }
+    const parsed = bodySchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid request body', issues: parsed.error.issues },
+        { status: 400 },
+      );
+    }
 
-  const weatherSuffix = weather
-    ? `\n\nCurrent conditions provided by user: Temperature ${weather.temp}°C, Wind ${weather.wind} km/h, Weather: ${weather.description}, Wave height: ${weather.wave}m, Fishing score: ${weather.score}/100.`
-    : '';
+    const { messages, weather } = parsed.data;
 
-  const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user');
-  const promptChars = lastUserMsg?.content.length ?? 0;
+    const weatherSuffix = weather
+      ? `\n\nCurrent conditions provided by user: Temperature ${weather.temp}°C, Wind ${weather.wind} km/h, Weather: ${weather.description}, Wave height: ${weather.wave}m, Fishing score: ${weather.score}/100.`
+      : '';
 
-  // Stream text deltas as a plain `text/plain` chunked response. The
-  // client reads the body with a ReadableStream and appends incrementally —
-  // simpler than SSE and avoids shipping the Anthropic SDK to the browser.
-  const encoder = new TextEncoder();
-  const stream = new ReadableStream({
-    async start(controller) {
-      let responseChars = 0;
-      let succeeded = false;
-      try {
-        const anthropicStream = client.messages.stream({
-          model: 'claude-haiku-4-5-20251001',
-          max_tokens: 1024,
-          system: [
-            { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
-            ...(weatherSuffix ? [{ type: 'text' as const, text: weatherSuffix }] : []),
-          ],
-          messages: messages.slice(-MAX_MESSAGES),
-        });
+    const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user');
+    const promptChars = lastUserMsg?.content.length ?? 0;
 
-        for await (const event of anthropicStream) {
-          if (
-            event.type === 'content_block_delta' &&
-            event.delta.type === 'text_delta'
-          ) {
-            const delta = event.delta.text;
-            responseChars += delta.length;
-            controller.enqueue(encoder.encode(delta));
-          }
-        }
-        succeeded = true;
-        controller.close();
-      } catch (err) {
-        console.error('[assistant POST]', err);
-        // Surface a terminal sentinel the client can detect.
+    // Stream text deltas as a plain `text/plain` chunked response. The
+    // client reads the body with a ReadableStream and appends incrementally —
+    // simpler than SSE and avoids shipping the Anthropic SDK to the browser.
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        let responseChars = 0;
+        let succeeded = false;
         try {
-          controller.enqueue(encoder.encode('\n\n[error: AI unavailable]'));
-        } catch { /* controller may already be closed */ }
-        controller.close();
-      }
-
-      // Record the turn after the stream finishes. Only logged on
-      // success — we don't want failed Anthropic calls counting
-      // against the user's quota. Errors are non-fatal (route already
-      // returned the response by this point). Service-role client
-      // because assistant_usage RLS denies user-token writes.
-      if (succeeded) {
-        try {
-          const admin = getSupabaseAdmin();
-          const { error: insertErr } = await admin.from('assistant_usage').insert({
-            user_id: auth.user.id,
-            prompt_chars: promptChars,
-            response_chars: responseChars,
+          const anthropicStream = client.messages.stream({
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 1024,
+            system: [
+              { type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
+              ...(weatherSuffix ? [{ type: 'text' as const, text: weatherSuffix }] : []),
+            ],
+            messages: messages.slice(-MAX_MESSAGES),
           });
-          if (insertErr) {
-            console.warn('[assistant POST] usage insert failed:', insertErr.message);
-          }
-        } catch (err) {
-          console.warn('[assistant POST] usage insert threw:', err);
-        }
-      }
-    },
-  });
 
-  return new Response(stream, {
-    headers: {
-      'Content-Type': 'text/plain; charset=utf-8',
-      'Cache-Control': 'no-store',
-      'X-Accel-Buffering': 'no',
-    },
-  });
+          for await (const event of anthropicStream) {
+            if (
+              event.type === 'content_block_delta' &&
+              event.delta.type === 'text_delta'
+            ) {
+              const delta = event.delta.text;
+              responseChars += delta.length;
+              controller.enqueue(encoder.encode(delta));
+            }
+          }
+          succeeded = true;
+          controller.close();
+        } catch (err) {
+          console.error('[assistant POST]', err);
+          // Surface a terminal sentinel the client can detect.
+          try {
+            controller.enqueue(encoder.encode('\n\n[error: AI unavailable]'));
+          } catch { /* controller may already be closed */ }
+          controller.close();
+        }
+
+        // Record the turn after the stream finishes. Only logged on
+        // success — we don't want failed Anthropic calls counting
+        // against the user's quota. Errors are non-fatal (route already
+        // returned the response by this point). Service-role client
+        // because assistant_usage RLS denies user-token writes.
+        if (succeeded) {
+          try {
+            const admin = getSupabaseAdmin();
+            const { error: insertErr } = await admin.from('assistant_usage').insert({
+              user_id: auth.user.id,
+              prompt_chars: promptChars,
+              response_chars: responseChars,
+            });
+            if (insertErr) {
+              console.warn('[assistant POST] usage insert failed:', insertErr.message);
+            }
+          } catch (err) {
+            console.warn('[assistant POST] usage insert threw:', err);
+          }
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Cache-Control': 'no-store',
+        'X-Accel-Buffering': 'no',
+      },
+    });
+  } catch (error) {
+    console.error('[assistant POST]', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }

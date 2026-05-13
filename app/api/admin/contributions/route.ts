@@ -46,6 +46,9 @@ export async function GET(req: NextRequest) {
     .order('created_at', { ascending: true })
     .range(offset, offset + limit - 1);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error('[admin/contributions]', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
   return NextResponse.json({ contributions: data ?? [] });
 }

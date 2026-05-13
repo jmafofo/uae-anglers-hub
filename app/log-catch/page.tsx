@@ -63,6 +63,7 @@ export default function LogCatchPage() {
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (preview) URL.revokeObjectURL(preview);
     setPhotoFile(file);
     setPreview(URL.createObjectURL(file));
   }

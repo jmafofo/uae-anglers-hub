@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
 
   if (tagErr) {
     console.error('[rfid/lookup]', tagErr);
-    return NextResponse.json({ error: tagErr.message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 
   if (!tag) {

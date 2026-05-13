@@ -82,6 +82,12 @@ export default function Footer() {
             © {year} UAE Anglers Hub · uaeangler.com · All rights reserved
           </p>
           <div className="flex items-center gap-5 text-xs text-gray-500">
+            <Link href="/privacy-policy" className="hover:text-teal-400 transition-colors">
+              Privacy Policy
+            </Link>
+            <Link href="/terms-of-service" className="hover:text-teal-400 transition-colors">
+              Terms of Service
+            </Link>
             <Link href="/conservation" className="hover:text-teal-400 flex items-center gap-1 transition-colors">
               <ShieldCheck className="w-3.5 h-3.5" />
               Conservation

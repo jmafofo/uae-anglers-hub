@@ -55,6 +55,9 @@ export async function POST(req: NextRequest, { params }: Params) {
     .eq('id', id)
     .select('id, username, display_name, is_creator')
     .single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error('[admin/creators]', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
   return NextResponse.json({ profile: data });
 }

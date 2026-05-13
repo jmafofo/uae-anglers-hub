@@ -13,10 +13,27 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  function validatePassword(pw: string): string | null {
+    if (pw.length < 8) return 'Password must be at least 8 characters.';
+    const hasNumber = /\d/.test(pw);
+    const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pw);
+    if (!hasNumber && !hasSpecial) {
+      return 'Password must contain at least one number or special character.';
+    }
+    return null;
+  }
+
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
+
+    const pwError = validatePassword(password);
+    if (pwError) {
+      setMessage({ type: 'error', text: pwError });
+      setLoading(false);
+      return;
+    }
 
     const { error } = await supabase.auth.signUp({
       email,
@@ -30,12 +47,14 @@ export default function SignUpPage() {
       setMessage({ type: 'error', text: error.message });
       // Fire-and-forget: record the error so we can watch patterns
       // post-launch without relying on Supabase Auth logs alone.
+      // Send only domain for privacy; full email never leaves client
+      const domain = email.split('@')[1] ?? 'unknown';
       void fetch('/api/signup-errors', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           error_message: error.message,
-          email,
+          email_domain: domain,
           path: '/signup',
         }),
       }).catch(() => {});

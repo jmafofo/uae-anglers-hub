@@ -39,7 +39,10 @@ export async function DELETE(req: NextRequest, { params }: Params) {
 
   const { id } = await params;
   const { error } = await check.sb.from('news_items').delete().eq('id', id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error('[admin/news]', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
   return NextResponse.json({ ok: true });
 }
 
@@ -80,6 +83,9 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     .eq('id', id)
     .select('*')
     .single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error('[admin/news]', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
   return NextResponse.json({ item: data });
 }

@@ -7,6 +7,7 @@ import { Fish, WifiOff, Database, Link as LinkIcon, ChevronRight, Smartphone, St
 // Direct APK download from EAS — update this URL once the build completes
 const ANDROID_APK_URL = 'https://expo.dev/artifacts/eas/vP2xhbwXSyiQjMGsTngPCr.apk';
 import { fishSpecies } from '@/lib/species';
+import { getSupabase } from '@/lib/supabase';
 
 // ── Realistic phone screen mockups ───────────────────────────────────────────
 
@@ -250,7 +251,8 @@ export default function OceanSentinelPage() {
 
   async function handleSubscribe() {
     // Redirect to login first if not authenticated; the checkout handles the rest
-    const token = typeof window !== 'undefined' ? localStorage.getItem('supabase_token') : null;
+    const { data: { session } } = await getSupabase().auth.getSession();
+    const token = session?.access_token;
     if (!token) {
       window.location.href = '/login?next=/ocean-sentinel%23pricing';
       return;

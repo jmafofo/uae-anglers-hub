@@ -55,6 +55,24 @@ export default async function SpotPage({ params }: PageProps) {
   const wazeUrl = `https://waze.com/ul?ll=${spot.latitude},${spot.longitude}&navigate=yes`;
   const gallery = getSpotGallery(spot.slug); // extra photos beyond the hero
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Place',
+    name: spot.name,
+    description: `Fishing spot in ${spot.emirate}, UAE. Species: ${spot.species.join(', ')}.`,
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: spot.latitude,
+      longitude: spot.longitude,
+    },
+    address: {
+      '@type': 'PostalAddress',
+      addressRegion: spot.emirate,
+      addressCountry: 'AE',
+    },
+    url: `https://uaeangler.com/spots/${spot.slug}`,
+  };
+
   return (
     <div className="min-h-screen pb-16">
       {/* Hero image */}
@@ -235,23 +253,7 @@ export default async function SpotPage({ params }: PageProps) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'Place',
-              name: spot.name,
-              description: `Fishing spot in ${spot.emirate}, UAE. Species: ${spot.species.join(', ')}.`,
-              geo: {
-                '@type': 'GeoCoordinates',
-                latitude: spot.latitude,
-                longitude: spot.longitude,
-              },
-              address: {
-                '@type': 'PostalAddress',
-                addressRegion: spot.emirate,
-                addressCountry: 'AE',
-              },
-              url: `https://uaeangler.com/spots/${spot.slug}`,
-            }),
+            __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c'),
           }}
         />
       </div>

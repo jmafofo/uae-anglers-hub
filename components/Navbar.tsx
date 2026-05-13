@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   MapPin,
   Fish,
@@ -19,6 +19,7 @@ import {
   Scale,
   Smartphone,
 } from 'lucide-react';
+import LocaleSwitcher from './LocaleSwitcher';
 
 const navLinks = [
   { href: '/', label: 'Home', icon: null },
@@ -37,6 +38,45 @@ const navLinks = [
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+
+  // Close on Escape key
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape' && menuOpen) {
+        setMenuOpen(false);
+        toggleRef.current?.focus();
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [menuOpen]);
+
+  // Focus trap inside mobile menu
+  useEffect(() => {
+    if (!menuOpen || !menuRef.current) return;
+    const menu = menuRef.current;
+    const focusable = menu.querySelectorAll<HTMLElement>(
+      'a[href], button, [tabindex]:not([tabindex="-1"])'
+    );
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    first?.focus();
+
+    function trap(e: KeyboardEvent) {
+      if (e.key !== 'Tab') return;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last?.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first?.focus();
+      }
+    }
+    menu.addEventListener('keydown', trap);
+    return () => menu.removeEventListener('keydown', trap);
+  }, [menuOpen]);
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0f1a]/90 backdrop-blur-md border-b border-white/10">
@@ -45,10 +85,10 @@ export default function Navbar() {
           {/* Logo + wordmark */}
           <Link href="/" className="flex items-center gap-2 shrink-0">
             <Image
-              src="/logo.png"
-              alt=""
-              width={40}
-              height={40}
+              src="/logo-icon.png"
+              alt="UAE Anglers Hub"
+              width={36}
+              height={36}
               priority
               className="rounded"
             />
@@ -71,8 +111,9 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* CTA + avatar */}
+          {/* CTA + avatar + locale */}
           <div className="hidden lg:flex items-center gap-3">
+            <LocaleSwitcher />
             <Link
               href="/log-catch"
               className="flex items-center gap-1 bg-teal-500 hover:bg-teal-400 text-white text-xs font-semibold px-3 py-1.5 rounded-md transition-colors"
@@ -90,9 +131,12 @@ export default function Navbar() {
 
           {/* Mobile hamburger */}
           <button
+            ref={toggleRef}
             className="lg:hidden text-gray-300 hover:text-white p-1"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Toggle menu"
+            aria-expanded={menuOpen}
+            aria-controls="mobile-menu"
           >
             {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -101,7 +145,17 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="lg:hidden bg-[#0a0f1a] border-t border-white/10 px-4 py-3 space-y-1">
+        <div
+          ref={menuRef}
+          id="mobile-menu"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation menu"
+          className="lg:hidden bg-[#0a0f1a] border-t border-white/10 px-4 py-3 space-y-1"
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') setMenuOpen(false);
+          }}
+        >
           {navLinks.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}

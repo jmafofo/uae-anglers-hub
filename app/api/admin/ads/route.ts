@@ -44,7 +44,10 @@ export async function GET(req: NextRequest) {
     .from('ad_campaigns')
     .select('*, sponsor:ad_sponsors(id, name, logo_url, emirate)')
     .order('created_at', { ascending: false });
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error('[admin/ads]', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
   return NextResponse.json({ campaigns: data ?? [] });
 }
 
@@ -102,6 +105,9 @@ export async function POST(req: NextRequest) {
     })
     .select('*')
     .single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error('[admin/ads]', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
   return NextResponse.json({ campaign: data }, { status: 201 });
 }

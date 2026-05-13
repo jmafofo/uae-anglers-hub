@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ShieldCheck, AlertTriangle, Fish, MapPin, Phone, ExternalLink, CheckCircle, XCircle } from 'lucide-react';
+import { regulations } from '@/lib/regulations-data';
 
 export const metadata: Metadata = {
   title: 'UAE Fishing Regulations & Conservation — Fish Responsibly',
@@ -97,22 +98,16 @@ export default function ConservationPage() {
                 </tr>
               </thead>
               <tbody className="space-y-2">
-                {[
-                  { species: 'Hammour (Grouper)', bag: '5 per day', size: '30 cm', notes: 'Release undersized fish carefully' },
-                  { species: 'Kingfish (Narrow-barred Mackerel)', bag: '10 per day', size: '45 cm', notes: 'Most popular UAE species' },
-                  { species: 'Sea Bream (Shaari)', bag: '15 per day', size: '20 cm', notes: 'Common shore fishing target' },
-                  { species: 'Emperor Fish (Bayadh)', bag: '10 per day', size: '25 cm', notes: 'Highly valued food fish' },
-                  { species: 'Barracuda', bag: '5 per day', size: '40 cm', notes: 'Caution: ciguatera risk in large fish' },
-                  { species: 'Queenfish', bag: '10 per day', size: '35 cm', notes: 'Popular sport fish' },
-                  { species: 'Giant Trevally', bag: '5 per day', size: '40 cm', notes: 'Excellent sport fish; consider catch & release' },
-                ].map((row) => (
-                  <tr key={row.species} className="border-b border-white/5">
-                    <td className="text-white py-3">{row.species}</td>
-                    <td className="text-teal-400 py-3">{row.bag}</td>
-                    <td className="text-yellow-400 py-3">{row.size}</td>
-                    <td className="text-gray-400 py-3">{row.notes}</td>
-                  </tr>
-                ))}
+                {regulations
+                  .filter((r) => r.min_size_cm !== null)
+                  .map((row) => (
+                    <tr key={row.id} className="border-b border-white/5">
+                      <td className="text-white py-3">{row.species_names[0] ?? row.title}</td>
+                      <td className="text-teal-400 py-3">—</td>
+                      <td className="text-yellow-400 py-3">{row.min_size_cm} cm</td>
+                      <td className="text-gray-400 py-3">{row.notes ?? '—'}</td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
