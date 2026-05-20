@@ -1,11 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Anchor, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
-export default function SignUpPage() {
+function SignUpForm() {
+  const searchParams = useSearchParams();
+  const ref = searchParams.get('ref');
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -39,7 +43,10 @@ export default function SignUpPage() {
       email,
       password,
       options: {
-        data: { display_name: displayName },
+        data: {
+          display_name: displayName,
+          ...(ref ? { referred_by_username: ref } : {}),
+        },
       },
     });
 
@@ -166,5 +173,17 @@ export default function SignUpPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center text-gray-500">
+        Loading...
+      </div>
+    }>
+      <SignUpForm />
+    </Suspense>
   );
 }

@@ -16,6 +16,8 @@ const footerLinks = {
     { href: '/catches',           label: 'Catch Feed' },
     { href: '/tournaments',       label: 'Tournaments' },
     { href: '/shop',              label: 'Tackle Shop' },
+    { href: '/suggestions',       label: 'Suggestions' },
+    { href: '/settings',          label: 'Settings' },
   ],
   Learn: [
     { href: '/conservation', label: 'Conservation' },

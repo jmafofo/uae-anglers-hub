@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   MapPin,
   Fish,
@@ -20,6 +20,8 @@ import {
   Smartphone,
 } from 'lucide-react';
 import LocaleSwitcher from './LocaleSwitcher';
+import NotificationsDropdown from './NotificationsDropdown';
+import { getSupabase } from '@/lib/supabase';
 
 const navLinks = [
   { href: '/', label: 'Home', icon: null },
@@ -38,20 +40,68 @@ const navLinks = [
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
+  const [profile, setProfile] = useState<{ display_name?: string; username?: string } | null>(null);
+  const [avatarOpen, setAvatarOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
+  const avatarRef = useRef<HTMLDivElement>(null);
+
+  const loadUser = useCallback(async () => {
+    const sb = getSupabase();
+    const { data: { user: u } } = await sb.auth.getUser();
+    if (u) {
+      setUser(u);
+      const { data: prof } = await sb.from('profiles').select('display_name, username').eq('id', u.id).single();
+      setProfile(prof);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadUser();
+    const sb = getSupabase();
+    const { data: listener } = sb.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+        sb.from('profiles').select('display_name, username').eq('id', session.user.id).single().then(({ data }) => setProfile(data));
+      } else {
+        setUser(null);
+        setProfile(null);
+      }
+    });
+    return () => { listener?.subscription.unsubscribe(); };
+  }, [loadUser]);
+
+  async function handleSignOut() {
+    await getSupabase().auth.signOut();
+    setUser(null);
+    setProfile(null);
+    setAvatarOpen(false);
+    window.location.href = '/';
+  }
+
+  // Close dropdowns on click outside
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (avatarRef.current && !avatarRef.current.contains(e.target as Node)) {
+        setAvatarOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
 
   // Close on Escape key
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape' && menuOpen) {
-        setMenuOpen(false);
-        toggleRef.current?.focus();
+      if (e.key === 'Escape') {
+        if (menuOpen) { setMenuOpen(false); toggleRef.current?.focus(); }
+        if (avatarOpen) setAvatarOpen(false);
       }
     }
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [menuOpen]);
+  }, [menuOpen, avatarOpen]);
 
   // Focus trap inside mobile menu
   useEffect(() => {
@@ -111,8 +161,9 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* CTA + avatar + locale */}
+          {/* CTA + avatar + locale + notifications */}
           <div className="hidden lg:flex items-center gap-3">
+            {user && <NotificationsDropdown />}
             <LocaleSwitcher />
             <Link
               href="/log-catch"
@@ -121,12 +172,50 @@ export default function Navbar() {
               <Plus className="w-3.5 h-3.5" />
               Log Catch
             </Link>
-            <Link
-              href="/login"
-              className="w-8 h-8 rounded-full bg-teal-600 flex items-center justify-center text-white text-xs font-bold"
-            >
-              JW
-            </Link>
+            {user ? (
+              <div className="relative" ref={avatarRef}>
+                <button
+                  onClick={() => setAvatarOpen(!avatarOpen)}
+                  className="w-8 h-8 rounded-full bg-teal-600 hover:bg-teal-500 flex items-center justify-center text-white text-xs font-bold transition-colors"
+                >
+                  {profile?.display_name?.[0]?.toUpperCase() ?? user.email?.[0]?.toUpperCase() ?? '?'}
+                </button>
+                {avatarOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-[#0f1724] border border-white/10 rounded-xl shadow-2xl z-50 py-1">
+                    <p className="px-3 py-2 text-xs text-gray-400 border-b border-white/10 truncate">
+                      @{profile?.username ?? 'user'}
+                    </p>
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setAvatarOpen(false)}
+                      className="block px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+                    >
+                      Dashboard
+                    </Link>
+                    <Link
+                      href={`/profile/${profile?.username ?? ''}`}
+                      onClick={() => setAvatarOpen(false)}
+                      className="block px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+                    >
+                      Profile
+                    </Link>
+                    <button
+                      onClick={handleSignOut}
+                      className="block w-full text-left px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors"
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="text-xs text-teal-400 hover:text-teal-300 font-semibold transition-colors"
+              >
+                Sign in
+              </Link>
+            )}
           </div>
 
           {/* Mobile hamburger */}

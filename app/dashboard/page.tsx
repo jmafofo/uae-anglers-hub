@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Fish, MapPin, Plus, LogOut, User, Settings } from 'lucide-react';
+import { Fish, MapPin, Plus, LogOut, User, Settings, Copy, Check, Share2, Users } from 'lucide-react';
 import { getSupabase } from '@/lib/supabase';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -13,6 +13,7 @@ interface Profile {
   bio: string | null;
   emirate: string | null;
   total_catches: number;
+  referral_count: number;
   created_at: string;
 }
 
@@ -32,6 +33,11 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [catches, setCatches] = useState<Catch[]>([]);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
+
+  const inviteLink = typeof window !== 'undefined' && profile
+    ? `${window.location.origin}/signup?ref=${encodeURIComponent(profile.username)}`
+    : '';
 
   useEffect(() => {
     async function load() {
@@ -114,7 +120,7 @@ export default function DashboardPage() {
               value: profile ? new Date(profile.created_at).getFullYear() : '—',
               icon: Settings,
             },
-            { label: 'Public Catches', value: catches.filter((c) => c.is_public).length, icon: User },
+            { label: 'Invites', value: profile?.referral_count ?? 0, icon: Users },
           ].map(({ label, value, icon: Icon }) => (
             <div key={label} className="p-4 rounded-xl bg-white/5 border border-white/10 text-center">
               <Icon className="w-5 h-5 text-teal-400 mx-auto mb-2" />
@@ -122,6 +128,34 @@ export default function DashboardPage() {
               <div className="text-gray-500 text-xs mt-1">{label}</div>
             </div>
           ))}
+        </div>
+
+        {/* Invite link */}
+        <div className="rounded-2xl bg-teal-500/5 border border-teal-500/15 p-5 mb-8">
+          <div className="flex items-center gap-2 mb-3">
+            <Share2 className="w-4 h-4 text-teal-400" />
+            <p className="text-teal-400 text-xs font-semibold uppercase tracking-wider">Invite Friends</p>
+          </div>
+          <p className="text-sm text-gray-400 mb-3">
+            Share your personal link. When someone signs up using it, they&apos;ll be connected as your referral.
+          </p>
+          <div className="flex items-center gap-2">
+            <div className="flex-1 min-w-0 bg-[#0a0f1a] border border-white/10 rounded-lg px-3 py-2.5 text-sm text-gray-300 truncate">
+              {inviteLink || 'Loading...'}
+            </div>
+            <button
+              onClick={() => {
+                if (!inviteLink) return;
+                navigator.clipboard.writeText(inviteLink);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }}
+              className="shrink-0 flex items-center gap-1.5 bg-teal-500 hover:bg-teal-400 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+            >
+              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              {copied ? 'Copied' : 'Copy'}
+            </button>
+          </div>
         </div>
 
         {/* Log catch CTA */}

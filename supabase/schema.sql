@@ -12,6 +12,8 @@ create table if not exists public.profiles (
   avatar_url text,
   emirate text,
   total_catches int default 0,
+  referred_by uuid references public.profiles(id) on delete set null,
+  referral_count int default 0,
   created_at timestamptz default now()
 );
 
@@ -26,16 +28,30 @@ create policy "Users can insert their own profile"
 create policy "Users can update their own profile"
   on public.profiles for update using (auth.uid() = id);
 
--- Auto-create profile on sign up
+-- Auto-create profile on sign up (with referral tracking)
 create or replace function public.handle_new_user()
 returns trigger as $$
+declare
+  referrer_id uuid;
 begin
-  insert into public.profiles (id, username, display_name)
+  -- Look up referrer by username passed in metadata
+  select id into referrer_id
+  from public.profiles
+  where username = new.raw_user_meta_data->>'referred_by_username';
+
+  insert into public.profiles (id, username, display_name, referred_by)
   values (
     new.id,
     lower(regexp_replace(coalesce(new.raw_user_meta_data->>'display_name', split_part(new.email, '@', 1)), '[^a-z0-9]', '', 'g')),
-    coalesce(new.raw_user_meta_data->>'display_name', split_part(new.email, '@', 1))
+    coalesce(new.raw_user_meta_data->>'display_name', split_part(new.email, '@', 1)),
+    referrer_id
   );
+
+  -- Increment referrer's count
+  if referrer_id is not null then
+    update public.profiles set referral_count = referral_count + 1 where id = referrer_id;
+  end if;
+
   return new;
 end;
 $$ language plpgsql security definer;
@@ -114,6 +130,27 @@ create policy "Authenticated users can upload catch photos"
 -- PHASE 3 — Forum, Tournaments, Marketplace
 -- ============================================================
 
+-- FOLLOWS
+
+create table if not exists public.follows (
+  id uuid default gen_random_uuid() primary key,
+  follower_id uuid references public.profiles(id) on delete cascade not null,
+  following_id uuid references public.profiles(id) on delete cascade not null,
+  created_at timestamptz default now(),
+  unique(follower_id, following_id)
+);
+
+alter table public.follows enable row level security;
+
+create policy "Follows viewable by all"
+  on public.follows for select using (true);
+
+create policy "Users can follow"
+  on public.follows for insert with check (auth.uid() = follower_id);
+
+create policy "Users can unfollow"
+  on public.follows for delete using (auth.uid() = follower_id);
+
 -- FORUM CATEGORIES
 create table if not exists public.forum_categories (
   id uuid default gen_random_uuid() primary key,
@@ -148,13 +185,36 @@ create table if not exists public.forum_threads (
   reply_count int default 0,
   is_pinned boolean default false,
   is_locked boolean default false,
+  visibility text default 'public' check (visibility in ('public', 'followers', 'private')),
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
 alter table public.forum_threads enable row level security;
-create policy "Threads viewable by all" on public.forum_threads for select using (true);
-create policy "Auth users can create threads" on public.forum_threads for insert with check (auth.uid() = user_id);
-create policy "Users can update own threads" on public.forum_threads for update using (auth.uid() = user_id);
+
+create policy "Public threads viewable by all"
+  on public.forum_threads for select
+  using (visibility = 'public');
+
+create policy "Followers-only threads viewable by followers"
+  on public.forum_threads for select
+  using (
+    visibility = 'followers' and auth.uid() in (
+      select follower_id from public.follows where following_id = user_id
+    )
+  );
+
+create policy "Followers-only threads viewable by author"
+  on public.forum_threads for select
+  using (visibility = 'followers' and auth.uid() = user_id);
+
+create policy "Private threads viewable by author"
+  on public.forum_threads for select
+  using (visibility = 'private' and auth.uid() = user_id);
+
+create policy "Auth users can create threads"
+  on public.forum_threads for insert with check (auth.uid() = user_id);
+create policy "Users can update own threads"
+  on public.forum_threads for update using (auth.uid() = user_id);
 
 -- FORUM REPLIES
 create table if not exists public.forum_replies (
@@ -180,6 +240,134 @@ end;
 $$ language plpgsql security definer;
 create or replace trigger on_reply_inserted
   after insert on public.forum_replies for each row execute procedure public.increment_reply_count();
+
+-- Maintain category thread_count
+create or replace function public.update_category_thread_count()
+returns trigger as $$
+begin
+  if (tg_op = 'INSERT') then
+    update public.forum_categories set thread_count = thread_count + 1 where id = new.category_id;
+    return new;
+  elsif (tg_op = 'DELETE') then
+    update public.forum_categories set thread_count = thread_count - 1 where id = old.category_id;
+    return old;
+  end if;
+  return null;
+end;
+$$ language plpgsql security definer;
+
+create or replace trigger on_thread_inserted_deleted
+  after insert or delete on public.forum_threads for each row execute procedure public.update_category_thread_count();
+
+-- CATEGORY SUBSCRIPTIONS
+
+create table if not exists public.forum_category_subscriptions (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references public.profiles(id) on delete cascade not null,
+  category_id uuid references public.forum_categories(id) on delete cascade not null,
+  notify_new_threads boolean default true,
+  created_at timestamptz default now(),
+  unique(user_id, category_id)
+);
+
+alter table public.forum_category_subscriptions enable row level security;
+
+create policy "Users can view own subscriptions"
+  on public.forum_category_subscriptions for select using (auth.uid() = user_id);
+
+create policy "Users can manage own subscriptions"
+  on public.forum_category_subscriptions for all using (auth.uid() = user_id);
+
+-- Auto-subscribe new users to all categories
+
+create or replace function public.auto_subscribe_to_categories()
+returns trigger as $$
+begin
+  insert into public.forum_category_subscriptions (user_id, category_id, notify_new_threads)
+  select new.id, id, true from public.forum_categories;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create or replace trigger on_profile_created_subscribe_categories
+  after insert on public.profiles for each row execute procedure public.auto_subscribe_to_categories();
+
+-- NOTIFICATIONS
+
+create table if not exists public.notifications (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references public.profiles(id) on delete cascade not null,
+  type text not null check (type in ('new_thread', 'new_reply', 'mention', 'catch_comment', 'new_message')),
+  title text not null,
+  body text,
+  link text,
+  thread_id uuid references public.forum_threads(id) on delete cascade,
+  catch_id uuid references public.catches(id) on delete cascade,
+  conversation_id uuid references public.conversations(id) on delete cascade,
+  is_read boolean default false,
+  created_at timestamptz default now()
+);
+
+alter table public.notifications enable row level security;
+
+create policy "Users can view own notifications"
+  on public.notifications for select using (auth.uid() = user_id);
+
+create policy "Users can update own notifications"
+  on public.notifications for update using (auth.uid() = user_id);
+
+create policy "Users can delete own notifications"
+  on public.notifications for delete using (auth.uid() = user_id);
+
+-- Notify subscribers on new thread
+
+create or replace function public.notify_on_new_thread()
+returns trigger as $$
+begin
+  -- Public threads: notify all subscribers to the category
+  if new.visibility = 'public' then
+    insert into public.notifications (user_id, type, title, body, link, thread_id)
+    select
+      s.user_id,
+      'new_thread',
+      'New thread in ' || c.name,
+      new.title,
+      '/forum/thread/' || new.id,
+      new.id
+    from public.forum_category_subscriptions s
+    join public.forum_categories c on c.id = s.category_id
+    where s.category_id = new.category_id
+      and s.notify_new_threads = true
+      and s.user_id != new.user_id;
+
+  -- Followers-only: notify followers who are also subscribed
+  elsif new.visibility = 'followers' then
+    insert into public.notifications (user_id, type, title, body, link, thread_id)
+    select
+      s.user_id,
+      'new_thread',
+      'New thread in ' || c.name,
+      new.title,
+      '/forum/thread/' || new.id,
+      new.id
+    from public.forum_category_subscriptions s
+    join public.forum_categories c on c.id = s.category_id
+    where s.category_id = new.category_id
+      and s.notify_new_threads = true
+      and s.user_id != new.user_id
+      and s.user_id in (
+        select follower_id from public.follows where following_id = new.user_id
+      );
+
+  -- Private: no notifications to others
+  end if;
+
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create or replace trigger on_thread_created_notify
+  after insert on public.forum_threads for each row execute procedure public.notify_on_new_thread();
 
 -- TOURNAMENTS
 create table if not exists public.tournaments (
@@ -243,3 +431,14 @@ create policy "Users can update own listings" on public.listings for update usin
 
 -- Phase 4: Add scientific_name to catches (run separately if table already exists)
 -- alter table public.catches add column if not exists scientific_name text;
+
+-- Backfill: update category thread counts
+update public.forum_categories c
+set thread_count = (select count(*) from public.forum_threads t where t.category_id = c.id);
+
+-- Backfill: auto-subscribe all existing users to all categories
+insert into public.forum_category_subscriptions (user_id, category_id, notify_new_threads)
+select p.id, c.id, true
+from public.profiles p
+ cross join public.forum_categories c
+on conflict do nothing;

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { MessageSquare, Plus, ChevronRight } from 'lucide-react';
+import { MessageSquare, Plus, ChevronRight, Flame } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 
 export const metadata: Metadata = {
@@ -30,13 +30,22 @@ export default async function ForumPage() {
             <h1 className="text-3xl font-extrabold text-white mb-1">Community Forum</h1>
             <p className="text-gray-400">Discuss spots, share catches, ask questions</p>
           </div>
-          <Link
-            href="/forum/new"
-            className="flex items-center gap-2 bg-teal-500 hover:bg-teal-400 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            New Thread
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/forum/all"
+              className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors"
+            >
+              <Flame className="w-4 h-4 text-amber-400" />
+              All Threads
+            </Link>
+            <Link
+              href="/forum/new"
+              className="flex items-center gap-2 bg-teal-500 hover:bg-teal-400 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              New Thread
+            </Link>
+          </div>
         </div>
 
         <div className="space-y-3">

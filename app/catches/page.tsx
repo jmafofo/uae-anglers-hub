@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Fish, MapPin } from 'lucide-react';
+import { Fish, MapPin, MessageSquare } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 
 export const metadata: Metadata = {
@@ -21,6 +21,7 @@ interface Catch {
   photo_url: string | null;
   caught_at: string;
   bait: string | null;
+  comment_count: number | null;
   profiles: { display_name: string; username: string } | null;
 }
 
@@ -69,9 +70,10 @@ export default async function CatchesPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {(catches as Catch[]).map((c) => (
-              <div
+              <Link
                 key={c.id}
-                className="rounded-xl bg-white/5 border border-white/10 hover:border-teal-500/30 transition-colors overflow-hidden"
+                href={`/catches/${c.id}`}
+                className="block rounded-xl bg-white/5 border border-white/10 hover:border-teal-500/30 transition-colors overflow-hidden"
               >
                 {c.photo_url && (
                   <div className="w-full h-44 bg-white/10 overflow-hidden">
@@ -110,21 +112,23 @@ export default async function CatchesPage() {
                     <p className="text-xs text-gray-600">Bait: {c.bait}</p>
                   )}
 
-                  {c.profiles && (
-                    <Link
-                      href={`/profile/${c.profiles.username}`}
-                      className="mt-3 pt-3 border-t border-white/5 flex items-center gap-2 group"
-                    >
-                      <div className="w-6 h-6 rounded-full bg-teal-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
-                        {c.profiles.display_name?.[0]?.toUpperCase()}
-                      </div>
-                      <span className="text-xs text-gray-500 group-hover:text-teal-400 transition-colors">
-                        {c.profiles.display_name}
+                  <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between gap-2">
+                    {c.profiles ? (
+                      <span className="flex items-center gap-2 group">
+                        <div className="w-6 h-6 rounded-full bg-teal-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                          {c.profiles.display_name?.[0]?.toUpperCase()}
+                        </div>
+                        <span className="text-xs text-gray-500 group-hover:text-teal-400 transition-colors">
+                          {c.profiles.display_name}
+                        </span>
                       </span>
-                    </Link>
-                  )}
+                    ) : <span />}
+                    <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+                      <MessageSquare className="w-3 h-3" /> {c.comment_count ?? 0}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}

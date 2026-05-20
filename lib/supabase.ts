@@ -17,3 +17,18 @@ export const supabase = new Proxy({} as SupabaseClient, {
     return (getSupabase() as unknown as Record<string | symbol, unknown>)[prop];
   },
 });
+
+/**
+ * Return an Authorization header with the current user's access token.
+ * Use this when calling App Router API routes from client components,
+ * because the client-side Supabase client stores auth in localStorage
+ * (not cookies), so fetch() won't automatically send session cookies.
+ */
+export async function getAuthHeaders(): Promise<Record<string, string>> {
+  const sb = getSupabase();
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.access_token) {
+    return { Authorization: `Bearer ${session.access_token}` };
+  }
+  return {};
+}

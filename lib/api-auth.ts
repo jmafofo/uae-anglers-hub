@@ -1,8 +1,9 @@
 /**
  * API route authentication helpers.
- * Verifies Supabase Bearer tokens sent by the mobile app.
+ * Verifies Supabase Bearer tokens sent by the mobile app, or cookie-based auth from the web app.
  */
 import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 import type { User } from '@supabase/supabase-js';
 
@@ -44,6 +45,44 @@ export async function requireAuth(req: NextRequest): Promise<AuthResult> {
   }
 
   return { ok: true, user, token };
+}
+
+/**
+ * Try cookie-based auth (web app) first, then fall back to Bearer token (mobile app).
+ */
+export async function requireAuthUniversal(req: NextRequest): Promise<AuthResult> {
+  // Try cookie-based auth first
+  const cookieAuth = await getUserFromCookies(req);
+  if (cookieAuth) {
+    return { ok: true, user: cookieAuth.user, token: cookieAuth.token };
+  }
+
+  // Fall back to Bearer token
+  return requireAuth(req);
+}
+
+async function getUserFromCookies(req: NextRequest) {
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return req.cookies.getAll();
+        },
+        setAll() {},
+      },
+    }
+  );
+
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) return null;
+
+  // Extract the access token from cookies if available
+  const accessTokenCookie = req.cookies.get('sb-access-token') || req.cookies.get('sb-' + process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('https://', '').split('.')[0] + '-auth-token');
+  const token = accessTokenCookie?.value ?? '';
+
+  return { user, token };
 }
 
 /**
