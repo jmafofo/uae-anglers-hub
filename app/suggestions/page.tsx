@@ -55,9 +55,11 @@ function SuggestionsPage() {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [myVotes, setMyVotes] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [votingId, setVotingId] = useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = useState<string | null>(null);
 
   const activeStatus = searchParams.get('status') ?? 'all';
   const activeCategory = searchParams.get('category') ?? 'all';
@@ -65,6 +67,7 @@ function SuggestionsPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     const params = new URLSearchParams();
     if (activeStatus !== 'all') params.set('status', activeStatus);
     if (activeCategory !== 'all') params.set('category', activeCategory);
@@ -75,6 +78,9 @@ function SuggestionsPage() {
       const json = await res.json();
       setSuggestions(json.suggestions ?? []);
       setMyVotes(new Set(json.myVotes ?? []));
+    } else {
+      const text = await res.text().catch(() => 'Failed to load');
+      setLoadError(text.slice(0, 200));
     }
     setLoading(false);
   }, [activeStatus, activeCategory, activeSort]);
@@ -196,9 +202,29 @@ function SuggestionsPage() {
             <ArrowUpDown className="w-3.5 h-3.5" />
             {activeSort === 'votes' ? 'Most Popular' : 'Newest'}
           </button>
+          <button
+            onClick={async () => {
+              const res = await fetch('/api/suggestions/debug');
+              const json = await res.json();
+              setDebugInfo(JSON.stringify(json, null, 2));
+            }}
+            className="text-xs text-gray-500 hover:text-gray-300 underline"
+          >
+            Check DB
+          </button>
         </div>
+        {debugInfo && (
+          <pre className="mb-4 p-3 rounded-xl bg-black/30 border border-white/10 text-[11px] text-gray-400 overflow-x-auto">
+            {debugInfo}
+          </pre>
+        )}
 
         {/* List */}
+        {loadError && (
+          <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+            {loadError}
+          </div>
+        )}
         {loading ? (
           <div className="py-20 text-center text-gray-500">
             <Loader2 className="w-5 h-5 animate-spin inline" />

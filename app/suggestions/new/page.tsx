@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Lightbulb, Loader2, Send, Sparkles } from 'lucide-react';
-import { getAuthHeaders } from '@/lib/supabase';
+import { ArrowLeft, Lightbulb, Loader2, Send, Sparkles, MessageCircle } from 'lucide-react';
+import { getAuthHeaders, getSupabase } from '@/lib/supabase';
 
 const CATEGORIES = [
   { value: 'feature', label: 'New Feature', desc: 'A brand-new capability for the platform' },
@@ -21,6 +21,38 @@ export default function NewSuggestionPage() {
   const [category, setCategory] = useState('feature');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const sb = getSupabase();
+      const { data: { user } } = await sb.auth.getUser();
+      setUserId(user?.id ?? null);
+      setAuthChecked(true);
+    })();
+  }, []);
+
+  if (!authChecked) return (
+    <div className="min-h-screen pt-14 flex items-center justify-center text-gray-500">
+      <Loader2 className="w-5 h-5 animate-spin" />
+    </div>
+  );
+
+  if (!userId) {
+    return (
+      <div className="min-h-screen pt-14 flex items-center justify-center px-4">
+        <div className="max-w-md text-center bg-white/5 border border-white/10 rounded-2xl p-8">
+          <Lightbulb className="w-10 h-10 text-amber-400 mx-auto mb-3" />
+          <h1 className="text-white font-bold text-lg mb-2">Sign in to suggest</h1>
+          <p className="text-gray-400 text-sm mb-5">Submit ideas and vote on features.</p>
+          <Link href="/login?next=/suggestions/new" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-white text-sm font-semibold">
+            Sign in
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

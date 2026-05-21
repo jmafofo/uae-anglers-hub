@@ -16,13 +16,13 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const status = searchParams.get('status');
   const category = searchParams.get('category');
-  const sort = searchParams.get('sort') ?? 'votes'; // votes | newest
+  const sort = searchParams.get('sort') ?? 'votes';
   const limit = Math.min(parseInt(searchParams.get('limit') ?? '50', 10), 100);
 
   const admin = getSupabaseAdmin();
   let q = admin
     .from('suggestions')
-    .select('id, user_id, title, body, category, status, votes, created_at, profiles(id, username, display_name, avatar_url)')
+    .select('id, user_id, title, body, category, status, votes, created_at')
     .limit(limit);
 
   if (status && VALID_STATUS.includes(status)) {
@@ -37,13 +37,32 @@ export async function GET(req: NextRequest) {
     q = q.order('votes', { ascending: false });
   }
 
-  const { data, error } = await q;
+  const { data: suggestions, error } = await q;
   if (error) {
     console.error('[suggestions] list', error);
     return NextResponse.json({ error: 'Failed to load suggestions' }, { status: 500 });
   }
 
-  // Get current user's votes if authenticated (so UI can show "you voted")
+  // Fetch author profiles separately to avoid fragile PostgREST joins
+  const userIds = [...new Set((suggestions ?? []).map((s: { user_id: string }) => s.user_id))];
+  let profiles: Record<string, { username: string; display_name: string | null; avatar_url: string | null }> = {};
+  if (userIds.length > 0) {
+    const { data: profs } = await admin
+      .from('profiles')
+      .select('id, username, display_name, avatar_url')
+      .in('id', userIds);
+    for (const p of profs ?? []) {
+      const profile = p as { id: string; username: string; display_name: string | null; avatar_url: string | null };
+      profiles[profile.id] = profile;
+    }
+  }
+
+  const suggestionsWithProfiles = (suggestions ?? []).map((s: { user_id: string }) => ({
+    ...s,
+    profiles: profiles[s.user_id] ?? null,
+  }));
+
+  // Get current user's votes if authenticated
   let myVotes: string[] = [];
   const auth = await requireAuthUniversal(req);
   if (auth.ok && auth.user) {
@@ -54,7 +73,7 @@ export async function GET(req: NextRequest) {
     myVotes = (votes ?? []).map((v: { suggestion_id: string }) => v.suggestion_id);
   }
 
-  return NextResponse.json({ suggestions: data ?? [], myVotes });
+  return NextResponse.json({ suggestions: suggestionsWithProfiles, myVotes });
 }
 
 export async function POST(req: NextRequest) {
