@@ -107,6 +107,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Prevent duplicate submissions (same title within 24h)
+    const { data: recent } = await admin
+      .from('suggestions')
+      .select('id')
+      .eq('user_id', auth.user.id)
+      .eq('title', title)
+      .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+      .limit(1);
+
+    if (recent && recent.length > 0) {
+      return NextResponse.json(
+        { error: 'You already submitted this idea recently. Please wait 24 hours or edit your existing suggestion.' },
+        { status: 409 }
+      );
+    }
+
     const { error } = await admin
       .from('suggestions')
       .insert({ user_id: auth.user.id, title, body: text, category });

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
   Lightbulb, ThumbsUp, Plus, Loader2, Filter, ArrowUpDown,
-  CheckCircle2, Clock, Eye, ClipboardList, XCircle, Sparkles,
+  CheckCircle2, Clock, Eye, ClipboardList, XCircle, Sparkles, Trash2,
 } from 'lucide-react';
 import { getSupabase, getAuthHeaders } from '@/lib/supabase';
 
@@ -59,6 +59,7 @@ function SuggestionsPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [votingId, setVotingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<string | null>(null);
 
   const activeStatus = searchParams.get('status') ?? 'all';
@@ -120,6 +121,22 @@ function SuggestionsPage() {
         if (s.id !== id) return s;
         return { ...s, votes: voted ? s.votes - 1 : s.votes + 1 };
       }));
+    }
+  }
+
+  async function deleteSuggestion(id: string) {
+    if (!confirm('Delete this suggestion?')) return;
+    setDeletingId(id);
+    const res = await fetch(`/api/suggestions/${id}`, {
+      method: 'DELETE',
+      headers: await getAuthHeaders(),
+    });
+    setDeletingId(null);
+    if (res.ok) {
+      setSuggestions((prev) => prev.filter((s) => s.id !== id));
+    } else {
+      const json = await res.json().catch(() => ({}));
+      alert(json.error || 'Could not delete.');
     }
   }
 
@@ -290,6 +307,16 @@ function SuggestionsPage() {
                       <span className="text-[11px] text-gray-600">
                         by {s.profiles?.display_name ?? s.profiles?.username ?? 'angler'} · {timeAgo(s.created_at)}
                       </span>
+                      {(isAdmin || s.user_id === userId) && (
+                        <button
+                          onClick={() => deleteSuggestion(s.id)}
+                          disabled={deletingId === s.id}
+                          className="text-[11px] text-gray-500 hover:text-red-400 flex items-center gap-1 transition-colors"
+                        >
+                          {deletingId === s.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                          Delete
+                        </button>
+                      )}
                       {isAdmin && (
                         <select
                           value={s.status}
