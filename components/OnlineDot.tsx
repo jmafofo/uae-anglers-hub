@@ -16,13 +16,8 @@ interface OnlineDotProps {
  * Read-only consumer of the shared `community` presence channel.
  * Watches whether `userId` appears in the channel state.
  *
- * The channel uses each user's UUID as its presence key (see
- * CommunityPresence), so checking is a simple key lookup —
- * no extra channel per profile view.
- *
- * Note: a user with `profiles.appear_offline = true` will not be
- * tracked by CommunityPresence, so this dot will read them as
- * offline. That's intentional ("appear offline" privacy toggle).
+ * Subscribes to the SAME channel name as CommunityPresence so
+ * multiple OnlineDot instances don't spawn wasteful extra channels.
  */
 export default function OnlineDot({
   userId, showLabel = false, title, className,
@@ -32,14 +27,8 @@ export default function OnlineDot({
   useEffect(() => {
     if (!userId) return;
     const sb = getSupabase();
-    // Each viewer needs their own random session key so they don't
-    // collide with the user they're observing. CommunityPresence
-    // uses user.id for signed-in viewers; here we use a random key
-    // because OnlineDot is a passive observer, not a presence
-    // contributor.
-    const channel = sb.channel('community', {
-      config: { presence: { key: `observer-${crypto.randomUUID()}` } },
-    });
+    // Share the same channel as CommunityPresence — no extra websocket
+    const channel = sb.channel('community');
 
     const check = () => {
       const state = channel.presenceState();
