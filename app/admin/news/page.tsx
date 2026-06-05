@@ -230,7 +230,7 @@ export default function AdminNewsPage() {
                   <h3 className="text-white font-semibold mt-0.5 truncate">{item.headline}</h3>
                   {item.excerpt && <p className="text-gray-400 text-sm line-clamp-2">{item.excerpt}</p>}
                   {item.source_url && (
-                    <a href={item.source_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-teal-400 hover:text-teal-300 mt-1">
+                    <a href={item.source_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-teal-400 hover:text-teal-300 mt-1">
                       {item.source_name ?? 'Source'} <ExternalLink className="w-3 h-3" />
                     </a>
                   )}

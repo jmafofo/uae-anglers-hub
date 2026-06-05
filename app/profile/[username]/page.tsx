@@ -1,9 +1,12 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { Fish, MapPin, Calendar, Trophy, MessageCircle, MessageSquare, Reply } from 'lucide-react';
+import { MapPin, Calendar } from 'lucide-react';
 import OnlineDot from '@/components/OnlineDot';
+import FollowButton from '@/components/FollowButton';
+import ProfileTabs from '@/components/posts/ProfileTabs';
 import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,18 +15,6 @@ const supabase = createClient(
 
 interface PageProps {
   params: Promise<{ username: string }>;
-}
-
-/** One row from the profile_wall view (UNION ALL across sources) */
-interface WallRow {
-  user_id: string;
-  kind: 'catch' | 'thread' | 'comment';
-  item_id: string;
-  created_at: string;
-  title: string;
-  excerpt: string;
-  photo_url: string | null;
-  parent_id: string | null;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -55,9 +46,16 @@ export default async function ProfilePage({ params }: PageProps) {
 
   if (!profile) notFound();
 
-  // Unified wall: catches + forum threads + catch comments,
-  // ordered chronologically. The profile_wall view does the
-  // UNION ALL server-side.
+  // Posts
+  const admin = getSupabaseAdmin();
+  const { data: posts } = await admin
+    .from('posts')
+    .select('id, caption, created_at, likes_count:post_likes(count), comments_count:post_comments(count), media:post_media(media_url, media_type)')
+    .eq('user_id', profile.id)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false });
+
+  // Activity wall
   const { data: wallItems } = await supabase
     .from('profile_wall')
     .select('*')
@@ -67,86 +65,138 @@ export default async function ProfilePage({ params }: PageProps) {
 
   const joinedYear = new Date(profile.created_at).getFullYear();
 
+  // Follower / following counts
+  const { count: followerCount } = await admin
+    .from('follows')
+    .select('*', { count: 'exact', head: true })
+    .eq('following_id', profile.id);
+  const { count: followingCount } = await admin
+    .from('follows')
+    .select('*', { count: 'exact', head: true })
+    .eq('follower_id', profile.id);
+
+  // Social links
+  const socials = [
+    { key: 'instagram_handle' as const, label: 'Instagram', url: (v: string) => `https://instagram.com/${v}` },
+    { key: 'tiktok_handle' as const, label: 'TikTok', url: (v: string) => `https://tiktok.com/@${v}` },
+    { key: 'youtube_channel' as const, label: 'YouTube', url: (v: string) => v.startsWith('http') ? v : `https://youtube.com/@${v}` },
+    { key: 'facebook_page' as const, label: 'Facebook', url: (v: string) => v.startsWith('http') ? v : `https://facebook.com/${v}` },
+  ];
+
+  const postItems = (posts ?? []).map((p: any) => ({
+    id: p.id,
+    caption: p.caption,
+    created_at: p.created_at,
+    likes_count: p.likes_count?.[0]?.count ?? 0,
+    comments_count: p.comments_count?.[0]?.count ?? 0,
+    has_liked: false,
+    media: p.media ?? [],
+    profile: {
+      username: profile.username,
+      display_name: profile.display_name,
+      avatar_url: profile.avatar_url,
+    },
+  }));
+
   return (
     <div className="min-h-screen pt-20 px-4 pb-16">
       <div className="max-w-3xl mx-auto">
-        {/* Profile header */}
-        <div className="flex items-start gap-5 mb-10 p-6 rounded-2xl bg-white/5 border border-white/10">
-          <div className="w-16 h-16 rounded-full bg-teal-600 flex items-center justify-center text-white text-2xl font-bold shrink-0">
-            {profile.display_name?.[0]?.toUpperCase() ?? '?'}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-2xl font-extrabold text-white">{profile.display_name}</h1>
-              <OnlineDot userId={profile.id} showLabel />
+        {/* ── Instagram-style header ───────────────────────── */}
+        <div className="flex items-start gap-5 mb-8">
+          {/* Avatar */}
+          <div className="shrink-0">
+            <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-teal-600 flex items-center justify-center text-white text-3xl sm:text-4xl font-bold overflow-hidden ring-2 ring-teal-500/30">
+              {profile.avatar_url ? (
+                <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+              ) : (
+                profile.display_name?.[0]?.toUpperCase() ?? '?'
+              )}
             </div>
-            <p className="text-gray-400 text-sm">@{profile.username}</p>
+          </div>
+
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-3 mb-3">
+              <h1 className="text-lg sm:text-2xl font-extrabold text-white truncate">{profile.display_name}</h1>
+              <OnlineDot userId={profile.id} />
+            </div>
+            <p className="text-gray-400 text-sm mb-4">@{profile.username}</p>
+
+            {/* Stats row */}
+            <div className="flex items-center gap-6 mb-4">
+              <div className="text-center">
+                <span className="block text-base sm:text-lg font-bold text-white">{postItems.length}</span>
+                <span className="text-xs text-gray-500">posts</span>
+              </div>
+              <div className="text-center">
+                <span className="block text-base sm:text-lg font-bold text-white">{followerCount ?? 0}</span>
+                <span className="text-xs text-gray-500">followers</span>
+              </div>
+              <div className="text-center">
+                <span className="block text-base sm:text-lg font-bold text-white">{followingCount ?? 0}</span>
+                <span className="text-xs text-gray-500">following</span>
+              </div>
+              <div className="text-center">
+                <span className="block text-base sm:text-lg font-bold text-teal-400">{profile.total_catches ?? 0}</span>
+                <span className="text-xs text-gray-500">catches</span>
+              </div>
+            </div>
+
+            {/* Bio + Meta */}
             {profile.bio && (
-              <p className="text-gray-300 text-sm mt-2 leading-relaxed">{profile.bio}</p>
+              <p className="text-sm text-gray-300 mb-2 leading-relaxed">{profile.bio}</p>
             )}
-            <div className="flex flex-wrap gap-4 mt-3 text-sm text-gray-500">
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 mb-3">
               {profile.emirate && (
                 <span className="flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5" />
-                  {profile.emirate}
+                  <MapPin className="w-3 h-3" /> {profile.emirate}
                 </span>
               )}
               <span className="flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5" />
-                Member since {joinedYear}
+                <Calendar className="w-3 h-3" /> Member since {joinedYear}
               </span>
             </div>
-          </div>
-          {/* Stats + Message CTA */}
-          <div className="flex flex-col items-end gap-3 shrink-0">
-            <div className="text-center">
-              <div className="flex items-center gap-1 text-teal-400">
-                <Fish className="w-4 h-4" />
-                <span className="text-2xl font-bold">{profile.total_catches}</span>
+
+            {/* Social links */}
+            {socials.some((s) => !!profile[s.key]) && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {socials
+                  .filter((s) => !!profile[s.key])
+                  .map((s) => (
+                    <a
+                      key={s.key}
+                      href={s.url(profile[s.key])}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-semibold text-teal-400 hover:text-teal-300 transition-colors bg-teal-500/10 px-2.5 py-1 rounded-full"
+                    >
+                      {s.label}
+                    </a>
+                  ))}
               </div>
-              <div className="text-gray-500 text-xs">Catches</div>
-            </div>
-            {profile.dm_policy === 'closed' ? (
-              <span
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-gray-500 text-xs font-semibold cursor-not-allowed"
-                title="This angler isn't accepting direct messages"
-              >
-                <MessageCircle className="w-3.5 h-3.5" />
-                DMs off
-              </span>
-            ) : (
-              <Link
-                href={`/community/messages?to=${profile.username}`}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-500/10 border border-teal-500/30 text-teal-400 hover:bg-teal-500/20 text-xs font-semibold transition-colors"
-                title={profile.dm_policy === 'followers_only' ? 'May be limited to followers' : undefined}
-              >
-                <MessageCircle className="w-3.5 h-3.5" />
-                Message
-              </Link>
             )}
+
+            {/* Actions */}
+            <div className="flex items-center gap-3">
+              <FollowButton userId={profile.id} username={profile.username} />
+              {profile.dm_policy !== 'closed' && (
+                <Link
+                  href={`/community/messages?to=${profile.username}`}
+                  className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-sm font-semibold hover:bg-white/10 transition-colors"
+                >
+                  Message
+                </Link>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Unified wall — catches + threads + comments */}
-        <h2 className="text-xl font-bold text-white mb-5 flex items-center gap-2">
-          <Trophy className="w-5 h-5 text-teal-400" />
-          {profile.display_name?.split(' ')[0] ?? 'Angler'}&rsquo;s activity
-        </h2>
-
-        {!wallItems || wallItems.length === 0 ? (
-          <div className="text-center py-16 text-gray-500 rounded-2xl border border-dashed border-white/10">
-            <Fish className="w-10 h-10 mx-auto mb-3 opacity-30" />
-            <p>No public activity yet.</p>
-          </div>
-        ) : (
-          <ul className="space-y-3">
-            {wallItems.map((item) => (
-              <li key={`${item.kind}-${item.item_id}`}>
-                <WallItem item={item as WallRow} />
-              </li>
-            ))}
-          </ul>
-        )}
+        {/* ── Tabs ─────────────────────────────────────────── */}
+        <ProfileTabs
+          profile={profile}
+          posts={postItems}
+          wallItems={(wallItems ?? []) as any[]}
+        />
 
         <div className="mt-10 text-center">
           <Link
@@ -158,92 +208,5 @@ export default async function ProfilePage({ params }: PageProps) {
         </div>
       </div>
     </div>
-  );
-}
-
-/* ─── Wall item renderer ─────────────────────────────────────
- * Kind-aware card. Three layouts:
- *   catch    → photo + species; links to /catches/[id]
- *   thread   → text card with title + excerpt; links to /forum/thread/[id]
- *   comment  → quoted excerpt under "Comment on <catch>"; links to the catch
- */
-function WallItem({ item }: { item: WallRow }) {
-  const when = new Date(item.created_at).toLocaleDateString('en-AE', {
-    day: 'numeric', month: 'short', year: 'numeric',
-  });
-
-  if (item.kind === 'catch') {
-    return (
-      <Link
-        href={`/catches/${item.item_id}`}
-        className="block rounded-xl bg-white/5 border border-white/10 hover:border-teal-500/30 transition-colors overflow-hidden"
-      >
-        {item.photo_url && (
-          <div className="w-full h-44 bg-white/10 overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={item.photo_url} alt={item.title} className="w-full h-full object-cover" />
-          </div>
-        )}
-        <div className="p-4 flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <Fish className="w-3.5 h-3.5 text-green-400" />
-              <span className="text-[10px] uppercase tracking-wider text-green-400 font-bold">Catch</span>
-            </div>
-            <p className="font-semibold text-white">{item.title}</p>
-            {item.excerpt && (
-              <p className="text-xs text-gray-500 mt-1 line-clamp-2">{item.excerpt}</p>
-            )}
-          </div>
-          <span className="text-xs text-gray-500 shrink-0">{when}</span>
-        </div>
-      </Link>
-    );
-  }
-
-  if (item.kind === 'thread') {
-    return (
-      <Link
-        href={`/forum/thread/${item.item_id}`}
-        className="block p-4 rounded-xl bg-white/5 border border-white/10 hover:border-teal-500/30 transition-colors"
-      >
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <MessageSquare className="w-3.5 h-3.5 text-blue-400" />
-              <span className="text-[10px] uppercase tracking-wider text-blue-400 font-bold">Thread</span>
-            </div>
-            <p className="font-semibold text-white line-clamp-1">{item.title}</p>
-            {item.excerpt && (
-              <p className="text-xs text-gray-400 mt-1 line-clamp-2">{item.excerpt}</p>
-            )}
-          </div>
-          <span className="text-xs text-gray-500 shrink-0">{when}</span>
-        </div>
-      </Link>
-    );
-  }
-
-  // comment
-  return (
-    <Link
-      href={`/catches/${item.parent_id}`}
-      className="block p-4 rounded-xl bg-white/5 border border-white/10 hover:border-teal-500/30 transition-colors"
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <Reply className="w-3.5 h-3.5 text-teal-400" />
-            <span className="text-[10px] uppercase tracking-wider text-teal-400 font-bold">{item.title}</span>
-          </div>
-          {item.excerpt && (
-            <p className="text-sm text-gray-300 italic border-l-2 border-white/10 pl-3 mt-1 line-clamp-3">
-              &ldquo;{item.excerpt}&rdquo;
-            </p>
-          )}
-        </div>
-        <span className="text-xs text-gray-500 shrink-0">{when}</span>
-      </div>
-    </Link>
   );
 }

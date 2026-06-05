@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { fishSpecies } from '@/lib/species';
 import SpeciesSearchBar from './SearchBar';
+import GoogleAd from '@/components/GoogleAd';
 
 export const metadata: Metadata = {
   title: 'UAE Fish Species Guide — MOCCAE 2023 Official List',
@@ -23,6 +24,11 @@ export default function SpeciesPage() {
             {fishSpecies.length}{' '}species documented with scientific names, habitats, and conservation status.
             Every catch you log contributes to UAE marine research.
           </p>
+        </div>
+
+        {/* Google Ad */}
+        <div className="mb-8 max-w-md">
+          <GoogleAd format="rectangle" />
         </div>
 
         {/* Search + Filter + Grid (client component) */}

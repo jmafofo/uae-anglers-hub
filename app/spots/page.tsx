@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { MapPin, Fish, Clock, ChevronRight, Anchor, Plus } from 'lucide-react';
 import { fishingSpots, emirates, getSpotImage } from '@/lib/spots';
+import GoogleAd from '@/components/GoogleAd';
 
 export const metadata: Metadata = {
   title: 'UAE Fishing Spots — 41 Verified Locations Across All 7 Emirates',
@@ -115,6 +116,11 @@ export default async function SpotsPage({ searchParams }: PageProps) {
             <Plus className="w-3.5 h-3.5" />
             Suggest a spot
           </Link>
+        </div>
+
+        {/* Google Ad */}
+        <div className="mb-8 max-w-sm">
+          <GoogleAd format="rectangle" />
         </div>
 
         {/* Results count */}

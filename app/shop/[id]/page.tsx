@@ -84,8 +84,8 @@ export default async function ListingPage({ params }: PageProps) {
               {l.contact_whatsapp && (
                 <a
                   href={`https://wa.me/${l.contact_whatsapp.replace(/\D/g, '')}?text=Hi, I'm interested in your listing: ${encodeURIComponent(l.title)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  target="_blank" rel="noopener noreferrer"
+                  
                   className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white px-5 py-3 rounded-lg font-semibold text-sm transition-colors flex-1"
                 >
                   <MessageCircle className="w-4 h-4" />

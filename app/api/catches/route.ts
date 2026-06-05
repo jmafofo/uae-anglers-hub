@@ -20,6 +20,7 @@
  *   longitude?           number
  *   emirate?             string
  *   photo_url?           string
+ *   photo_urls?          string[]
  *   notes?               string
  *   is_public?           boolean  default true
  *   caught_at?           ISO string  default now
@@ -55,6 +56,7 @@ const postSchema = z.object({
   longitude: z.number().optional(),
   emirate: z.string().optional(),
   photo_url: z.string().optional(),
+  photo_urls: z.array(z.string()).optional(),
   notes: z.string().optional(),
   is_public: z.boolean().optional(),
   caught_at: z.string().optional(),
@@ -72,25 +74,38 @@ const postSchema = z.object({
 });
 
 export async function GET(req: NextRequest) {
-  const auth = await requireAuth(req);
-  if (!auth.ok) return auth.response;
-
   const { searchParams } = new URL(req.url);
   const limit  = Math.min(200, Math.max(1, Number(searchParams.get('limit')  ?? 50)));
   const offset = Math.max(0, Number(searchParams.get('offset') ?? 0));
   const status = searchParams.get('status');
   const pub    = searchParams.get('public');
 
+  // Public feed — all public catches from all users (still requires auth for now)
+  const auth = await requireAuth(req);
+  if (!auth.ok) return auth.response;
+
   const sb = getUserSupabase(auth.token);
-  let query = sb
-    .from('catches')
-    .select('*')
-    .eq('user_id', auth.user.id)
-    .order('caught_at', { ascending: false })
-    .range(offset, offset + limit - 1);
+
+  let query;
+  if (pub === 'true') {
+    // Community feed: return all public catches across users
+    query = sb
+      .from('catches')
+      .select('*')
+      .eq('is_public', true)
+      .order('caught_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+  } else {
+    // Personal feed: return only the authenticated user's catches
+    query = sb
+      .from('catches')
+      .select('*')
+      .eq('user_id', auth.user.id)
+      .order('caught_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+  }
 
   if (status) query = query.eq('identification_status', status);
-  if (pub !== null) query = query.eq('is_public', pub === 'true');
 
   const { data, error, count } = await query;
   if (error) {
@@ -203,7 +218,8 @@ export async function POST(req: NextRequest) {
         latitude:              data.latitude          ?? null,
         longitude:             data.longitude         ?? null,
         emirate:               data.emirate           ?? null,
-        photo_url:             data.photo_url         ?? null,
+        photo_url:             data.photo_url         ?? (data.photo_urls?.[0] ?? null),
+        photo_urls:            data.photo_urls        ?? null,
         notes:                 data.notes             ?? null,
         is_public:             data.is_public         ?? true,
         caught_at:             data.caught_at         ?? new Date().toISOString(),

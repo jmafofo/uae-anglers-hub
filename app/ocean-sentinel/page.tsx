@@ -4,7 +4,11 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Fish, WifiOff, Database, Link as LinkIcon, ChevronRight, Smartphone, Star, X, Bell, Check, Zap, Download } from 'lucide-react';
 
-// Direct APK download from EAS — update this URL once the build completes
+// Direct APK download — update this URL once you upload the APK to your preferred host
+// The APK has been built locally and is available at:
+// ~/Desktop/OceanSentinel-v1.0.1.apk (89 MB)
+// EAS remote builds are currently broken due to a Gradle incompatibility.
+// Upload the APK to Google Drive / Dropbox / etc. and paste the public link here.
 const ANDROID_APK_URL = 'https://expo.dev/artifacts/eas/vP2xhbwXSyiQjMGsTngPCr.apk';
 import { fishSpecies } from '@/lib/species';
 import { getSupabase } from '@/lib/supabase';
@@ -302,15 +306,16 @@ export default function OceanSentinelPage() {
           <p className="text-2xl font-semibold text-teal-400 mb-5">AI Fish Identification App</p>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto mb-8">
             Photograph a fish, get the species name in seconds — with GPS-matched results filtered
-            to your exact UAE coast. Powered by Claude Vision AI, built for the angling community.
+            to your exact UAE coast. Navigate to 30+ fishing spots, follow fellow anglers, and get
+            real-time push notifications. Powered by Claude Vision AI, built for the angling community.
           </p>
 
           {/* Download buttons */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4">
             <a
               href={ANDROID_APK_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+              target="_blank" rel="noopener noreferrer"
+              
               className="flex items-center gap-3 bg-teal-500/15 border border-teal-500/40 hover:border-teal-400 hover:bg-teal-500/25 rounded-xl px-5 py-3 transition-all group"
             >
               <div className="text-2xl">🤖</div>
@@ -370,7 +375,28 @@ export default function OceanSentinelPage() {
                 title: 'Sync to uaeangler.com',
                 desc: 'Log catches directly from your identification results. Your Ocean Sentinel history syncs seamlessly with your UAE Anglers Hub profile.',
                 color: 'text-green-400 bg-green-500/10',
-                badge: 'Coming Soon',
+                badge: null,
+              },
+              {
+                icon: Bell,
+                title: 'Push Notifications',
+                desc: 'Get notified when someone likes your catch, comments on your post, or when new spots are added. Real-time alerts powered by Expo Push + Supabase.',
+                color: 'text-amber-400 bg-amber-500/10',
+                badge: 'New',
+              },
+              {
+                icon: Database,
+                title: 'Community Feed',
+                desc: 'Follow other anglers, like and comment on their catches, and discover what\'s biting across the UAE. Social fishing, built in.',
+                color: 'text-pink-400 bg-pink-500/10',
+                badge: 'New',
+              },
+              {
+                icon: WifiOff,
+                title: 'GPS Spot Navigation',
+                desc: 'Browse 30+ UAE fishing spots with live distance, bearing, and ETA. Turn-by-turn navigation with real-time polyline tracking on hybrid maps.',
+                color: 'text-blue-400 bg-blue-500/10',
+                badge: 'New',
               },
             ].map(({ icon: Icon, title, desc, color, badge }) => (
               <div key={title} className="p-6 rounded-2xl bg-white/5 border border-white/10 relative">
@@ -431,6 +457,9 @@ export default function OceanSentinelPage() {
               { label: 'ID Candidates',     value: 'Top 3 with evidence' },
               { label: 'Platforms',         value: 'iOS 15+ / Android 10+' },
               { label: 'Data Sync',         value: 'uaeangler.com cloud' },
+              { label: 'Social Features',   value: 'Community feed, likes, comments' },
+              { label: 'Navigation',        value: 'GPS spots + live polyline routing' },
+              { label: 'Notifications',     value: 'Expo Push + Supabase realtime' },
             ].map(({ label, value }) => (
               <div key={label}>
                 <p className="text-gray-500 text-xs mb-1">{label}</p>
@@ -455,6 +484,9 @@ export default function OceanSentinelPage() {
                   'Fish identification (Claude Vision AI)',
                   `${speciesCount}+ UAE species database`,
                   'GPS coast filtering',
+                  '30+ fishing spots with navigation',
+                  'Community feed & social features',
+                  'Push notifications',
                   'Catch history (local)',
                   'Banner ads shown',
                 ].map((f) => (
@@ -466,8 +498,8 @@ export default function OceanSentinelPage() {
               </ul>
               <a
                 href={ANDROID_APK_URL}
-                target="_blank"
-                rel="noopener noreferrer"
+                target="_blank" rel="noopener noreferrer"
+                
                 className="block text-center bg-white/10 hover:bg-white/15 border border-white/15 text-white font-semibold rounded-xl py-3 text-sm transition-all"
               >
                 Download Free
@@ -488,6 +520,8 @@ export default function OceanSentinelPage() {
                   'Unlimited identifications',
                   'Cloud sync catch history',
                   'Priority identification queue',
+                  'Community feed (unlimited)',
+                  'GPS navigation (offline maps)',
                   'Early access to new features',
                 ].map((f) => (
                   <li key={f} className="flex items-start gap-2">

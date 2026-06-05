@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MessageSquare, Plus, ChevronRight, Flame } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
+import GoogleAd from '@/components/GoogleAd';
 
 export const metadata: Metadata = {
   title: 'UAE Fishing Forum — Tips, Spots & Community Discussion',
@@ -31,6 +32,9 @@ export default async function ForumPage() {
             <p className="text-gray-400">Discuss spots, share catches, ask questions</p>
           </div>
           <div className="flex items-center gap-2">
+            <div className="hidden sm:block max-w-[300px]">
+              <GoogleAd format="rectangle" />
+            </div>
             <Link
               href="/forum/all"
               className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors"

@@ -74,6 +74,7 @@ create table if not exists public.catches (
   longitude numeric(9,6),
   emirate text,
   photo_url text,
+  photo_urls text[],
   notes text,
   is_public boolean default true,
   caught_at timestamptz default now(),
@@ -292,6 +293,262 @@ $$ language plpgsql security definer;
 create or replace trigger on_profile_created_subscribe_categories
   after insert on public.profiles for each row execute procedure public.auto_subscribe_to_categories();
 
+-- MESSAGING (conversations, members, messages)
+
+create table if not exists public.conversations (
+  id               uuid primary key default gen_random_uuid(),
+  type             text not null check (type in ('dm', 'group')),
+  name             text,
+  created_by       uuid references public.profiles(id) on delete set null,
+  created_at       timestamptz not null default now(),
+  last_message_at  timestamptz not null default now(),
+  constraint conversations_name_for_groups check (
+    type = 'dm' or (name is not null and char_length(name) <= 80)
+  )
+);
+
+create index if not exists conversations_last_message_ix
+  on public.conversations (last_message_at desc);
+
+create table if not exists public.conversation_members (
+  conversation_id  uuid not null references public.conversations(id) on delete cascade,
+  user_id          uuid not null references public.profiles(id) on delete cascade,
+  role             text not null default 'member' check (role in ('member', 'admin')),
+  joined_at        timestamptz not null default now(),
+  last_read_at     timestamptz not null default now(),
+  primary key (conversation_id, user_id)
+);
+
+create index if not exists conversation_members_user_ix
+  on public.conversation_members (user_id);
+
+create table if not exists public.messages (
+  id               uuid primary key default gen_random_uuid(),
+  conversation_id  uuid not null references public.conversations(id) on delete cascade,
+  sender_id        uuid not null references public.profiles(id) on delete cascade,
+  body             text not null,
+  created_at       timestamptz not null default now(),
+  edited_at        timestamptz,
+  deleted_at       timestamptz,
+  moderation_status text default 'approved' check (moderation_status in ('approved', 'flagged', 'removed')),
+  constraint messages_body_length check (char_length(body) between 1 and 4000)
+);
+
+create index if not exists messages_conv_created_ix
+  on public.messages (conversation_id, created_at);
+
+-- RLS: conversations
+alter table public.conversations enable row level security;
+
+create policy "Members see own conversations"
+  on public.conversations for select
+  using (
+    exists (
+      select 1 from public.conversation_members
+      where conversation_id = conversations.id and user_id = auth.uid()
+    )
+  );
+
+create policy "Auth users can create conversations"
+  on public.conversations for insert
+  with check (auth.uid() = created_by);
+
+create policy "Group admins can rename"
+  on public.conversations for update
+  using (
+    type = 'group' and exists (
+      select 1 from public.conversation_members
+      where conversation_id = conversations.id
+        and user_id = auth.uid()
+        and role = 'admin'
+    )
+  );
+
+-- RLS: conversation_members
+alter table public.conversation_members enable row level security;
+
+create policy "Members see co-members"
+  on public.conversation_members for select
+  using (
+    exists (
+      select 1 from public.conversation_members me
+      where me.conversation_id = conversation_members.conversation_id
+        and me.user_id = auth.uid()
+    )
+  );
+
+create policy "Self-join own conv or admin invite"
+  on public.conversation_members for insert
+  with check (
+    auth.uid() = user_id
+    or exists (
+      select 1 from public.conversation_members admin_row
+      where admin_row.conversation_id = conversation_members.conversation_id
+        and admin_row.user_id = auth.uid()
+        and admin_row.role = 'admin'
+    )
+  );
+
+create policy "Members update own member row"
+  on public.conversation_members for update
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create policy "Members can leave"
+  on public.conversation_members for delete
+  using (auth.uid() = user_id);
+
+-- RLS: messages
+alter table public.messages enable row level security;
+
+create policy "Members read messages"
+  on public.messages for select
+  using (
+    exists (
+      select 1 from public.conversation_members
+      where conversation_id = messages.conversation_id
+        and user_id = auth.uid()
+    )
+  );
+
+create policy "Members send messages"
+  on public.messages for insert
+  with check (
+    auth.uid() = sender_id
+    and exists (
+      select 1 from public.conversation_members
+      where conversation_id = messages.conversation_id
+        and user_id = auth.uid()
+    )
+  );
+
+create policy "Senders update own messages"
+  on public.messages for update
+  using (auth.uid() = sender_id) with check (auth.uid() = sender_id);
+
+create policy "Senders delete own messages"
+  on public.messages for delete
+  using (auth.uid() = sender_id);
+
+-- Triggers: bump last_message_at on new messages
+create or replace function public.messages_bump_conversation()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  update public.conversations
+    set last_message_at = new.created_at
+    where id = new.conversation_id;
+  return new;
+end;
+$$;
+
+create trigger messages_bump_conversation_trigger
+  after insert on public.messages
+  for each row execute procedure public.messages_bump_conversation();
+
+-- Trigger: touch edited_at on body change
+create or replace function public.messages_touch_edited_at()
+returns trigger
+language plpgsql
+security invoker
+set search_path = public, pg_temp
+as $$
+begin
+  if new.body is distinct from old.body then
+    new.edited_at := now();
+  end if;
+  return new;
+end;
+$$;
+
+create trigger messages_touch_edited_at
+  before update on public.messages
+  for each row execute procedure public.messages_touch_edited_at();
+
+-- Trigger: per-user message throttle (300/hour)
+create or replace function public.messages_throttle()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  recent int;
+  cap constant int := 300;
+begin
+  if exists (
+    select 1 from public.profiles
+    where id = new.sender_id and ocean_sentinel_premium = true
+  ) then
+    return new;
+  end if;
+
+  select count(*) into recent
+  from public.messages
+  where sender_id = new.sender_id
+    and created_at >= now() - interval '1 hour';
+
+  if recent >= cap then
+    raise exception 'Hourly message limit reached (%/hour) — slow down or upgrade.', cap
+      using errcode = 'check_violation';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger messages_throttle_trigger
+  before insert on public.messages
+  for each row execute procedure public.messages_throttle();
+
+-- Helper: get_or_create_dm
+create or replace function public.get_or_create_dm(p_other_user_id uuid)
+returns uuid
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  me uuid;
+  conv_id uuid;
+begin
+  me := auth.uid();
+  if me is null then
+    raise exception 'auth required';
+  end if;
+  if me = p_other_user_id then
+    raise exception 'cannot DM yourself';
+  end if;
+  if not exists (select 1 from public.profiles where id = p_other_user_id) then
+    raise exception 'recipient not found';
+  end if;
+  if exists (
+    select 1 from public.blocked_users
+    where blocker_id = p_other_user_id and blocked_id = me
+  ) then
+    raise exception 'recipient does not accept messages from you';
+  end if;
+
+  select c.id into conv_id
+  from public.conversations c
+  where c.type = 'dm'
+    and exists (select 1 from public.conversation_members where conversation_id = c.id and user_id = me)
+    and exists (select 1 from public.conversation_members where conversation_id = c.id and user_id = p_other_user_id)
+  limit 1;
+  if found then
+    return conv_id;
+  end if;
+
+  insert into public.conversations (type, created_by) values ('dm', me) returning id into conv_id;
+  insert into public.conversation_members (conversation_id, user_id) values (conv_id, me);
+  insert into public.conversation_members (conversation_id, user_id) values (conv_id, p_other_user_id);
+  return conv_id;
+end;
+$$;
+
+grant execute on function public.get_or_create_dm(uuid) to authenticated;
+
 -- NOTIFICATIONS
 
 create table if not exists public.notifications (
@@ -368,6 +625,102 @@ $$ language plpgsql security definer;
 
 create or replace trigger on_thread_created_notify
   after insert on public.forum_threads for each row execute procedure public.notify_on_new_thread();
+
+-- PUSH NOTIFICATIONS
+-- Enable pg_net for async HTTP calls from triggers
+create extension if not exists pg_net;
+
+create table if not exists public.push_tokens (
+  id              uuid primary key default gen_random_uuid(),
+  user_id         uuid references public.profiles(id) on delete cascade not null,
+  expo_push_token text not null unique,
+  platform        text,
+  created_at      timestamptz default now()
+);
+
+create index if not exists push_tokens_user_ix on public.push_tokens (user_id);
+
+alter table public.push_tokens enable row level security;
+
+create policy "Users can insert own push tokens"
+  on public.push_tokens for insert with check (auth.uid() = user_id);
+
+create policy "Users can delete own push tokens"
+  on public.push_tokens for delete using (auth.uid() = user_id);
+
+create policy "Users can view own push tokens"
+  on public.push_tokens for select using (auth.uid() = user_id);
+
+create or replace function public.send_push_to_user(
+  target_user_id uuid,
+  p_title        text,
+  p_body         text,
+  p_data         jsonb default '{}'
+)
+returns void
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  webhook_url text;
+  secret      text;
+begin
+  if not exists (select 1 from public.push_tokens where user_id = target_user_id) then
+    return;
+  end if;
+
+  webhook_url := coalesce(current_setting('app.push_webhook_url', true), '');
+  secret      := coalesce(current_setting('app.push_webhook_secret', true), '');
+
+  if webhook_url = '' then
+    return;
+  end if;
+
+  perform net.http_post(
+    url     := webhook_url,
+    headers := jsonb_build_object(
+      'Content-Type',          'application/json',
+      'X-Push-Webhook-Secret', secret
+    ),
+    body    := jsonb_build_object(
+      'userId', target_user_id,
+      'title',  p_title,
+      'body',   p_body,
+      'data',   p_data
+    )
+  );
+end;
+$$;
+
+create or replace function public.on_notification_created_send_push()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  perform public.send_push_to_user(
+    new.user_id,
+    new.title,
+    left(new.body, 140),
+    jsonb_build_object(
+      'type',           new.type,
+      'link',           new.link,
+      'threadId',       new.thread_id,
+      'catchId',        new.catch_id,
+      'conversationId', new.conversation_id,
+      'notificationId', new.id
+    )
+  );
+  return new;
+end;
+$$;
+
+drop trigger if exists notification_created_push on public.notifications;
+create trigger notification_created_push
+  after insert on public.notifications
+  for each row execute procedure public.on_notification_created_send_push();
 
 -- TOURNAMENTS
 create table if not exists public.tournaments (

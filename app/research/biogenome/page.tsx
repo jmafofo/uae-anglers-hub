@@ -78,8 +78,8 @@ export default async function BiogenomePage() {
             under the{' '}
             <a
               href="https://www.earthbiogenome.org/"
-              target="_blank"
-              rel="noopener noreferrer"
+              target="_blank" rel="noopener noreferrer"
+              
               className="text-violet-400 hover:text-violet-300 underline underline-offset-2"
             >
               Earth Biogenome Project

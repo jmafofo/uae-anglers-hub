@@ -37,6 +37,8 @@ export interface FishSpecies {
    *  Covers: body depth ratio (BD), snout type, mouth type, caudal fin shape,
    *  and any unique silhouette features visible even when fish is sand/mud coated. */
   morphology?: string;
+  /** Alternate common names that anglers may use (e.g. "mahi mahi" for "Mahi-Mahi"). */
+  aliases?: string[];
 }
 
 export function slugify(name: string): string {
@@ -572,6 +574,7 @@ export const fishSpecies: FishSpecies[] = [
       'The vivid red tail (the lower lobe extends into a long filament) is a unique species identifier.',
       'Best eaten fresh, lightly spiced and pan-fried — a staple of traditional Emirati cooking.',
     ],
+    aliases: ['sultan ibrahim', 'threadfin bream'],
   },
   {
     id: 'blue-spotted-boxfish',
@@ -950,6 +953,34 @@ export const fishSpecies: FishSpecies[] = [
       'The vivid electric blue-green-gold colouration is produced by specialised pigment cells called chromatophores.',
       'Males (bulls) develop a distinctive vertical blunt forehead; females (cows) have a rounded head.',
     ],
+    aliases: ['mahi mahi', 'dolphinfish', 'dorado'],
+  },
+
+  {
+    id: 'rainbow-runner',
+    slug: 'rainbow-runner',
+    name: 'Rainbow Runner',
+    localName: 'عدالة',
+    scientificName: 'Elagatis bipinnulata',
+    family: 'Carangidae',
+    habitat: 'Offshore reefs, wrecks, FADs, open blue water',
+    habitatCategory: 'Pelagic',
+    depth: '0–150 m',
+    diet: 'Small fish, squid, crustaceans',
+    maxSizeCm: 120,
+    maxWeightKg: 20,
+    conservationStatus: 'Least Concern',
+    edibility: 'Good',
+    dangerLevel: 'none',
+    regions: ['Abu Dhabi (offshore)', 'Dubai (offshore)', 'Fujairah (offshore)', 'Ras Al Khaimah (offshore)'],
+    coast: 'Both',
+    description: 'A sleek, torpedo-shaped pelagic predator with a distinctive pattern of blue, yellow and olive stripes running the length of its body. A powerful fighter on light tackle and a common bycatch when trolling for larger pelagics around UAE FADs and offshore reefs.',
+    funFacts: [
+      'The iridescent stripe colours change dramatically depending on light angle and mood — true to its "rainbow" name.',
+      'Often found in loose schools around floating debris and FADs in UAE offshore waters.',
+      'Excellent eating when grilled whole — a favourite among UAE charter boat crews.',
+    ],
+    aliases: ['rainbow runner', 'rainbow fish'],
   },
 
   {

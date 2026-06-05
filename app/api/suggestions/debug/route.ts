@@ -7,8 +7,11 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { requireAuthUniversal } from '@/lib/api-auth';
 
-export async function GET(_req: NextRequest) {
+export async function GET(req: NextRequest) {
+  const auth = await requireAuthUniversal(req);
+  if (!auth.ok) return auth.response;
   const admin = getSupabaseAdmin();
 
   // 1. Check if table exists

@@ -146,7 +146,7 @@ export async function TrendingNews() {
                     )}
 
                     {ban.source_url && (
-                      <a href={ban.source_url} target="_blank" rel="noreferrer"
+                      <a href={ban.source_url} target="_blank" rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 text-xs text-teal-400 hover:text-teal-300 mt-3">
                         Official source <ExternalLink className="w-3 h-3" />
                       </a>
@@ -178,7 +178,7 @@ export async function TrendingNews() {
               {items.map(n => {
                 const Wrapper = n.source_url
                   ? ({ children }: { children: React.ReactNode }) =>
-                      <a href={n.source_url!} target="_blank" rel="noreferrer" className="group block">{children}</a>
+                      <a href={n.source_url!} target="_blank" rel="noopener noreferrer" className="group block">{children}</a>
                   : ({ children }: { children: React.ReactNode }) =>
                       <div className="group block">{children}</div>;
                 return (

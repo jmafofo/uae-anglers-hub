@@ -24,6 +24,7 @@ interface Catch {
   location_name: string | null;
   caught_at: string;
   photo_url: string | null;
+  photo_urls: string[] | null;
   is_public: boolean;
 }
 
@@ -182,10 +183,10 @@ export default function DashboardPage() {
                 key={c.id}
                 className="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/10"
               >
-                {c.photo_url ? (
+                {(c.photo_urls?.[0] ?? c.photo_url) ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={c.photo_url}
+                    src={(c.photo_urls?.[0] ?? c.photo_url)!}
                     alt={c.species}
                     className="w-14 h-14 rounded-lg object-cover shrink-0"
                   />

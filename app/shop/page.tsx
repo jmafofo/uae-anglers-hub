@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ShoppingBag, Plus, MapPin, Tag, Zap, BadgeCheck, Percent, ChevronRight } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
+import GoogleAd from '@/components/GoogleAd';
 
 export const metadata: Metadata = {
   title: 'UAE Fishing Gear Marketplace — Buy & Sell Tackle',
@@ -39,6 +40,11 @@ export default async function ShopPage() {
           <Link href="/shop/create" className="flex items-center gap-2 bg-teal-500 hover:bg-teal-400 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors">
             <Plus className="w-4 h-4" /> Sell Gear
           </Link>
+        </div>
+
+        {/* Google Ad */}
+        <div className="mb-6 max-w-md">
+          <GoogleAd format="rectangle" />
         </div>
 
         {/* Retailer CTA banner */}

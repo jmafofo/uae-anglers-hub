@@ -234,8 +234,8 @@ function ReportCard({
         {threadId && (
           <Link
             href={`/forum/thread/${threadId}`}
-            target="_blank"
-            rel="noreferrer"
+            target="_blank" rel="noopener noreferrer"
+            
             className="inline-flex items-center gap-1 text-teal-400 hover:text-teal-300 text-xs"
           >
             View in context <ExternalLink className="w-3 h-3" />

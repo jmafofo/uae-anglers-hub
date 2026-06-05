@@ -106,8 +106,8 @@ function SocialLink({ href, icon, label, color }: { href: string; icon: React.Re
   return (
     <a
       href={href}
-      target="_blank"
-      rel="noopener noreferrer"
+      target="_blank" rel="noopener noreferrer"
+      
       className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors hover:opacity-80"
       style={{ color, borderColor: color + '44', backgroundColor: color + '11' }}
     >

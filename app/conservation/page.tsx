@@ -326,8 +326,8 @@ export default function ConservationPage() {
               </div>
               <a
                 href="https://www.moccae.gov.ae"
-                target="_blank"
-                rel="noopener noreferrer"
+                target="_blank" rel="noopener noreferrer"
+                
                 className="inline-flex items-center gap-1.5 mt-4 text-teal-400 hover:text-teal-300 text-sm font-medium transition-colors"
               >
                 Visit MOCCAE website <ExternalLink className="w-3.5 h-3.5" />

@@ -15,6 +15,8 @@ import { PlatformFeatures } from './(home)/sections/PlatformFeatures';
 import { SpeciesShowcase } from './(home)/sections/SpeciesShowcase';
 import { SpotsShowcase } from './(home)/sections/SpotsShowcase';
 import { CTASection } from './(home)/sections/CTASection';
+import GoogleAd from '@/components/GoogleAd';
+import VisitorCounter from '@/components/VisitorCounter';
 
 export const revalidate = 300;
 
@@ -38,11 +40,19 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen overflow-x-hidden">
-
       {/* ═══════════════════════════════════════════════════════════
           HERO
       ═══════════════════════════════════════════════════════════ */}
       <HeroSection spotCount={spotCount} speciesCount={speciesCount} />
+
+      {/* ═══════════════════════════════════════════════════════════
+          GOOGLE AD — homepage leaderboard
+      ═══════════════════════════════════════════════════════════ */}
+      <section className="px-4 py-4">
+        <div className="max-w-4xl mx-auto">
+          <GoogleAd format="leaderboard" slot={process.env.NEXT_PUBLIC_GOOGLE_ADS_SLOT_HOME} />
+        </div>
+      </section>
 
       {/* ═══════════════════════════════════════════════════════════
           TRENDING NEWS + SEASONAL BANS
@@ -50,7 +60,7 @@ export default async function HomePage() {
       <TrendingNews />
 
       {/* ═══════════════════════════════════════════════════════════
-          THE MISSING LINK — science positioning (not partnership claim)
+          THE MISSING LINK — science positioning
       ═══════════════════════════════════════════════════════════ */}
       <DataGapSection speciesCount={speciesCount} />
 
@@ -190,6 +200,11 @@ export default async function HomePage() {
           FINAL CTA
       ═══════════════════════════════════════════════════════════ */}
       <CTASection />
+
+      {/* ═══════════════════════════════════════════════════════════
+          VISITOR COUNTER
+      ═══════════════════════════════════════════════════════════ */}
+      <VisitorCounter />
 
     </div>
   );

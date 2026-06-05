@@ -163,8 +163,8 @@ export default function ResearchPanel({ slug }: { slug: string }) {
                   {(paper.doi || paper.url) && (
                     <a
                       href={paper.url ?? `https://doi.org/${paper.doi}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      target="_blank" rel="noopener noreferrer"
+                      
                       className="inline-flex items-center gap-1.5 text-xs text-teal-400 hover:text-teal-300 transition-colors"
                     >
                       <ExternalLink className="w-3 h-3" />

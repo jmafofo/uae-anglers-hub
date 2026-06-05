@@ -88,8 +88,8 @@ export default async function RegulationsPage() {
               This page is for informational purposes. Always verify current regulations directly with{' '}
               <a
                 href="https://moccae.gov.ae"
-                target="_blank"
-                rel="noopener noreferrer"
+                target="_blank" rel="noopener noreferrer"
+                
                 className="underline hover:text-amber-100"
               >
                 MOCCAE
@@ -128,8 +128,8 @@ export default async function RegulationsPage() {
                 <a
                   key={label}
                   href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  target="_blank" rel="noopener noreferrer"
+                  
                   className="flex items-center gap-2 p-3 rounded-lg bg-white/5 border border-white/10 hover:border-teal-500/30 text-gray-400 hover:text-white transition-all"
                 >
                   <ChevronRight className="w-4 h-4 text-teal-400" />

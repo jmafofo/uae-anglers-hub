@@ -16,6 +16,7 @@ interface FeedCatch {
   location_name: string | null;
   emirate: string | null;
   photo_url: string | null;
+  photo_urls: string[] | null;
   caught_at: string;
   bait: string | null;
   profiles: { display_name: string; username: string } | null;
@@ -146,9 +147,9 @@ export default function FeedPage() {
                     <div key={c.id} className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/10">
                       {/* Photo or placeholder */}
                       <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-teal-500/10 border border-teal-500/20 flex items-center justify-center">
-                        {c.photo_url ? (
+                        {(c.photo_urls?.[0] ?? c.photo_url) ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={c.photo_url} alt={c.species} className="w-full h-full object-cover" />
+                          <img src={(c.photo_urls?.[0] ?? c.photo_url)!} alt={c.species} className="w-full h-full object-cover" />
                         ) : (
                           <Fish className="w-6 h-6 text-teal-400" />
                         )}

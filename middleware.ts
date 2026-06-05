@@ -11,11 +11,12 @@ export async function middleware(request: NextRequest) {
 
   // ── CORS headers for /api/* ────────────────────────────────────────────────
   if (pathname.startsWith('/api/')) {
-    const allowedOrigin = process.env.NEXT_PUBLIC_APP_URL || '*'
+    const allowedOrigin = process.env.NEXT_PUBLIC_APP_URL || request.headers.get('origin') || '*'
     response.headers.set('Access-Control-Allow-Origin', allowedOrigin)
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
     response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
     response.headers.set('Access-Control-Allow-Credentials', 'true')
+    response.headers.set('Vary', 'Origin')
 
     if (request.method === 'OPTIONS') {
       return new NextResponse(null, { status: 204, headers: response.headers })
@@ -47,7 +48,12 @@ export async function middleware(request: NextRequest) {
             request,
           })
           cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options)
+            response.cookies.set(name, value, {
+              ...options,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'lax',
+              httpOnly: true,
+            })
           })
           Object.entries(headersToSet).forEach(([key, value]) => {
             response.headers.set(key, value)

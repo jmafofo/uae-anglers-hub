@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Fish, MapPin, MessageSquare } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
+import GoogleAd from '@/components/GoogleAd';
 
 export const metadata: Metadata = {
   title: 'UAE Angler Catches — Community Catch Feed',
@@ -19,6 +20,7 @@ interface Catch {
   location_name: string | null;
   emirate: string | null;
   photo_url: string | null;
+  photo_urls: string[] | null;
   caught_at: string;
   bait: string | null;
   comment_count: number | null;
@@ -55,6 +57,11 @@ export default async function CatchesPage() {
           </Link>
         </div>
 
+        {/* Google Ad */}
+        <div className="mb-8 max-w-md">
+          <GoogleAd format="rectangle" />
+        </div>
+
         {!catches || catches.length === 0 ? (
           <div className="text-center py-24 text-gray-500">
             <Fish className="w-12 h-12 mx-auto mb-4 opacity-20" />
@@ -75,14 +82,19 @@ export default async function CatchesPage() {
                 href={`/catches/${c.id}`}
                 className="block rounded-xl bg-white/5 border border-white/10 hover:border-teal-500/30 transition-colors overflow-hidden"
               >
-                {c.photo_url && (
-                  <div className="w-full h-44 bg-white/10 overflow-hidden">
+                {(c.photo_urls?.[0] ?? c.photo_url) && (
+                  <div className="w-full h-44 bg-white/10 overflow-hidden relative">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={c.photo_url}
+                      src={c.photo_urls?.[0] ?? c.photo_url!}
                       alt={c.species}
                       className="w-full h-full object-cover"
                     />
+                    {(c.photo_urls?.length ?? 0) > 1 && (
+                      <span className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-0.5 rounded-full">
+                        +{(c.photo_urls!.length - 1)}
+                      </span>
+                    )}
                   </div>
                 )}
                 <div className="p-4">

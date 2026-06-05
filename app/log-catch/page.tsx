@@ -24,8 +24,9 @@ export default function LogCatchPage() {
   const [authed, setAuthed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [preview, setPreview] = useState<string | null>(null);
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [previews, setPreviews] = useState<string[]>([]);
+  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
+  const [photoError, setPhotoError] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     species: '',
@@ -44,11 +45,17 @@ export default function LogCatchPage() {
   // Auto-suggest scientific name when species changes
   const suggestedScientificName = useMemo(() => {
     if (!form.species) return '';
-    const q = form.species.toLowerCase();
+    const q = form.species.toLowerCase().replace(/[-_]/g, ' ');
     const match = fishSpecies.find(
-      (s) =>
-        s.name.toLowerCase().includes(q) ||
-        q.includes(s.name.toLowerCase().split(' ')[0].toLowerCase())
+      (s) => {
+        const nameNorm = s.name.toLowerCase().replace(/[-_]/g, ' ');
+        const aliasesNorm = s.aliases?.map((a) => a.toLowerCase().replace(/[-_]/g, ' ')) ?? [];
+        return (
+          nameNorm.includes(q) ||
+          q.includes(nameNorm.split(' ')[0]) ||
+          aliasesNorm.some((a) => a.includes(q) || q.includes(a.split(' ')[0]))
+        );
+      }
     );
     return match ? match.scientificName : '';
   }, [form.species]);
@@ -61,34 +68,58 @@ export default function LogCatchPage() {
   }, [router]);
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (preview) URL.revokeObjectURL(preview);
-    setPhotoFile(file);
-    setPreview(URL.createObjectURL(file));
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
+    const remainingSlots = 5 - photoFiles.length;
+    const toAdd = files.slice(0, remainingSlots);
+    if (toAdd.length < files.length) {
+      setPhotoError('Maximum 5 photos allowed');
+    } else {
+      setPhotoError(null);
+    }
+    const newPreviews = toAdd.map((f) => URL.createObjectURL(f));
+    setPhotoFiles((prev) => [...prev, ...toAdd]);
+    setPreviews((prev) => [...prev, ...newPreviews]);
+  }
+
+  function removePhoto(index: number) {
+    setPhotoFiles((prev) => prev.filter((_, i) => i !== index));
+    setPreviews((prev) => {
+      const removed = prev[index];
+      if (removed) URL.revokeObjectURL(removed);
+      return prev.filter((_, i) => i !== index);
+    });
+    setPhotoError(null);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.species) return;
+    if (photoFiles.length === 0) {
+      setPhotoError('At least 1 photo is required');
+      return;
+    }
+    setPhotoError(null);
     setLoading(true);
 
     const sb = getSupabase();
     const { data: { user } } = await sb.auth.getUser();
     if (!user) { router.push('/login'); return; }
 
-    let photo_url: string | null = null;
-    if (photoFile) {
-      const ext = photoFile.name.split('.').pop();
-      const path = `${user.id}/${Date.now()}.${ext}`;
+    const photoUrls: string[] = [];
+    for (const file of photoFiles) {
+      const ext = file.name.split('.').pop();
+      const path = `${user.id}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
       const { error: uploadErr } = await sb.storage
         .from('catches')
-        .upload(path, photoFile, { upsert: true });
+        .upload(path, file, { upsert: true });
       if (!uploadErr) {
         const { data } = sb.storage.from('catches').getPublicUrl(path);
-        photo_url = data.publicUrl;
+        photoUrls.push(data.publicUrl);
       }
     }
+
+    const photo_url = photoUrls[0] ?? null;
 
     const { error } = await sb.from('catches').insert({
       user_id: user.id,
@@ -104,6 +135,7 @@ export default function LogCatchPage() {
       is_public: form.is_public,
       caught_at: new Date(form.caught_at).toISOString(),
       photo_url,
+      photo_urls: photoUrls.length > 0 ? photoUrls : null,
     });
 
     setLoading(false);
@@ -123,7 +155,7 @@ export default function LogCatchPage() {
           <p className="text-gray-400 mb-6">Your catch has been saved successfully.</p>
           <div className="flex gap-3 justify-center">
             <button
-              onClick={() => { setSuccess(false); setPreview(null); setPhotoFile(null); setForm({ ...form, species: '', weight_kg: '', length_cm: '', bait: '', notes: '' }); }}
+              onClick={() => { setSuccess(false); setPreviews([]); setPhotoFiles([]); setPhotoError(null); setForm({ ...form, species: '', weight_kg: '', length_cm: '', bait: '', notes: '' }); }}
               className="px-5 py-2.5 rounded-lg border border-white/20 text-gray-300 hover:text-white text-sm"
             >
               Log Another
@@ -148,19 +180,46 @@ export default function LogCatchPage() {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Photo upload */}
           <div>
-            <label className="block text-sm text-gray-300 mb-2">Photo (optional)</label>
-            <input ref={fileRef} type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" />
-            {preview ? (
-              <div className="relative w-full h-48 rounded-xl overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={preview} alt="Preview" className="w-full h-full object-cover" />
-                <button
-                  type="button"
-                  onClick={() => { setPreview(null); setPhotoFile(null); }}
-                  className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+            <label className="block text-sm text-gray-300 mb-2">
+              Photos <span className="text-teal-400">*</span>{' '}
+              <span className="text-gray-500 text-xs">({photoFiles.length}/5, at least 1 required)</span>
+            </label>
+            {photoError && (
+              <p className="text-xs text-red-400 mb-2">{photoError}</p>
+            )}
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handlePhotoChange}
+              className="hidden"
+            />
+            {previews.length > 0 ? (
+              <div className="grid grid-cols-3 gap-2 mb-2">
+                {previews.map((src, i) => (
+                  <div key={src} className="relative aspect-square rounded-xl overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={src} alt={`Preview ${i + 1}`} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removePhoto(i)}
+                      className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+                {photoFiles.length < 5 && (
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    className="aspect-square rounded-xl border-2 border-dashed border-white/20 hover:border-teal-500/50 flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-teal-400 transition-colors"
+                  >
+                    <Upload className="w-5 h-5" />
+                    <span className="text-xs">Add</span>
+                  </button>
+                )}
               </div>
             ) : (
               <button
@@ -169,7 +228,8 @@ export default function LogCatchPage() {
                 className="w-full h-32 rounded-xl border-2 border-dashed border-white/20 hover:border-teal-500/50 flex flex-col items-center justify-center gap-2 text-gray-500 hover:text-teal-400 transition-colors"
               >
                 <Upload className="w-6 h-6" />
-                <span className="text-sm">Tap to upload a photo</span>
+                <span className="text-sm">Tap to upload photos</span>
+                <span className="text-xs text-gray-600">At least 1 photo required</span>
               </button>
             )}
           </div>
@@ -360,7 +420,7 @@ export default function LogCatchPage() {
 
           <button
             type="submit"
-            disabled={loading || !form.species}
+            disabled={loading || !form.species || photoFiles.length === 0}
             className="w-full py-4 rounded-xl bg-teal-500 hover:bg-teal-400 disabled:bg-teal-700 disabled:cursor-not-allowed text-white font-bold text-base transition-colors"
           >
             {loading ? 'Saving...' : 'Log Catch'}

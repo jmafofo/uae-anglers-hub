@@ -110,8 +110,8 @@ export default async function SpotPage({ params }: PageProps) {
         <div className="flex gap-3 mb-10">
           <a
             href={googleMapsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+            target="_blank" rel="noopener noreferrer"
+            
             className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-teal-500 hover:bg-teal-400 text-white text-sm font-semibold transition-colors"
           >
             <Navigation className="w-4 h-4" />
@@ -119,8 +119,8 @@ export default async function SpotPage({ params }: PageProps) {
           </a>
           <a
             href={wazeUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+            target="_blank" rel="noopener noreferrer"
+            
             className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-white/20 hover:border-white text-gray-300 hover:text-white text-sm font-semibold transition-colors"
           >
             <Navigation className="w-4 h-4" />

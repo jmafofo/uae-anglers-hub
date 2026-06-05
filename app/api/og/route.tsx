@@ -39,8 +39,8 @@ export async function GET(request: NextRequest) {
           >
             <img
               src="https://uaeangler.com/logo-icon.png"
-              width="80"
-              height="80"
+              width={80}
+              height={80}
               style={{
                 borderRadius: '16px',
                 marginRight: '24px',

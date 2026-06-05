@@ -1,10 +1,14 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
+import Script from 'next/script';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import AIChatButton from '@/components/AIChatButton';
 
 const inter = Inter({ subsets: ['latin'] });
+
+const GOOGLE_ADS_CLIENT = process.env.NEXT_PUBLIC_GOOGLE_ADS_CLIENT;
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -76,10 +80,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" dir="ltr">
+      <head>
+        {GOOGLE_ADS_CLIENT && (
+          <script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${GOOGLE_ADS_CLIENT}`}
+            crossOrigin="anonymous"
+          />
+        )}
+      </head>
       <body className={`${inter.className} bg-[#0a0f1a] text-white antialiased`}>
         <Navbar />
         <main>{children}</main>
         <Footer />
+        <AIChatButton />
       </body>
     </html>
   );

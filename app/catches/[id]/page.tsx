@@ -20,6 +20,7 @@ interface CatchRow {
   location_name: string | null;
   emirate: string | null;
   photo_url: string | null;
+  photo_urls: string[] | null;
   caught_at: string;
   bait: string | null;
   notes: string | null;
@@ -183,10 +184,24 @@ export default function CatchDetailPage() {
         </Link>
 
         <article className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden mb-6" aria-label="Catch">
-          {c.photo_url && (
-            <div className="w-full h-72 bg-white/10 overflow-hidden">
+          {(c.photo_urls?.length ? c.photo_urls : c.photo_url ? [c.photo_url] : []).length > 0 && (
+            <div className="bg-white/10 overflow-hidden">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={c.photo_url} alt={c.species} className="w-full h-full object-cover" />
+              <img
+                src={(c.photo_urls?.[0] ?? c.photo_url)!}
+                alt={c.species}
+                className="w-full h-72 object-cover"
+              />
+              {(c.photo_urls?.length ?? 0) > 1 && (
+                <div className="grid grid-cols-4 gap-1 p-1">
+                  {c.photo_urls!.slice(1).map((url, i) => (
+                    <div key={url} className="aspect-square overflow-hidden rounded-lg">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={url} alt={`${c.species} ${i + 2}`} className="w-full h-full object-cover" />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
           <div className="p-5">

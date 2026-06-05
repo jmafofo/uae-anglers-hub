@@ -1099,8 +1099,8 @@ export default function BiogenomeClient({ entries }: { entries: BiogenomeEntry[]
                 <a
                   key={tool.name}
                   href={tool.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  target="_blank" rel="noopener noreferrer"
+                  
                   className={`group p-4 rounded-xl border ${tool.bg} hover:scale-[1.01] transition-transform`}
                 >
                   <div className="flex items-start justify-between gap-2 mb-2">
@@ -1129,8 +1129,8 @@ export default function BiogenomeClient({ entries }: { entries: BiogenomeEntry[]
                   <a
                     key={label}
                     href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    target="_blank" rel="noopener noreferrer"
+                    
                     className="inline-flex items-center gap-1.5 text-xs text-violet-400 hover:text-violet-300 bg-violet-500/10 border border-violet-500/20 px-3 py-1.5 rounded-full transition-colors"
                   >
                     <ExternalLink className="w-3 h-3" />

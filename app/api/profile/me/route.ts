@@ -17,13 +17,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAuthUniversal, getUserSupabase } from '@/lib/api-auth';
 
 const LIMITS = {
-  display_name: 80,
-  bio:          500,
-  avatar_url:   500,
-  emirate:      40,
+  display_name:      80,
+  bio:               500,
+  avatar_url:        500,
+  emirate:           40,
+  instagram_handle:  80,
+  tiktok_handle:     80,
+  youtube_channel:   200,
+  facebook_page:     200,
 } as const;
 
-const EDITABLE_KEYS = ['display_name', 'bio', 'avatar_url', 'emirate'] as const;
+const EDITABLE_KEYS = ['display_name', 'bio', 'avatar_url', 'emirate', 'instagram_handle', 'tiktok_handle', 'youtube_channel', 'facebook_page'] as const;
 const DM_POLICIES = ['open', 'followers_only', 'closed'] as const;
 
 export async function GET(req: NextRequest) {

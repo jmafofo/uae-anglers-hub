@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { getSupabase } from '@/lib/supabase';
+import { useCommunityPresence, useCommunityPresenceState, isUserOnline } from '@/lib/useCommunityPresence';
 
 interface OnlineDotProps {
   userId: string;
@@ -16,51 +15,35 @@ interface OnlineDotProps {
  * Read-only consumer of the shared `community` presence channel.
  * Watches whether `userId` appears in the channel state.
  *
- * Subscribes to the SAME channel name as CommunityPresence so
- * multiple OnlineDot instances don't spawn wasteful extra channels.
+ * Uses the same singleton channel as CommunityPresence — no extra
+ * websocket connections, and safe unmounting via reference counting.
  */
 export default function OnlineDot({
   userId, showLabel = false, title, className,
 }: OnlineDotProps) {
-  const [isOnline, setIsOnline] = useState(false);
-
-  useEffect(() => {
-    if (!userId) return;
-    const sb = getSupabase();
-    // Share the same channel as CommunityPresence — no extra websocket
-    const channel = sb.channel('community');
-
-    const check = () => {
-      const state = channel.presenceState();
-      setIsOnline(Boolean(state[userId]?.length));
-    };
-
-    channel
-      .on('presence', { event: 'sync' },  check)
-      .on('presence', { event: 'join' },  check)
-      .on('presence', { event: 'leave' }, check)
-      .subscribe();
-
-    return () => { channel.unsubscribe(); };
-  }, [userId]);
+  // Acquire shared channel reference (ref-counted)
+  useCommunityPresence();
+  // Subscribe to state updates
+  useCommunityPresenceState();
+  const online = isUserOnline(userId);
 
   return (
     <span
       className={`inline-flex items-center gap-1.5 ${className ?? ''}`}
-      title={title ?? (isOnline ? 'Online now' : 'Offline')}
-      aria-label={isOnline ? 'Online' : 'Offline'}
+      title={title ?? (online ? 'Online now' : 'Offline')}
+      aria-label={online ? 'Online' : 'Offline'}
     >
       <span className={`relative flex h-2 w-2`}>
-        {isOnline && (
+        {online && (
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
         )}
         <span className={`relative inline-flex rounded-full h-2 w-2 ${
-          isOnline ? 'bg-emerald-500' : 'bg-gray-600'
+          online ? 'bg-emerald-500' : 'bg-gray-600'
         }`} />
       </span>
       {showLabel && (
-        <span className={`text-xs ${isOnline ? 'text-emerald-400' : 'text-gray-500'}`}>
-          {isOnline ? 'Online' : 'Offline'}
+        <span className={`text-xs ${online ? 'text-emerald-400' : 'text-gray-500'}`}>
+          {online ? 'Online' : 'Offline'}
         </span>
       )}
     </span>

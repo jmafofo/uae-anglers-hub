@@ -134,8 +134,8 @@ function WaypointCard({ w }: { w: Waypoint }) {
               <span className="text-gray-600">·</span>
               <a
                 href={w.video_url}
-                target="_blank"
-                rel="noreferrer"
+                target="_blank" rel="noopener noreferrer"
+                
                 className="inline-flex items-center gap-1 text-red-400 hover:text-red-300"
               >
                 <CirclePlay className="w-3.5 h-3.5" />

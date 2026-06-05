@@ -120,6 +120,54 @@ export async function POST(req: NextRequest) {
         boosted_until: boostedUntil.toISOString(),
       }).eq('id', listingId);
     }
+
+    else if (type === 'banner_bid') {
+      const bidId = session.metadata?.bidId;
+      if (bidId) {
+        // Update bid from draft to pending_approval and store payment intent
+        const { data: existing } = await sb
+          .from('ad_banner_bids')
+          .select('id, status')
+          .eq('id', bidId)
+          .maybeSingle();
+
+        if (existing && existing.status === 'draft') {
+          await sb.from('ad_banner_bids')
+            .update({
+              status: 'pending_approval',
+              stripe_payment_intent_id: session.payment_intent as string ?? null,
+              stripe_capture_status: 'authorized',
+            })
+            .eq('id', bidId);
+
+          // Send admin notification email (fire-and-forget)
+          try {
+            const { sendBidApprovalRequest } = await import('@/lib/email');
+            const { data: bid } = await sb
+              .from('ad_banner_bids')
+              .select('*, slot:ad_banner_slots(label)')
+              .eq('id', bidId)
+              .single();
+            if (bid) {
+              const origin = req.headers.get('origin') ?? 'https://uaeangler.com';
+              await sendBidApprovalRequest({
+                bidId: bid.id,
+                businessName: bid.business_name,
+                businessEmail: bid.business_email,
+                slotLabel: (bid.slot as any)?.label ?? 'Ad Slot',
+                durationDays: bid.duration_days,
+                totalAmount: Number(bid.total_amount_aed),
+                imageUrl: bid.image_url,
+                targetUrl: bid.target_url,
+                adminUrl: `${origin}/admin/banner-bids`,
+              });
+            }
+          } catch (e) {
+            console.error('[webhook] failed to send bid approval email:', e);
+          }
+        }
+      }
+    }
   }
 
   // ── customer.subscription.deleted → downgrade ────────────────

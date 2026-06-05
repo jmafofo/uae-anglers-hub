@@ -55,7 +55,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
   const update: Record<string, unknown> = {};
   const allowed = [
     'species', 'scientific_name', 'weight_kg', 'length_cm', 'bait', 'technique',
-    'location_name', 'latitude', 'longitude', 'emirate', 'photo_url', 'notes',
+    'location_name', 'latitude', 'longitude', 'emirate', 'photo_url', 'photo_urls', 'notes',
     'is_public', 'caught_at', 'rfid_tag', 'identification_status', 'unnamed_key',
     'water_colour', 'pollution_type', 'pollution_severity', 'water_temp_c', 'visibility_m',
   ];

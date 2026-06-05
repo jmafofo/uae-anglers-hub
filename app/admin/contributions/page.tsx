@@ -224,8 +224,8 @@ function ContributionCard({
             </div>
             <a
               href={mapsUrl}
-              target="_blank"
-              rel="noreferrer"
+              target="_blank" rel="noopener noreferrer"
+              
               className="inline-flex items-center gap-1 text-teal-400 hover:text-teal-300 text-sm"
             >
               <MapPin className="w-3.5 h-3.5" />

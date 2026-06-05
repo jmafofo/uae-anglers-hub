@@ -345,8 +345,8 @@ export default function RegulationsClient({ regulations }: { regulations: Regula
                     {reg.source_url && (
                       <a
                         href={reg.source_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        target="_blank" rel="noopener noreferrer"
+                        
                         className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-300 transition-colors ml-auto"
                       >
                         <ExternalLink className="w-3 h-3" />

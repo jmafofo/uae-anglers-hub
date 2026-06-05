@@ -2,16 +2,14 @@ import Link from 'next/link';
 import {
   MapPin, Fish, Anchor, Waves, Dna, ArrowRight,
 } from 'lucide-react';
-
 interface HeroSectionProps {
   spotCount: number;
   speciesCount: number;
 }
 
-export function HeroSection({ spotCount, speciesCount }: HeroSectionProps) {
+export async function HeroSection({ spotCount, speciesCount }: HeroSectionProps) {
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 pt-14 overflow-hidden">
-
       {/* Multi-layer ocean depth background */}
       <div className="absolute inset-0" style={{
         background: `
@@ -29,22 +27,41 @@ export function HeroSection({ spotCount, speciesCount }: HeroSectionProps) {
         backgroundSize: '56px 100px',
       }} />
 
-      {/* Animated sonar rings from ocean floor */}
+      {/* Animated sonar rings — reduced count + fixed sizes for mobile perf */}
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 pointer-events-none">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="absolute rounded-full border border-teal-400/8"
+        {[1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className={`absolute rounded-full border border-teal-400/8 hidden sm:block`}
             style={{
-              width: `${i * 22}vw`, height: `${i * 11}vw`,
-              bottom: 0, left: '50%',
+              width: `${i * 18}rem`,
+              height: `${i * 9}rem`,
+              bottom: 0,
+              left: '50%',
               transform: 'translateX(-50%)',
               animationName: 'ping',
-              animationDuration: `${4 + i}s`,
+              animationDuration: `${5 + i}s`,
               animationTimingFunction: 'ease-out',
               animationIterationCount: 'infinite',
-              animationDelay: `${i * 0.6}s`,
+              animationDelay: `${i * 0.8}s`,
             }}
           />
         ))}
+        {/* Single subtle ring for mobile (smallest GPU cost) */}
+        <div
+          className="absolute rounded-full border border-teal-400/6 sm:hidden"
+          style={{
+            width: '12rem',
+            height: '6rem',
+            bottom: 0,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            animationName: 'ping',
+            animationDuration: '6s',
+            animationTimingFunction: 'ease-out',
+            animationIterationCount: 'infinite',
+          }}
+        />
       </div>
 
       {/* Floating science + angling data labels */}

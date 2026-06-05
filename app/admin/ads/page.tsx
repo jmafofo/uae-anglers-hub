@@ -120,6 +120,12 @@ export default function AdminAdsPage() {
           <p className="text-gray-400">
             Native sponsor placements that offset Ocean Sentinel costs. Premium subscribers see no ads.
           </p>
+          <Link
+            href="/admin/banner-bids"
+            className="inline-flex items-center gap-1.5 mt-3 text-xs text-amber-400 hover:text-amber-300 transition-colors"
+          >
+            Manage banner bids →
+          </Link>
         </div>
 
         <div className="flex gap-2 mb-6">
@@ -277,7 +283,7 @@ function SponsorsTab({
                 {s.description && <p className="text-gray-400 text-sm line-clamp-2">{s.description}</p>}
                 <div className="text-xs text-gray-500 flex flex-wrap gap-2 mt-0.5">
                   {s.emirate && <span>{s.emirate}</span>}
-                  {s.website && <a href={s.website} target="_blank" rel="noreferrer" className="text-teal-400 hover:text-teal-300">website</a>}
+                  {s.website && <a href={s.website} target="_blank" rel="noopener noreferrer" className="text-teal-400 hover:text-teal-300">website</a>}
                 </div>
               </div>
               <div className="flex gap-1 shrink-0">

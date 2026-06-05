@@ -22,6 +22,10 @@ interface Profile {
   emirate: string | null;
   appear_offline: boolean | null;
   dm_policy: 'open' | 'followers_only' | 'closed' | null;
+  instagram_handle: string | null;
+  tiktok_handle: string | null;
+  youtube_channel: string | null;
+  facebook_page: string | null;
 }
 
 interface Subscription {
@@ -122,6 +126,10 @@ function ProfileTab() {
     emirate: '',
     appear_offline: false,
     dm_policy: 'open' as 'open' | 'followers_only' | 'closed',
+    instagram_handle: '',
+    tiktok_handle: '',
+    youtube_channel: '',
+    facebook_page: '',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -136,12 +144,16 @@ function ProfileTab() {
         const p: Profile = json.profile;
         setProfile(p);
         setForm({
-          display_name:   p.display_name ?? '',
-          bio:            p.bio ?? '',
-          avatar_url:     p.avatar_url ?? '',
-          emirate:        p.emirate ?? '',
-          appear_offline: Boolean(p.appear_offline),
-          dm_policy:      (p.dm_policy ?? 'open') as 'open' | 'followers_only' | 'closed',
+          display_name:     p.display_name ?? '',
+          bio:              p.bio ?? '',
+          avatar_url:       p.avatar_url ?? '',
+          emirate:          p.emirate ?? '',
+          appear_offline:   Boolean(p.appear_offline),
+          dm_policy:        (p.dm_policy ?? 'open') as 'open' | 'followers_only' | 'closed',
+          instagram_handle: p.instagram_handle ?? '',
+          tiktok_handle:    p.tiktok_handle ?? '',
+          youtube_channel:  p.youtube_channel ?? '',
+          facebook_page:    p.facebook_page ?? '',
         });
       }
       setLoading(false);
@@ -223,6 +235,54 @@ function ProfileTab() {
           ))}
         </select>
       </Field>
+
+      <div className="pt-2 pb-1 border-t border-white/5">
+        <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">Social links</p>
+
+        <Field label="Instagram" hint="@username">
+          <input
+            type="text"
+            maxLength={80}
+            value={form.instagram_handle}
+            onChange={(e) => setForm({ ...form, instagram_handle: e.target.value })}
+            placeholder="your_handle"
+            className="w-full bg-white/5 border border-white/20 focus:border-teal-500 rounded-lg px-4 py-2.5 text-white outline-none text-sm"
+          />
+        </Field>
+
+        <Field label="TikTok" hint="@username">
+          <input
+            type="text"
+            maxLength={80}
+            value={form.tiktok_handle}
+            onChange={(e) => setForm({ ...form, tiktok_handle: e.target.value })}
+            placeholder="your_handle"
+            className="w-full bg-white/5 border border-white/20 focus:border-teal-500 rounded-lg px-4 py-2.5 text-white outline-none text-sm"
+          />
+        </Field>
+
+        <Field label="YouTube" hint="@channel or full URL">
+          <input
+            type="text"
+            maxLength={200}
+            value={form.youtube_channel}
+            onChange={(e) => setForm({ ...form, youtube_channel: e.target.value })}
+            placeholder="@your_channel"
+            className="w-full bg-white/5 border border-white/20 focus:border-teal-500 rounded-lg px-4 py-2.5 text-white outline-none text-sm"
+          />
+        </Field>
+
+        <Field label="Facebook" hint="page name or full URL">
+          <input
+            type="text"
+            maxLength={200}
+            value={form.facebook_page}
+            onChange={(e) => setForm({ ...form, facebook_page: e.target.value })}
+            placeholder="your.page"
+            className="w-full bg-white/5 border border-white/20 focus:border-teal-500 rounded-lg px-4 py-2.5 text-white outline-none text-sm"
+          />
+        </Field>
+      </div>
 
       <div className="pt-2 pb-1 border-t border-white/5">
         <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">Privacy</p>

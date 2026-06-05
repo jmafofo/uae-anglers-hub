@@ -45,6 +45,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Campaign not found' }, { status: 404 });
   }
 
+  // Validate target URL to prevent open redirect
+  const targetUrl = campaign.target_url;
+  if (!/^https?:\/\//i.test(targetUrl)) {
+    return NextResponse.json({ error: 'Invalid target URL' }, { status: 400 });
+  }
+
   // Resolve user (best-effort)
   let userId: string | null = null;
   const authHeader = req.headers.get('authorization');
@@ -64,5 +70,5 @@ export async function GET(req: NextRequest) {
     console.error('[ads/click] failed to record click', err);
   });
 
-  return NextResponse.redirect(campaign.target_url, 302);
+  return NextResponse.redirect(targetUrl, 302);
 }

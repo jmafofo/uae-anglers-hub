@@ -4,7 +4,9 @@ export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   const ref = request.nextUrl.searchParams.get('ref');
-  const w = request.nextUrl.searchParams.get('w') ?? '800';
+  const wRaw = request.nextUrl.searchParams.get('w') ?? '800';
+  const wNum = parseInt(wRaw, 10);
+  const w = Number.isFinite(wNum) && wNum > 0 && wNum <= 1600 ? String(wNum) : '800';
 
   if (!ref) {
     return new NextResponse('Missing ref parameter', { status: 400 });

@@ -181,8 +181,8 @@ export default async function RegulationAlert({ slug }: { slug: string }) {
                   {reg.source_url && (
                     <a
                       href={reg.source_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      target="_blank" rel="noopener noreferrer"
+                      
                       className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-300 transition-colors"
                     >
                       <ExternalLink className="w-3 h-3" />

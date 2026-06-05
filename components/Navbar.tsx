@@ -7,9 +7,6 @@ import {
   MapPin,
   Fish,
   Users,
-  Anchor,
-  ShoppingBag,
-  Bot,
   Menu,
   X,
   Plus,
@@ -18,6 +15,8 @@ import {
   BadgeCheck,
   Scale,
   Smartphone,
+  Newspaper,
+  Anchor,
 } from 'lucide-react';
 import LocaleSwitcher from './LocaleSwitcher';
 import NotificationsDropdown from './NotificationsDropdown';
@@ -25,15 +24,16 @@ import { getSupabase } from '@/lib/supabase';
 
 const navLinks = [
   { href: '/', label: 'Home', icon: null },
-  { href: '/assistant', label: 'AI Assistant', icon: Bot },
+  { href: '/feed', label: 'Feed', icon: Newspaper },
   { href: '/spots', label: 'Spots', icon: MapPin },
+  { href: '/charters', label: 'Charters', icon: Anchor },
   { href: '/species', label: 'Species', icon: Fish },
+  { href: '/clubs', label: 'Clubs', icon: Users },
   { href: '/conservation', label: 'Conservation', icon: ShieldCheck },
   { href: '/research', label: 'Research', icon: Beaker },
   { href: '/regulations', label: 'Regulations', icon: Scale },
   { href: '/community', label: 'Community', icon: Users },
-  { href: '/charters', label: 'Charters', icon: Anchor },
-  { href: '/shop', label: 'Shop', icon: ShoppingBag },
+  { href: '/shop', label: 'Shop', icon: null },
   { href: '/advertise', label: 'Advertise', icon: BadgeCheck },
   { href: '/ocean-sentinel', label: 'App', icon: Smartphone },
 ];
@@ -87,8 +87,8 @@ export default function Navbar() {
         setAvatarOpen(false);
       }
     }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    document.addEventListener('pointerdown', handleClick);
+    return () => document.removeEventListener('pointerdown', handleClick);
   }, []);
 
   // Close on Escape key
@@ -129,7 +129,7 @@ export default function Navbar() {
   }, [menuOpen]);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0f1a]/90 backdrop-blur-md border-b border-white/10">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0f1a]/95 md:bg-[#0a0f1a]/90 md:backdrop-blur-md border-b border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14">
           {/* Logo + wordmark */}

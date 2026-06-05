@@ -1,14 +1,12 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Anchor, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
-function ResetPasswordForm() {
-  const router       = useRouter();
-  const searchParams = useSearchParams();
-
+export default function ResetPasswordPage() {
+  const router = useRouter();
   const [password,  setPassword]  = useState('');
   const [confirm,   setConfirm]   = useState('');
   const [showPass,  setShowPass]  = useState(false);
@@ -19,6 +17,8 @@ function ResetPasswordForm() {
 
   // Exchange the code from the URL for an active session
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const searchParams = new URLSearchParams(window.location.search);
     const code = searchParams.get('code');
     if (!code) {
       setError('Invalid or expired reset link. Please request a new one.');
@@ -32,7 +32,7 @@ function ResetPasswordForm() {
       }
       setExchanging(false);
     });
-  }, [searchParams]);
+  }, []);
 
   function validatePassword(pw: string): string | null {
     if (pw.length < 8) return 'Password must be at least 8 characters.';
@@ -117,7 +117,6 @@ function ResetPasswordForm() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* New password */}
             <div>
               <label className="block text-sm text-gray-300 mb-1.5">New password</label>
               <div className="relative">
@@ -140,7 +139,6 @@ function ResetPasswordForm() {
               </div>
             </div>
 
-            {/* Confirm */}
             <div>
               <label className="block text-sm text-gray-300 mb-1.5">Confirm password</label>
               <input
@@ -153,7 +151,6 @@ function ResetPasswordForm() {
               />
             </div>
 
-            {/* Strength hint */}
             {password.length > 0 && (
               <div className="flex gap-1.5">
                 {[...Array(4)].map((_, i) => (
@@ -180,13 +177,5 @@ function ResetPasswordForm() {
         </div>
       </div>
     </div>
-  );
-}
-
-export default function ResetPasswordPage() {
-  return (
-    <Suspense>
-      <ResetPasswordForm />
-    </Suspense>
   );
 }

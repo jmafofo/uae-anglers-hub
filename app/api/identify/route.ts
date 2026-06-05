@@ -352,10 +352,12 @@ Rules:
     .map((c, idx) => {
       if (!c.matched || !c.species_name) return null;
 
+      const normalizedName = c.species_name!.toLowerCase().replace(/[-_]/g, ' ');
       const species = fishSpecies.find(
         s =>
-          s.name.toLowerCase() === c.species_name!.toLowerCase() ||
-          s.scientificName.toLowerCase() === (c.scientific_name ?? '').toLowerCase(),
+          s.name.toLowerCase().replace(/[-_]/g, ' ') === normalizedName ||
+          s.scientificName.toLowerCase() === (c.scientific_name ?? '').toLowerCase() ||
+          s.aliases?.some(a => a.toLowerCase().replace(/[-_]/g, ' ') === normalizedName),
       );
       if (!species) return null;
 
