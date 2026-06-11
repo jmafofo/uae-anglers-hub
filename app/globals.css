@@ -42,3 +42,17 @@ body {
 .animate-slow-zoom {
   animation: slowZoom 20s ease-in-out infinite alternate;
 }
+
+/* Animated wave separators */
+@keyframes waveSlide {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-wave-slow {
+  animation: waveSlide 12s linear infinite;
+}
+
+.animate-wave-fast {
+  animation: waveSlide 7s linear infinite;
+}

@@ -22,38 +22,44 @@ export async function HeroSection({ spotCount, speciesCount }: HeroSectionProps)
           className="object-cover object-center animate-slow-zoom"
           sizes="100vw"
         />
-        {/* Heavy dark overlay for text legibility */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#040d1a] via-[#0a1a2e]/85 to-[#0d1f33]/70" />
+        {/* Lighter overlay — more photo visible, still readable */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#040d1a]/95 via-[#0a1a2e]/55 to-[#0d1f33]/40" />
         {/* Bottom vignette for wave transition */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#040d1a]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#040d1a]/80" />
       </div>
 
       {/* ── Animated wave separator at bottom ── */}
       <div className="absolute bottom-0 left-0 right-0 pointer-events-none overflow-hidden leading-[0]">
-        <svg
-          className="relative block w-[calc(100%+1.3px)] h-[60px] sm:h-[80px]"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 1200 120"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"
-            className="fill-[#040d1a]"
-            style={{ opacity: 0.9 }}
-          />
-        </svg>
-        <svg
-          className="relative block w-[calc(100%+1.3px)] h-[40px] sm:h-[50px] -mt-1"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 1200 120"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M985.66,92.83C906.67,72,823.78,31,743.84,14.19c-82.26-17.34-168.06-16.33-250.45.39-57.84,11.73-114,31.07-172,41.86A600.21,600.21,0,0,1,0,27.35V120H1200V95.8C1132.19,118.92,1055.71,111.31,985.66,92.83Z"
-            className="fill-[#040d1a]"
-            style={{ opacity: 0.6 }}
-          />
-        </svg>
+        {/* Back wave — slower, more opaque */}
+        <div className="relative w-[200%] h-[60px] sm:h-[80px] animate-wave-slow">
+          <svg
+            className="absolute top-0 left-0 w-full h-full"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 1200 120"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"
+              className="fill-[#040d1a]"
+              style={{ opacity: 0.9 }}
+            />
+          </svg>
+        </div>
+        {/* Front wave — faster, more transparent */}
+        <div className="relative w-[200%] h-[40px] sm:h-[50px] -mt-1 animate-wave-fast">
+          <svg
+            className="absolute top-0 left-0 w-full h-full"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 1200 120"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M985.66,92.83C906.67,72,823.78,31,743.84,14.19c-82.26-17.34-168.06-16.33-250.45.39-57.84,11.73-114,31.07-172,41.86A600.21,600.21,0,0,1,0,27.35V120H1200V95.8C1132.19,118.92,1055.71,111.31,985.66,92.83Z"
+              className="fill-[#040d1a]"
+              style={{ opacity: 0.5 }}
+            />
+          </svg>
+        </div>
       </div>
 
       {/* ── Subtle floating data labels ── */}
