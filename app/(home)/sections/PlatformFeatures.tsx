@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   Anchor, FlaskConical, ChevronRight,
 } from 'lucide-react';
@@ -10,8 +11,21 @@ interface PlatformFeaturesProps {
 
 export function PlatformFeatures({ spotCount, speciesCount }: PlatformFeaturesProps) {
   return (
-    <section className="py-24 px-4">
-      <div className="max-w-6xl mx-auto">
+    <section className="py-24 px-4 relative overflow-hidden">
+      {/* Mangrove background — different crop from page 2 */}
+      <div className="absolute inset-0">
+        <Image
+          src="/background pictures/mangrove_national_park.png"
+          alt="UAE mangrove ecosystem"
+          fill
+          className="object-cover object-top"
+          sizes="100vw"
+        />
+        <div className="absolute inset-0 bg-[#0a1828]/82" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0a1828] via-transparent to-[#0a1828]" />
+      </div>
+
+      <div className="relative z-10 max-w-6xl mx-auto">
         <div className="text-center mb-14">
           <p className="text-teal-400 text-xs font-semibold uppercase tracking-[0.2em] mb-3">Two Worlds. One Platform.</p>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white">Every cast counts twice</h2>

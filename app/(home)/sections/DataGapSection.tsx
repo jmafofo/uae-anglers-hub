@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   Database, Dna, BarChart3, ArrowRight,
 } from 'lucide-react';
@@ -9,9 +10,22 @@ interface DataGapSectionProps {
 
 export function DataGapSection({ speciesCount }: DataGapSectionProps) {
   return (
-    <section className="py-24 px-4 relative overflow-hidden bg-[#0d1f33]">
+    <section className="py-24 px-4 relative overflow-hidden">
+      {/* Mangrove background */}
+      <div className="absolute inset-0">
+        <Image
+          src="/background pictures/mangrove_national_park.png"
+          alt="UAE mangrove ecosystem"
+          fill
+          className="object-cover object-center"
+          sizes="100vw"
+        />
+        <div className="absolute inset-0 bg-[#0a1828]/80" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0a1828]/90 via-transparent to-[#0a1828]/90" />
+      </div>
+
       {/* DNA helix accent — right edge */}
-      <div className="absolute right-0 top-0 bottom-0 w-72 pointer-events-none hidden xl:block opacity-[0.06]"
+      <div className="absolute right-0 top-0 bottom-0 w-72 pointer-events-none hidden xl:block opacity-[0.04] z-0"
         style={{
           backgroundImage: `repeating-linear-gradient(
             -45deg,
@@ -21,7 +35,7 @@ export function DataGapSection({ speciesCount }: DataGapSectionProps) {
         }}
       />
 
-      <div className="max-w-6xl mx-auto">
+      <div className="relative z-10 max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <p className="text-blue-400 text-xs font-semibold uppercase tracking-[0.25em] mb-3">The Data Gap</p>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight mb-5">
