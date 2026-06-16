@@ -14,6 +14,9 @@ export const metadata: Metadata = {
   title: 'Community — UAE Anglers Hub',
   description:
     'The UAE angling community hub. Follow other anglers, read the forum, send messages and browse the latest catches from across the Emirates.',
+  alternates: {
+    canonical: 'https://uaeangler.com/community',
+  },
 };
 
 export const revalidate = 60;

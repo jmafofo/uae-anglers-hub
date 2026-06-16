@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: 'UAE Fishing Regulations & Conservation — Fish Responsibly',
   description:
     'UAE fishing regulations, license requirements, size limits, protected species, marine protected areas, and responsible fishing best practices. Stay compliant with MOCCAE guidelines.',
+  alternates: {
+    canonical: 'https://uaeangler.com/conservation',
+  },
 };
 
 export default function ConservationPage() {

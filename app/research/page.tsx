@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   title: 'Citizen Science Marine Research — UAE Anglers Hub',
   description:
     'How UAE Anglers Hub catch data supports MOCCAE marine genomics research, species distribution mapping, and the UAE 2030 fisheries sustainability targets.',
+  alternates: {
+    canonical: 'https://uaeangler.com/research',
+  },
 };
 
 export default function ResearchPage() {

@@ -20,12 +20,28 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   const species = getSpeciesBySlug(slug);
   if (!species) return {};
+
+  const pageUrl = `https://uaeangler.com/species/${species.slug}`;
+  const ogImageUrl = `https://uaeangler.com/api/og?title=${encodeURIComponent(species.name)}&subtitle=${encodeURIComponent(species.scientificName)}`;
+
   return {
     title: `${species.name} (${species.scientificName}) — UAE Fish Species`,
     description: `${species.description} Found in: ${species.regions.join(', ')}. Conservation status: ${species.conservationStatus}. Depth: ${species.depth}.`,
+    alternates: {
+      canonical: pageUrl,
+    },
     openGraph: {
       title: `${species.name} — UAE Fish Species Guide`,
       description: species.description,
+      url: pageUrl,
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${species.name} — UAE Fish Species`,
+        },
+      ],
     },
   };
 }
@@ -59,17 +75,47 @@ export default async function SpeciesDetailPage({ params }: PageProps) {
   if (!species) notFound();
 
   const related = getRelatedSpecies(species);
+  const heroPhoto = (speciesPhotos as Record<string, string[]>)[species.slug]?.[0];
+
+  const pageUrl = `https://uaeangler.com/species/${species.slug}`;
+  const photoUrl = heroPhoto ? `https://uaeangler.com${heroPhoto}` : undefined;
 
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'Thing',
-    name: species.name,
-    alternateName: species.scientificName,
-    description: species.description,
-    url: `https://uaeangler.com/species/${species.slug}`,
+    '@graph': [
+      {
+        '@type': 'Taxon',
+        name: species.name,
+        alternateName: species.scientificName,
+        description: species.description,
+        url: pageUrl,
+        ...(photoUrl && { image: photoUrl }),
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Home',
+            item: 'https://uaeangler.com',
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Fish Species',
+            item: 'https://uaeangler.com/species',
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: species.name,
+            item: pageUrl,
+          },
+        ],
+      },
+    ],
   };
-
-  const heroPhoto = (speciesPhotos as Record<string, string[]>)[species.slug]?.[0];
 
   return (
     <>

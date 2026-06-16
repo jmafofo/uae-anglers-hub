@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   title: 'UAE Fishing Regulations & Seasonal Bans — MOCCAE | UAE Anglers Hub',
   description:
     'Complete guide to UAE fishing regulations including MOCCAE seasonal bans, minimum size limits, protected species, gear restrictions, and licensing requirements. Updated from official MOCCAE ministerial decisions.',
+  alternates: {
+    canonical: 'https://uaeangler.com/regulations',
+  },
 };
 
 async function getRegulations(): Promise<Regulation[]> {

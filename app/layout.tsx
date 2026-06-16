@@ -70,6 +70,9 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  alternates: {
+    canonical: 'https://uaeangler.com',
+  },
   metadataBase: new URL('https://uaeangler.com'),
 };
 

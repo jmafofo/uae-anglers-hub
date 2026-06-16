@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: 'UAE Fish Species Guide — MOCCAE 2023 Official List',
   description:
     'Comprehensive guide to fish species in UAE waters based on the MOCCAE 2023 official fish list. Scientific names, Arabic names, habitat, conservation status and edibility for Persian Gulf and Gulf of Oman species.',
+  alternates: {
+    canonical: 'https://uaeangler.com/species',
+  },
 };
 
 export default function SpeciesPage() {

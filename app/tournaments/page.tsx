@@ -6,6 +6,9 @@ import { createClient } from '@supabase/supabase-js';
 export const metadata: Metadata = {
   title: 'UAE Fishing Tournaments — Join & Compete',
   description: 'Browse and join fishing tournaments across the UAE. Live leaderboards, multiple scoring types, and prizes for UAE anglers.',
+  alternates: {
+    canonical: 'https://uaeangler.com/tournaments',
+  },
 };
 
 export const revalidate = 60;

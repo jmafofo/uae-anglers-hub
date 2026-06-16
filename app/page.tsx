@@ -38,8 +38,40 @@ export default async function HomePage() {
     .map((slug) => fishingSpots.find((s) => s.slug === slug))
     .filter(Boolean) as typeof fishingSpots;
 
+  const homeJsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        name: 'UAE Anglers Hub',
+        url: 'https://uaeangler.com',
+        logo: 'https://uaeangler.com/logo.png',
+        sameAs: [
+          'https://www.instagram.com/uaeanglershub',
+        ],
+      },
+      {
+        '@type': 'WebSite',
+        name: 'UAE Anglers Hub',
+        url: 'https://uaeangler.com',
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: 'https://uaeangler.com/species?q={search_term_string}',
+          'query-input': 'required name=search_term_string',
+        },
+      },
+    ],
+  };
+
   return (
-    <div className="flex flex-col min-h-screen overflow-x-hidden">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(homeJsonLd).replace(/</g, '\\u003c'),
+        }}
+      />
+      <div className="flex flex-col min-h-screen overflow-x-hidden">
       {/* ═══════════════════════════════════════════════════════════
           HERO
       ═══════════════════════════════════════════════════════════ */}
@@ -207,5 +239,6 @@ export default async function HomePage() {
       <VisitorCounter />
 
     </div>
+    </>
   );
 }

@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   title: 'UAE Fishing Forum — Tips, Spots & Community Discussion',
   description:
     'Join the UAE Anglers Hub forum. Discuss fishing spots, share catch reports, gear reviews, tournament news and UAE fishing regulations.',
+  alternates: {
+    canonical: 'https://uaeangler.com/forum',
+  },
 };
 
 export const revalidate = 60;

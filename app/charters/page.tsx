@@ -10,6 +10,9 @@ export const metadata: Metadata = {
   title: 'UAE Fishing Charters — Book a Boat | UAE Anglers Hub',
   description:
     'Book fishing charters across the UAE. Deep-sea, inshore and offshore trips from Dubai, Abu Dhabi, Fujairah, RAK and more. Targeting Kingfish, Sailfish, Dorado, Tuna and Giant Trevally.',
+  alternates: {
+    canonical: 'https://uaeangler.com/charters',
+  },
 };
 
 export const revalidate = 300;

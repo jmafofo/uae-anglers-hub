@@ -35,13 +35,27 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     CUSTOM_DESCRIPTIONS[slug] ??
     `Fish for ${speciesList} at ${spot.name} in ${spot.emirate}. ${spot.accessType} access. Best time: ${spot.bestTime}. GPS coordinates, facilities, and local tips.`;
 
+  const pageUrl = `https://uaeangler.com/spots/${spot.slug}`;
+  const ogImageUrl = `https://uaeangler.com/api/og?title=${encodeURIComponent(`${spot.name} — ${spot.emirate}`)}&subtitle=${encodeURIComponent(`Fishing spot in ${spot.emirate}, UAE`)}`;
+
   return {
     title: `${spot.name} Fishing Spot — ${spot.emirate}, UAE`,
     description,
+    alternates: {
+      canonical: pageUrl,
+    },
     openGraph: {
       title: `${spot.name} — UAE Fishing Spot`,
       description,
-      url: `https://uaeangler.com/spots/${spot.slug}`,
+      url: pageUrl,
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${spot.name} — UAE Fishing Spot`,
+        },
+      ],
     },
   };
 }
@@ -55,22 +69,52 @@ export default async function SpotPage({ params }: PageProps) {
   const wazeUrl = `https://waze.com/ul?ll=${spot.latitude},${spot.longitude}&navigate=yes`;
   const gallery = getSpotGallery(spot.slug); // extra photos beyond the hero
 
+  const pageUrl = `https://uaeangler.com/spots/${spot.slug}`;
+
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'Place',
-    name: spot.name,
-    description: `Fishing spot in ${spot.emirate}, UAE. Species: ${spot.species.join(', ')}.`,
-    geo: {
-      '@type': 'GeoCoordinates',
-      latitude: spot.latitude,
-      longitude: spot.longitude,
-    },
-    address: {
-      '@type': 'PostalAddress',
-      addressRegion: spot.emirate,
-      addressCountry: 'AE',
-    },
-    url: `https://uaeangler.com/spots/${spot.slug}`,
+    '@graph': [
+      {
+        '@type': 'Place',
+        name: spot.name,
+        description: `Fishing spot in ${spot.emirate}, UAE. Species: ${spot.species.join(', ')}.`,
+        image: getSpotImage(spot.slug, spot.accessType),
+        geo: {
+          '@type': 'GeoCoordinates',
+          latitude: spot.latitude,
+          longitude: spot.longitude,
+        },
+        address: {
+          '@type': 'PostalAddress',
+          addressRegion: spot.emirate,
+          addressCountry: 'AE',
+        },
+        url: pageUrl,
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Home',
+            item: 'https://uaeangler.com',
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Fishing Spots',
+            item: 'https://uaeangler.com/spots',
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: spot.name,
+            item: pageUrl,
+          },
+        ],
+      },
+    ],
   };
 
   return (

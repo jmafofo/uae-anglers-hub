@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   title: 'UAE Fishing Spots — 41 Verified Locations Across All 7 Emirates',
   description:
     'Browse 41 verified GPS-tagged fishing spots across Abu Dhabi, Dubai, Sharjah, Ajman, Umm Al Quwain, Ras Al Khaimah and Fujairah. Filter by emirate, species, and access type.',
+  alternates: {
+    canonical: 'https://uaeangler.com/spots',
+  },
 };
 
 interface PageProps {
