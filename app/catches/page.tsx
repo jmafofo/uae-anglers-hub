@@ -76,7 +76,7 @@ export default async function CatchesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {(catches as Catch[]).map((c) => (
+            {(catches as Catch[]).filter((c) => Boolean(c.species?.trim())).map((c) => (
               <Link
                 key={c.id}
                 href={`/catches/${c.id}`}

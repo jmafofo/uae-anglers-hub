@@ -70,6 +70,7 @@ export default function FeaturedCatch() {
           ...winner,
           profiles: Array.isArray(winner.profiles) ? winner.profiles[0] ?? null : winner.profiles,
         } as FeaturedCatchData;
+        console.log('[FeaturedCatch] loaded:', mapped);
         setCatch(mapped);
       }
     }
@@ -79,6 +80,9 @@ export default function FeaturedCatch() {
   if (!catch_) return null;
 
   const imageUrl = catch_.photo_urls?.[0] ?? catch_.photo_url;
+  if (imageUrl) {
+    console.log('[FeaturedCatch] image URL:', imageUrl);
+  }
 
   return (
     <div className="hidden xl:flex flex-col w-[360px] shrink-0">
@@ -101,14 +105,22 @@ export default function FeaturedCatch() {
                 src={imageUrl}
                 alt={catch_.species}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                onError={() => setImageError(true)}
+                onError={(e) => {
+                  console.error('[FeaturedCatch] image failed:', imageUrl, e);
+                  setImageError(true);
+                }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0a1828]/90 via-transparent to-transparent" />
             </div>
           ) : (
-            <div className="w-full aspect-[4/3] bg-white/5 flex flex-col items-center justify-center text-gray-500">
+            <div className="w-full aspect-[4/3] bg-white/5 flex flex-col items-center justify-center text-gray-500 px-6 text-center">
               <Fish className="w-12 h-12 mb-2 opacity-20" />
               <span className="text-xs">{imageUrl ? 'Photo unavailable' : 'No photo'}</span>
+              {imageUrl && (
+                <span className="text-[9px] text-gray-600 mt-1 break-all line-clamp-2">
+                  {imageUrl}
+                </span>
+              )}
             </div>
           )}
 
