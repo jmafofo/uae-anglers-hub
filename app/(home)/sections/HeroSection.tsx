@@ -3,6 +3,7 @@ import Image from 'next/image';
 import {
   MapPin, Fish, Anchor, Waves, Dna, ArrowRight,
 } from 'lucide-react';
+import FeaturedCatch from '@/components/FeaturedCatch';
 
 interface HeroSectionProps {
   spotCount: number;
@@ -79,9 +80,11 @@ export async function HeroSection({ spotCount, speciesCount }: HeroSectionProps)
         ))}
       </div>
 
-      <div className="relative z-10 max-w-4xl mx-auto">
+      <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col xl:flex-row items-center xl:items-start justify-center xl:justify-between gap-10 xl:gap-6">
+        {/* Main hero content */}
+        <div className="max-w-4xl text-center xl:text-left">
         {/* Badges */}
-        <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
+        <div className="flex flex-wrap items-center justify-center xl:justify-start gap-3 mb-8">
           <span className="inline-flex items-center gap-2 bg-teal-500/15 backdrop-blur-sm border border-teal-500/30 rounded-full px-4 py-1.5 text-teal-300 text-xs font-medium">
             <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
             UAE&apos;s Premier Angling Community
@@ -104,13 +107,13 @@ export async function HeroSection({ spotCount, speciesCount }: HeroSectionProps)
           </span>
         </h1>
 
-        <p className="text-gray-300 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed drop-shadow-md">
+        <p className="text-gray-300 text-lg sm:text-xl max-w-2xl mx-auto xl:mx-0 mb-10 leading-relaxed drop-shadow-md">
           {spotCount}+ verified spots across all 7 Emirates. The UAE&apos;s first
           community-powered coastal fish database — catch data that matters
           beyond the fishing line.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
+        <div className="flex flex-col sm:flex-row items-center justify-center xl:justify-start gap-4 mb-14">
           <Link href="/spots"
             className="group flex items-center gap-2 bg-teal-500 hover:bg-teal-400 text-white px-8 py-3.5 rounded-xl font-bold text-sm transition-all hover:shadow-[0_0_32px_rgba(20,184,166,0.45)] hover:-translate-y-0.5">
             <MapPin className="w-4 h-4" />
@@ -139,6 +142,10 @@ export async function HeroSection({ spotCount, speciesCount }: HeroSectionProps)
             </div>
           ))}
         </div>
+        </div>
+
+        {/* Featured catch card */}
+        <FeaturedCatch />
       </div>
 
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 text-gray-500 text-xs z-10">
