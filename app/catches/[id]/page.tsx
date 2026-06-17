@@ -191,13 +191,30 @@ export default function CatchDetailPage() {
                 src={(c.photo_urls?.[0] ?? c.photo_url)!}
                 alt={c.species}
                 className="w-full h-72 object-cover"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  target.style.display = 'none';
+                  const wrapper = target.parentElement;
+                  if (wrapper) {
+                    wrapper.classList.add('flex', 'items-center', 'justify-center', 'h-72', 'bg-white/5');
+                    const fallback = document.createElement('div');
+                    fallback.className = 'text-center text-gray-500';
+                    fallback.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mx-auto mb-2 opacity-30"><path d="M6.5 12h.01M12 12h.01M17.5 12h.01M3 12c0-4.97 4.03-9 9-9s9 4.03 9 9-4.03 9-9 9-9-4.03-9-9Z"/><path d="M9 15l2 2 4-4"/></svg><p class="text-sm">Photo unavailable</p>';
+                    wrapper.appendChild(fallback);
+                  }
+                }}
               />
               {(c.photo_urls?.length ?? 0) > 1 && (
                 <div className="grid grid-cols-4 gap-1 p-1">
                   {c.photo_urls!.slice(1).map((url, i) => (
-                    <div key={url} className="aspect-square overflow-hidden rounded-lg">
+                    <div key={url} className="aspect-square overflow-hidden rounded-lg bg-white/5">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={url} alt={`${c.species} ${i + 2}`} className="w-full h-full object-cover" />
+                      <img
+                        src={url}
+                        alt={`${c.species} ${i + 2}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                      />
                     </div>
                   ))}
                 </div>
