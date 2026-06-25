@@ -3,10 +3,26 @@ import Link from 'next/link';
 import { Anchor, Plus, Users, Lock } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 
-export const metadata: Metadata = {
-  title: 'Fishing Clubs — UAE Anglers Hub',
-  description: 'Join private fishing clubs and plan trips with fellow UAE anglers.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const { data: clubs } = await supabase
+    .from('clubs')
+    .select('id')
+    .eq('visibility', 'public')
+    .limit(1);
+
+  const isEmpty = !clubs || clubs.length === 0;
+
+  return {
+    title: 'Fishing Clubs — UAE Anglers Hub',
+    description: 'Join private fishing clubs and plan trips with fellow UAE anglers.',
+    ...(isEmpty && { robots: { index: false, follow: true } }),
+  };
+}
 
 export const revalidate = 60;
 

@@ -5,14 +5,16 @@ import { MapPin, Fish, Clock, ChevronRight, Anchor, Plus } from 'lucide-react';
 import { fishingSpots, emirates, getSpotImage } from '@/lib/spots';
 import GoogleAd from '@/components/GoogleAd';
 
-export const metadata: Metadata = {
-  title: 'UAE Fishing Spots — 41 Verified Locations Across All 7 Emirates',
-  description:
-    'Browse 41 verified GPS-tagged fishing spots across Abu Dhabi, Dubai, Sharjah, Ajman, Umm Al Quwain, Ras Al Khaimah and Fujairah. Filter by emirate, species, and access type.',
-  alternates: {
-    canonical: 'https://uaeangler.com/spots',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: `UAE Fishing Spots — ${fishingSpots.length} Verified Locations Across All 7 Emirates`,
+    description:
+      `Browse ${fishingSpots.length} verified GPS-tagged fishing spots across Abu Dhabi, Dubai, Sharjah, Ajman, Umm Al Quwain, Ras Al Khaimah and Fujairah. Filter by emirate, species, and access type.`,
+    alternates: {
+      canonical: 'https://uaeangler.com/spots',
+    },
+  };
+}
 
 interface PageProps {
   searchParams: Promise<{ emirate?: string }>;

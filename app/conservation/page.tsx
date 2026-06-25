@@ -199,10 +199,9 @@ export default function ConservationPage() {
               { name: 'All Sea Turtles', latin: '5 species present', reason: 'Green, Hawksbill, Loggerhead, Leatherback and Olive Ridley all protected.' },
               { name: 'Napoleon Wrasse (Humphead)', latin: 'Cheilinus undulatus', reason: 'Endangered. CITES Appendix II. Vital reef ecosystem role.' },
               { name: 'Giant Manta Ray', latin: 'Mobula birostris', reason: 'Endangered. Protected throughout UAE waters.' },
-              { name: 'Whale Shark', latin: 'Rhincodon typus', reason: 'Critically important to UAE tourism and reef ecosystems.' },
               { name: 'Hammerhead Sharks', latin: 'Sphyrna spp.', reason: 'Critically Endangered globally. No-take in UAE.' },
               { name: 'Sawfish', latin: 'Pristis spp.', reason: 'Critically Endangered. Listed under UAE federal law.' },
-            ].filter((v, i, a) => a.findIndex(t => t.name === v.name) === i).map(({ name, latin, reason }) => (
+            ].map(({ name, latin, reason }) => (
               <div key={name} className="flex items-start gap-3 p-4 rounded-xl bg-orange-500/5 border border-orange-500/20">
                 <ShieldCheck className="w-4 h-4 text-orange-400 shrink-0 mt-0.5" />
                 <div>

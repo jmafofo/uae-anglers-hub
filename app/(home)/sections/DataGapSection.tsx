@@ -50,6 +50,24 @@ export function DataGapSection({ speciesCount }: DataGapSectionProps) {
             UAE Anglers Hub bridges that gap: turning recreational fishing
             into structured, georeferenced marine biodiversity records.
           </p>
+
+          <div className="mt-8 p-6 rounded-2xl border border-teal-500/15 bg-teal-950/20 max-w-3xl mx-auto text-left">
+            <h3 className="text-teal-300 font-semibold mb-2 text-sm uppercase tracking-wide">
+              Why this matters for UAE waters
+            </h3>
+            <p className="text-gray-300 text-base leading-relaxed">
+              The UAE sits at the transition between the warm, shallow Persian
+              Gulf and the deeper, more oxygenated Gulf of Oman. This creates
+              two distinct fisheries — each with its own seasonal peaks,
+              breeding closures, and pressure points. Yet published research on
+              recreational catch composition, size distributions, and local
+              abundance trends remains scarce. By recording what anglers catch,
+              where, and when, we generate year-round signals that help track
+              range shifts, identify spawning hotspots, and support national
+              conservation measures such as hamour seasonal bans and protected
+              area management.
+            </p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
@@ -103,8 +121,24 @@ export function DataGapSection({ speciesCount }: DataGapSectionProps) {
             of what is being caught, where, and when.
           </p>
           <p className="text-gray-500 text-sm mt-4">
-            That is what UAE Anglers Hub is building.
+            That is what UAE Anglers Hub is building, with data standards
+            informed by marine researchers and aligned with UAE conservation
+            policy.
           </p>
+
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
+            {[
+              { label: 'Georeferenced records', value: 'GPS, depth, date & time' },
+              { label: 'Research-aligned schema', value: 'Species, weight, size, habitat' },
+              { label: 'Structured data exports', value: 'Ready for scientific analysis' },
+            ].map(({ label, value }) => (
+              <div key={label} className="p-3 rounded-xl bg-white/5 border border-white/10">
+                <p className="text-teal-400 text-xs font-semibold">{label}</p>
+                <p className="text-gray-300 text-sm">{value}</p>
+              </div>
+            ))}
+          </div>
+
           <div className="flex items-center justify-center gap-4 mt-6 flex-wrap">
             <Link href="/research"
               className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors">
@@ -113,6 +147,10 @@ export function DataGapSection({ speciesCount }: DataGapSectionProps) {
             <Link href="/conservation"
               className="inline-flex items-center gap-2 border border-white/15 hover:border-blue-400/40 text-gray-400 hover:text-white text-sm px-5 py-2.5 rounded-lg transition-colors">
               UAE Conservation Rules
+            </Link>
+            <Link href="/editorial-policy"
+              className="inline-flex items-center gap-2 border border-white/15 hover:border-blue-400/40 text-gray-400 hover:text-white text-sm px-5 py-2.5 rounded-lg transition-colors">
+              Editorial Policy
             </Link>
           </div>
         </div>

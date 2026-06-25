@@ -14,11 +14,22 @@ export function SpeciesShowcase({ photoSpecies, speciesCount }: SpeciesShowcaseP
     <section className="py-24 px-4 bg-[#0d1f33]">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
-          <div>
+          <div className="max-w-2xl">
             <p className="text-teal-400 text-xs font-semibold uppercase tracking-[0.2em] mb-2">Marine Biodiversity</p>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white">UAE Fish Species</h2>
             <p className="text-gray-400 mt-2">
               {speciesCount}{' '}species documented — Persian Gulf &amp; Gulf of Oman
+            </p>
+            <p className="text-gray-400 text-sm mt-3 leading-relaxed">
+              The UAE&apos;s waters host a surprising diversity of life: reef
+              predators, pelagic speedsters, bottom-dwelling groupers, and
+              seasonal migrants. Our database starts from the UAE Ministry of
+              Climate Change and Environment (MOCCAE) 2023 official species list
+              and adds local Arabic names, habitat notes, conservation status,
+              and catch seasonality. Whether you are targeting hamour in winter,
+              kingfish during the spring run, or queenfish along the east coast,
+              each species page explains where it lives, when it breeds, and how
+              to identify it responsibly.
             </p>
           </div>
           <Link href="/species"

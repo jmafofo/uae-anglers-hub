@@ -4,11 +4,28 @@ import { Fish, MapPin, MessageSquare } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 import GoogleAd from '@/components/GoogleAd';
 
-export const metadata: Metadata = {
-  title: 'UAE Angler Catches — Community Catch Feed',
-  description:
-    'Browse the latest catches from UAE anglers. Hammour, Kingfish, Barracuda, Trevally and more from Dubai, Abu Dhabi, RAK, Fujairah and across the Emirates.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const { data: catches } = await supabase
+    .from('catches')
+    .select('id')
+    .eq('is_public', true)
+    .order('caught_at', { ascending: false })
+    .limit(1);
+
+  const isEmpty = !catches || catches.length === 0;
+
+  return {
+    title: 'UAE Angler Catches — Community Catch Feed',
+    description:
+      'Browse the latest catches from UAE anglers. Hammour, Kingfish, Barracuda, Trevally and more from Dubai, Abu Dhabi, RAK, Fujairah and across the Emirates.',
+    ...(isEmpty && { robots: { index: false, follow: true } }),
+  };
+}
 
 export const revalidate = 60;
 

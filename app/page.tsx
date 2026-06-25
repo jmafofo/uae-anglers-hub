@@ -3,7 +3,7 @@ import Image from 'next/image';
 import {
   MapPin, Fish, Users, Anchor, Bot, Trophy, ShieldCheck,
   ChevronRight, Microscope, Waves, Smartphone, ArrowRight,
-  FlaskConical, Database, Dna, BarChart3,
+  FlaskConical, Database, Dna, BarChart3, FileText, Mail, Info,
 } from 'lucide-react';
 import { fishingSpots, emirates } from '@/lib/spots';
 import { fishSpecies } from '@/lib/species';
@@ -223,6 +223,85 @@ export default async function HomePage() {
                   </Link>
                 ))}
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          AUTHORITY & TRUST
+      ═══════════════════════════════════════════════════════════ */}
+      <section className="py-20 px-4 bg-[#0a1828] border-y border-white/5">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-blue-400 text-xs font-semibold uppercase tracking-[0.2em] mb-3">Authority & Transparency</p>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white">Built with rigour, open by design</h2>
+            <p className="text-gray-400 mt-3 max-w-2xl mx-auto leading-relaxed">
+              UAE Anglers Hub is run by anglers and developed with input from
+              marine researchers, conservation practitioners, and local fishing
+              communities. We publish our sources, update our content as
+              regulations evolve, and welcome corrections and collaboration.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+            {[
+              {
+                icon: Info,
+                title: 'About the project',
+                desc: 'Learn why we started UAE Anglers Hub, who runs it, and how angler data supports marine research.',
+                href: '/about',
+                accent: 'teal',
+              },
+              {
+                icon: FileText,
+                title: 'Editorial policy',
+                desc: 'Our standards for species information, source verification, updates, and corrections.',
+                href: '/editorial-policy',
+                accent: 'blue',
+              },
+              {
+                icon: Mail,
+                title: 'Contact us',
+                desc: 'Reach out for research partnerships, media enquiries, corrections, or conservation collaboration.',
+                href: '/contact',
+                accent: 'cyan',
+              },
+            ].map(({ icon: Icon, title, desc, href, accent }) => (
+              <Link key={title} href={href}
+                className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-teal-500/30 hover:bg-white/8 transition-all">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 border ${
+                  accent === 'teal' ? 'bg-teal-500/10 border-teal-500/20' :
+                  accent === 'blue' ? 'bg-blue-500/10 border-blue-500/20' :
+                                      'bg-cyan-500/10 border-cyan-500/20'
+                }`}>
+                  <Icon className={`w-5 h-5 ${
+                    accent === 'teal' ? 'text-teal-400' :
+                    accent === 'blue' ? 'text-blue-400' : 'text-cyan-400'
+                  }`} />
+                </div>
+                <h3 className="font-bold text-white group-hover:text-teal-400 transition-colors mb-2">{title}</h3>
+                <p className="text-gray-400 text-sm leading-relaxed">{desc}</p>
+              </Link>
+            ))}
+          </div>
+
+          <div className="p-6 rounded-2xl border border-white/10 bg-white/[0.03]">
+            <h3 className="text-white font-semibold mb-4 text-sm uppercase tracking-wide text-center">
+              What makes this data authoritative
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
+              {[
+                { value: 'MOCCAE 2023', label: 'Official species baseline' },
+                { value: 'GPS + Depth', label: 'Georeferenced catch records' },
+                { value: 'FAIR-aligned', label: 'Findable, interoperable data' },
+                { value: 'Open feedback', label: 'Community-verified content' },
+              ].map(({ value, label }) => (
+                <div key={value} className="p-3">
+                  <p className="text-teal-400 font-bold text-sm">{value}</p>
+                  <p className="text-gray-500 text-xs mt-1">{label}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>

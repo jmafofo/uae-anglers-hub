@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Head from 'next/head';
 import Link from 'next/link';
 import {
   Rss, Users, ArrowLeft, Fish, MapPin,
@@ -34,6 +35,12 @@ export default function FeedPage() {
   const [suggested, setSuggested] = useState<SuggestedAngler[]>([]);
   const [loading, setLoading] = useState(true);
   const [followingCount, setFollowingCount] = useState(0);
+  const [now, setNow] = useState(Date.now);
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     async function load() {
@@ -75,7 +82,7 @@ export default function FeedPage() {
   }, []);
 
   function timeAgo(iso: string) {
-    const diff = Date.now() - new Date(iso).getTime();
+    const diff = now - new Date(iso).getTime();
     const m = Math.floor(diff / 60000);
     if (m < 1) return 'just now';
     if (m < 60) return `${m}m ago`;
@@ -84,8 +91,15 @@ export default function FeedPage() {
     return `${Math.floor(h / 24)}d ago`;
   }
 
+  const showEmptyState = !loading && catches.length === 0;
+
   return (
     <div className="min-h-screen pt-14 pb-16">
+      {showEmptyState && (
+        <Head>
+          <meta name="robots" content="noindex, follow" />
+        </Head>
+      )}
 
       {/* Sub-nav breadcrumb */}
       <div className="border-b border-white/10 bg-[#0a0f1a]/90 backdrop-blur-md px-4 py-3 mb-6">

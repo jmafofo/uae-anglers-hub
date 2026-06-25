@@ -12,10 +12,20 @@ export function SpotsShowcase({ featuredSpots, spotCount }: SpotsShowcaseProps) 
     <section className="py-24 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
-          <div>
+          <div className="max-w-2xl">
             <p className="text-teal-400 text-xs font-semibold uppercase tracking-[0.2em] mb-2">Where to Fish</p>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white">Featured Spots</h2>
             <p className="text-gray-400 mt-2">{spotCount}{' '}verified locations · updated regularly</p>
+            <p className="text-gray-400 text-sm mt-3 leading-relaxed">
+              UAE fishing changes with the coastline. The Persian Gulf side
+              offers shallow flats, artificial reefs, and iconic urban jetties
+              where barracuda, grouper, and mackerel hunt at dawn and dusk. The
+              Gulf of Oman coast — Fujairah, Khor Fakkan, and Dibba — drops
+              quickly into deep water, bringing yellowfin tuna, mahi-mahi,
+              kingfish, and reef species within reach of shore and boat anglers.
+              Each spot in our directory includes emirate, access type, best
+              season, target species, and responsible-fishing reminders.
+            </p>
           </div>
           <Link href="/spots"
             className="inline-flex items-center gap-1.5 text-teal-400 hover:text-teal-300 font-semibold text-sm whitespace-nowrap transition-colors">

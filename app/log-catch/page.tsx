@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Fish, Upload, MapPin, X, Check } from 'lucide-react';
+import { Fish, Upload, MapPin, X, Check, Crop } from 'lucide-react';
+import PhotoCropModal from '@/components/PhotoCropModal';
 import { getSupabase } from '@/lib/supabase';
 import { emirates } from '@/lib/spots';
 import { fishSpecies } from '@/lib/species';
@@ -27,6 +28,7 @@ export default function LogCatchPage() {
   const [previews, setPreviews] = useState<string[]>([]);
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [photoError, setPhotoError] = useState<string | null>(null);
+  const [cropIndex, setCropIndex] = useState<number | null>(null);
 
   const [form, setForm] = useState({
     species: '',
@@ -90,6 +92,23 @@ export default function LogCatchPage() {
       return prev.filter((_, i) => i !== index);
     });
     setPhotoError(null);
+  }
+
+  function handleCropSave(croppedFile: File) {
+    if (cropIndex == null) return;
+    setPhotoFiles((prev) => {
+      const next = [...prev];
+      next[cropIndex] = croppedFile;
+      return next;
+    });
+    setPreviews((prev) => {
+      const next = [...prev];
+      const old = next[cropIndex];
+      if (old) URL.revokeObjectURL(old);
+      next[cropIndex] = URL.createObjectURL(croppedFile);
+      return next;
+    });
+    setCropIndex(null);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -201,13 +220,24 @@ export default function LogCatchPage() {
                   <div key={src} className="relative aspect-square rounded-xl overflow-hidden">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={src} alt={`Preview ${i + 1}`} className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => removePhoto(i)}
-                      className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
+                    <div className="absolute top-1.5 right-1.5 flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setCropIndex(i)}
+                        className="w-6 h-6 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-teal-600"
+                        title="Crop"
+                      >
+                        <Crop className="w-3 h-3" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removePhoto(i)}
+                        className="w-6 h-6 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80"
+                        title="Remove"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
                   </div>
                 ))}
                 {photoFiles.length < 5 && (
@@ -427,6 +457,15 @@ export default function LogCatchPage() {
           </button>
         </form>
       </div>
+
+      {cropIndex !== null && previews[cropIndex] && (
+        <PhotoCropModal
+          src={previews[cropIndex]}
+          fileName={photoFiles[cropIndex]?.name ?? 'photo.jpg'}
+          onClose={() => setCropIndex(null)}
+          onSave={handleCropSave}
+        />
+      )}
     </div>
   );
 }

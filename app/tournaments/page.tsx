@@ -3,13 +3,26 @@ import Link from 'next/link';
 import { Trophy, Plus, Calendar, MapPin, Users } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 
-export const metadata: Metadata = {
-  title: 'UAE Fishing Tournaments — Join & Compete',
-  description: 'Browse and join fishing tournaments across the UAE. Live leaderboards, multiple scoring types, and prizes for UAE anglers.',
-  alternates: {
-    canonical: 'https://uaeangler.com/tournaments',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+  const { data: tournaments } = await supabase
+    .from('tournaments')
+    .select('id')
+    .limit(1);
+  const isEmpty = !tournaments || tournaments.length === 0;
+
+  return {
+    title: 'UAE Fishing Tournaments — Join & Compete',
+    description: 'Browse and join fishing tournaments across the UAE. Live leaderboards, multiple scoring types, and prizes for UAE anglers.',
+    alternates: {
+      canonical: 'https://uaeangler.com/tournaments',
+    },
+    ...(isEmpty && { robots: { index: false, follow: true } }),
+  };
+}
 
 export const revalidate = 60;
 

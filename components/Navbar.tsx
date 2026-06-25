@@ -17,6 +17,7 @@ import {
   Smartphone,
   Newspaper,
   Anchor,
+  Info,
 } from 'lucide-react';
 import LocaleSwitcher from './LocaleSwitcher';
 import NotificationsDropdown from './NotificationsDropdown';
@@ -24,6 +25,7 @@ import { getSupabase } from '@/lib/supabase';
 
 const navLinks = [
   { href: '/', label: 'Home', icon: null },
+  { href: '/about', label: 'About', icon: Info },
   { href: '/feed', label: 'Feed', icon: Newspaper },
   { href: '/spots', label: 'Spots', icon: MapPin },
   { href: '/charters', label: 'Charters', icon: Anchor },

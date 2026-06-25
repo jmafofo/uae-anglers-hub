@@ -4,14 +4,29 @@ import { MessageSquare, Plus, ChevronRight, Flame } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 import GoogleAd from '@/components/GoogleAd';
 
-export const metadata: Metadata = {
-  title: 'UAE Fishing Forum — Tips, Spots & Community Discussion',
-  description:
-    'Join the UAE Anglers Hub forum. Discuss fishing spots, share catch reports, gear reviews, tournament news and UAE fishing regulations.',
-  alternates: {
-    canonical: 'https://uaeangler.com/forum',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const { data: categories } = await supabase
+    .from('forum_categories')
+    .select('id')
+    .limit(1);
+
+  const isEmpty = !categories || categories.length === 0;
+
+  return {
+    title: 'UAE Fishing Forum — Tips, Spots & Community Discussion',
+    description:
+      'Join the UAE Anglers Hub forum. Discuss fishing spots, share catch reports, gear reviews, tournament news and UAE fishing regulations.',
+    alternates: {
+      canonical: 'https://uaeangler.com/forum',
+    },
+    ...(isEmpty && { robots: { index: false, follow: true } }),
+  };
+}
 
 export const revalidate = 60;
 

@@ -10,6 +10,7 @@ export interface FishingSpot {
   access: string;
   bestTime: string;
   facilities: string[];
+  description?: string;
 }
 
 import spotPhotos from './spot-photos.json';
@@ -82,6 +83,161 @@ function slugify(name: string): string {
     .replace(/\s+/g, '-');
 }
 
+function joinList(items: string[]): string {
+  if (items.length === 0) return '';
+  if (items.length === 1) return items[0];
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`;
+}
+
+function pickFrom<T>(items: T[], seed: string): T {
+  return items[seed.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0) % items.length];
+}
+
+function decapitalize(text: string): string {
+  if (!text) return text;
+  return text[0].toLowerCase() + text.slice(1);
+}
+
+function cleanPhrase(text: string): string {
+  return decapitalize(text.trim().replace(/[.!?]+$/, ''));
+}
+
+/**
+ * Generates a natural, 150-250 word description for a fishing spot based on its
+ * attributes. The output is deterministic for a given spot and varies sentence
+ * structure to avoid a mad-lib feel.
+ */
+export function generateSpotDescription(spot: FishingSpot): string {
+  const speciesList = joinList(spot.species.slice(0, 6));
+  const facilitiesList = joinList(spot.facilities.slice(0, 4));
+  const access = cleanPhrase(spot.access);
+  const bestTime = cleanPhrase(spot.bestTime);
+  const seed = spot.slug;
+
+  const openings = [
+    `${spot.name} is one of the more dependable fishing spots in ${spot.emirate}, offering anglers a mix of accessibility and variety.`,
+    `Set along the ${spot.emirate} coastline, ${spot.name} is a practical choice for anglers who want straightforward access to productive water.`,
+    `${spot.name} stands out as a solid ${spot.accessType.toLowerCase()} fishing option in ${spot.emirate}, with enough going for it to suit both short visits and longer sessions.`,
+    `Anglers exploring ${spot.emirate} should keep ${spot.name} on their list, especially those looking for ${spot.accessType.toLowerCase()} fishing with decent facilities nearby.`,
+  ];
+
+  const accessStatements = [
+    `Access is ${spot.accessType.toLowerCase()}: ${access}.`,
+    `The spot is reached by ${spot.accessType.toLowerCase()} access, and ${access}.`,
+    `Getting to the water is straightforward — ${access}, with ${spot.accessType.toLowerCase()} access.`,
+    `You can fish here via ${spot.accessType.toLowerCase()} access; ${access}.`,
+  ];
+
+  const speciesStatements = [
+    `Species commonly caught include ${speciesList}.`,
+    `The water holds a mix of fish, including ${speciesList}.`,
+    `Target ${speciesList} here, depending on season and tide.`,
+    `Anglers regularly report ${speciesList}.`,
+  ];
+
+  const timeStatements = [
+    `Timing matters: ${bestTime}.`,
+    `Plan to fish ${bestTime} for the best results.`,
+    `The most productive windows are usually ${bestTime}.`,
+    `Local anglers tend to focus on ${bestTime}.`,
+  ];
+
+  const facilityStatements = [
+    `Facilities include ${facilitiesList}.`,
+    `You will find ${facilitiesList} available.`,
+    `Useful amenities nearby include ${facilitiesList}.`,
+    `The area provides ${facilitiesList}.`,
+  ];
+
+  const conditionsStatements = [
+    'Wind direction and tide stage often matter more than time of day, so plan a flexible session if possible.',
+    'Look for colour changes, rips, and bait activity on the surface, as these are reliable signs of where fish are feeding.',
+    'Water clarity can change quickly here, so having both natural and bright lure colours on hand is sensible.',
+    'A moving tide usually produces better than slack water, and early light is often the most productive part of the day.',
+  ];
+
+  const tackleStatements = [
+    'A mixed box of lures, soft plastics, and bait rigs will cover most situations you are likely to encounter.',
+    'Live bait, fresh cut bait, and a selection of jigs all have their place here depending on the target species.',
+    'Start with a versatile setup and adjust leader strength once you see what size fish are active.',
+    'Local bait shops can point you toward what is working, but carrying a few proven lure patterns is always wise.',
+  ];
+
+  const approachStatements = [
+    'Arrive early to secure the best position, particularly on weekends when popular spots attract more anglers.',
+    'Evening sessions can be surprisingly productive as predators move closer to shore to feed under lower light.',
+    'Keep an eye out for local regulations, as some areas have seasonal closures or gear restrictions.',
+    'Pairing up with a local angler or charter can shorten the learning curve and improve results on the first visit.',
+  ];
+
+  const observationStatements = [
+    'Watch for birds working the surface, as they are a strong indicator of bait schools and feeding fish below.',
+    'Subtle structure such as drop-offs, channels, and rocky outcrops often hold more fish than open sand.',
+    'After a strong wind, water clarity can take a day or two to recover, so adjust your expectations accordingly.',
+    'A quiet approach and minimal noise on the rocks or deck will keep fish from spooking in shallow water.',
+  ];
+
+  const accessTypeNotes: Record<string, string> = {
+    'Shore/Bridge': 'Bridge fishing works best when you can cast into deeper channels or around structure below.',
+    'Shore/Boat': 'You can fish from the shore or arrange a boat to reach better structure further out.',
+    'Shore/Kayak': 'A kayak opens up more water, but shore casting is still productive from accessible points.',
+    'Shore': 'This is a straightforward shore spot where covering ground and reading the tide will improve your results.',
+    'Shore/Camping': 'Many anglers camp overnight, making this a good choice for extended sessions under the stars.',
+    'Shore/Breakwater': 'The breakwater creates current breaks and structure that hold fish at different stages of the tide.',
+    'Shore/Marina': 'Marina walls and nearby jetties often hold fish, especially after dark when lights attract bait.',
+    'Shore/Port': 'Port areas can be productive but require awareness of vessel traffic and any access restrictions.',
+    'Shore/Bay': 'Bays offer protection from wind and swell, making this a reliable option when the open coast is rough.',
+    'Shore/Historical': 'The surrounding area has historical character, and the fishing has supported local communities for generations.',
+    'Shore/Fishing Village': 'The local fishing community is a useful source of recent reports and the best bait options.',
+    'Shore/Artificial Island': 'The artificial structure creates habitat and current edges that can hold fish consistently.',
+    'Shore/Boat Charter': 'Charter boats can take you to reefs and wrecks that are hard to reach from shore.',
+    'Freshwater': 'Freshwater tactics work well here, with bait and light lures both producing results.',
+    'Tidal Inlet': 'Tidal inlets concentrate bait and predator fish, so timing your visit with tide movement is key.',
+    'Marina/Shore': 'Marina walls and nearby jetties often hold fish, especially after dark when lights attract bait.',
+    'Marina/Deep Sea': 'Most serious fishing here is done by charter, with captains knowing the local reefs and offshore grounds.',
+    'Lagoon/Mangrove': 'Mangrove roots and channels provide shelter for juvenile fish, which in turn attract larger predators.',
+    'Lagoon/Family': 'This is a beginner-friendly area where families can fish safely close to amenities.',
+    'Mangrove/Flats': 'Flats fishing demands stealth and a good eye for moving fish, especially on calm mornings.',
+    'Deep Sea': 'Deep sea fishing here typically requires a boat and local knowledge of seasonal fish movements.',
+    'Deep Sea/Offshore': 'Offshore trips target bigger pelagic species, and conditions can change quickly away from land.',
+  };
+
+  const emirateNotes: Record<string, string> = {
+    'Dubai': `Dubai's coastline is heavily developed, so accessible public spots like this one are worth using.`,
+    'Abu Dhabi': `Abu Dhabi's shoreline includes some of the UAE's quieter beaches and islands, which helps keep fishing pressure lower in places like this.`,
+    'Sharjah': `Sharjah's coast tends to see less pressure than Dubai's, which can improve your chances on the right day.`,
+    'Ajman': `Ajman's compact coastline punches above its weight for accessible shore and mangrove fishing.`,
+    'Umm Al Quwain': `UAQ's more relaxed coastline is a good alternative when busier emirates are crowded.`,
+    'Ras Al Khaimah': `RAK offers a blend of shore, reef, and offshore options, and this spot fits well into a coastal fishing plan.`,
+    'Fujairah': `Fujairah's east coast location on the Gulf of Oman brings different currents and species compared with the Arabian Gulf side.`,
+  };
+
+  const closingTips = [
+    'Bring a range of lure sizes and check local tide charts before you go.',
+    'It is worth scouting the area at low tide to identify channels and structure before fishing the incoming water.',
+    'Respect any posted rules, keep the area clean, and be prepared to move if the bite is slow.',
+    'A medium-heavy spinning setup covers most situations here, and live bait often outperforms lures at dawn.',
+  ];
+
+  const sentences = [
+    pickFrom(openings, seed),
+    pickFrom(accessStatements, seed),
+    accessTypeNotes[spot.accessType] ?? pickFrom(accessStatements, seed),
+    pickFrom(speciesStatements, seed),
+    pickFrom(timeStatements, seed),
+    pickFrom(facilityStatements, seed),
+    pickFrom(conditionsStatements, seed),
+    pickFrom(tackleStatements, seed),
+    pickFrom(approachStatements, seed),
+    pickFrom(observationStatements, seed),
+    emirateNotes[spot.emirate] ?? '',
+    pickFrom(closingTips, seed),
+  ].filter(Boolean);
+
+  return sentences.join(' ');
+}
+
 const rawSpots = [
   { name: 'Al Garhoud Bridge', latitude: 25.2524, longitude: 55.3425, emirate: 'Dubai', accessType: 'Shore/Bridge', species: 'Barracuda, Milkfish, Tilapia, Striped Bass, Grouper, Sea Bream', access: 'Public - Under bridge', bestTime: 'Early morning, late evening', facilities: 'Parking, nearby restaurants' },
   { name: 'Al Maktoum Bridge', latitude: 25.266, longitude: 55.314, emirate: 'Dubai', accessType: 'Shore/Bridge', species: 'Catfish, Carp, Barracuda, Grouper', access: 'Public - Dedicated pier', bestTime: 'Early morning, late evening', facilities: 'Parking, dedicated fishing pier' },
@@ -132,19 +288,24 @@ const rawSpots = [
   { name: 'Al Zorah Nature Reserve', latitude: 25.422, longitude: 55.472, emirate: 'Ajman', accessType: 'Mangrove/Flats', species: 'Mullet, Trevally, Barracuda, Grouper, Sea Bass, Rabbitfish', access: 'Public - Kayak rentals available at reserve entrance', bestTime: 'Early morning, high tide for best results', facilities: 'Kayak rental, nature trails, flamingo colony, mangrove boardwalk' },
 ];
 
-export const fishingSpots: FishingSpot[] = rawSpots.map((s, i) => ({
-  id: String(i + 1),
-  name: s.name,
-  slug: slugify(s.name),
-  latitude: s.latitude,
-  longitude: s.longitude,
-  emirate: s.emirate,
-  accessType: s.accessType,
-  species: s.species.split(',').map((sp) => sp.trim()),
-  access: s.access,
-  bestTime: s.bestTime,
-  facilities: s.facilities.split(',').map((f) => f.trim()),
-}));
+export const fishingSpots: FishingSpot[] = rawSpots.map((s, i) => {
+  const species = s.species.split(',').map((sp) => sp.trim());
+  const facilities = s.facilities.split(',').map((f) => f.trim());
+  const spot: FishingSpot = {
+    id: String(i + 1),
+    name: s.name,
+    slug: slugify(s.name),
+    latitude: s.latitude,
+    longitude: s.longitude,
+    emirate: s.emirate,
+    accessType: s.accessType,
+    species,
+    access: s.access,
+    bestTime: s.bestTime,
+    facilities,
+  };
+  return { ...spot, description: generateSpotDescription(spot) };
+});
 
 export const emirates = ['Abu Dhabi', 'Dubai', 'Sharjah', 'Ajman', 'Umm Al Quwain', 'Ras Al Khaimah', 'Fujairah'];
 

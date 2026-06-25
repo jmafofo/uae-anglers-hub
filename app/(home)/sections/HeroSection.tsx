@@ -108,9 +108,15 @@ export async function HeroSection({ spotCount, speciesCount }: HeroSectionProps)
         </h1>
 
         <p className="text-gray-300 text-lg sm:text-xl max-w-2xl mx-auto xl:mx-0 mb-10 leading-relaxed drop-shadow-md">
-          {spotCount}+ verified spots across all 7 Emirates. The UAE&apos;s first
-          community-powered coastal fish database — catch data that matters
-          beyond the fishing line.
+          {spotCount}+ verified fishing spots across all 7 Emirates, from the
+          mangrove-lined creeks of Abu Dhabi to the deep-water drop-offs of
+          Fujairah. UAE Anglers Hub documents {speciesCount} species — including
+          hamour (<span className="italic">Epinephelus coioides</span>), kingfish
+          (<span className="italic">Scomberomorus commerson</span>), and
+          queenfish (<span className="italic">Scomberoides commersonnianus</span>)
+          — across the Persian Gulf and Gulf of Oman coastlines. We combine
+          local angler knowledge with structured, georeferenced catch records to
+          fill a long-standing data gap in UAE marine science.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center xl:justify-start gap-4 mb-14">

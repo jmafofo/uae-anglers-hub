@@ -9,12 +9,11 @@ import {
   Trophy,
   MessageCircle,
   Mail,
-  Users,
-  MapPin,
-  Fish,
   Anchor,
   ArrowRight,
 } from 'lucide-react';
+import { fishingSpots } from '@/lib/spots';
+import { fishSpecies } from '@/lib/species';
 import AdSlotsShowcase from '@/components/AdSlotsShowcase';
 
 export const metadata: Metadata = {
@@ -25,8 +24,8 @@ export const metadata: Metadata = {
 
 const STATS = [
   { value: '10,000+', label: 'Active anglers' },
-  { value: '53', label: 'Fishing spot pages' },
-  { value: '98', label: 'UAE fish species' },
+  { value: String(fishingSpots.length), label: 'Fishing spot pages' },
+  { value: String(fishSpecies.length), label: 'UAE fish species' },
   { value: 'UAE-wide', label: 'Coverage across all 7 emirates' },
 ];
 

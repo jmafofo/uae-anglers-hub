@@ -29,9 +29,12 @@ export function PlatformFeatures({ spotCount, speciesCount }: PlatformFeaturesPr
         <div className="text-center mb-14">
           <p className="text-teal-400 text-xs font-semibold uppercase tracking-[0.2em] mb-3">Two Worlds. One Platform.</p>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white">Every cast counts twice</h2>
-          <p className="text-gray-400 mt-3 max-w-xl mx-auto">
-            You fish. The data lives on. Every catch logged is a permanent record
-            of UAE coastal marine life — useful now, invaluable in ten years.
+          <p className="text-gray-400 mt-3 max-w-2xl mx-auto">
+            You fish. The data lives on. Every catch logged is a permanent,
+            georeferenced record of UAE coastal marine life. That record helps
+            you find better fishing tomorrow and gives researchers, conservation
+            managers, and policymakers the evidence they need to protect UAE
+            waters for the next generation.
           </p>
         </div>
 
@@ -46,7 +49,9 @@ export function PlatformFeatures({ spotCount, speciesCount }: PlatformFeaturesPr
             <p className="text-gray-400 text-sm mb-6 leading-relaxed">
               Find the best spots on both UAE coastlines, get AI bait and timing
               advice, log your catches, join tournaments, and connect with the
-              UAE fishing community.
+              UAE fishing community. Our spot pages include access type, species
+              targets by season, best tide windows, and local regulations so you
+              can fish responsibly and effectively from Abu Dhabi to Fujairah.
             </p>
             <ul className="space-y-2.5 mb-8">
               {[
@@ -79,6 +84,9 @@ export function PlatformFeatures({ spotCount, speciesCount }: PlatformFeaturesPr
               Each logged catch — species, weight, GPS location, depth, season —
               becomes a verified data point in the UAE&apos;s first community-driven
               coastal fish dataset, aligned with UAE marine conservation goals.
+              We follow FAIR data principles and structure records so they can be
+              aggregated for population trend analysis, spawning-area mapping,
+              and marine protected area planning.
             </p>
             <ul className="space-y-2.5 mb-8">
               {[

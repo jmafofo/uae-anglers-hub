@@ -4,10 +4,27 @@ import { ShoppingBag, Plus, MapPin, Tag, Zap, BadgeCheck, Percent, ChevronRight 
 import { createClient } from '@supabase/supabase-js';
 import GoogleAd from '@/components/GoogleAd';
 
-export const metadata: Metadata = {
-  title: 'UAE Fishing Gear Marketplace — Buy & Sell Tackle',
-  description: 'Buy and sell fishing gear across the UAE. Rods, reels, lures, boats and accessories from UAE anglers.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const { data: listings } = await supabase
+    .from('listings')
+    .select('id')
+    .eq('is_active', true)
+    .eq('is_sold', false)
+    .limit(1);
+
+  const isEmpty = !listings || listings.length === 0;
+
+  return {
+    title: 'UAE Fishing Gear Marketplace — Buy & Sell Tackle',
+    description: 'Buy and sell fishing gear across the UAE. Rods, reels, lures, boats and accessories from UAE anglers.',
+    ...(isEmpty && { robots: { index: false, follow: true } }),
+  };
+}
 
 export const revalidate = 60;
 

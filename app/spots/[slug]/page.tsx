@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { MapPin, Fish, Clock, Building2, ArrowLeft, Navigation, BadgeCheck } from 'lucide-react';
+import { MapPin, Fish, Clock, Building2, ArrowLeft, Navigation } from 'lucide-react';
 import { fishingSpots, getSpotBySlug, getSpotImage, getSpotGallery } from '@/lib/spots';
 import { CreatorWaypoints } from '@/components/CreatorWaypoints';
 import { AdSlot } from '@/components/AdSlot';
@@ -30,10 +30,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const spot = getSpotBySlug(slug);
   if (!spot) return {};
 
-  const speciesList = spot.species.slice(0, 5).join(', ');
-  const description =
-    CUSTOM_DESCRIPTIONS[slug] ??
-    `Fish for ${speciesList} at ${spot.name} in ${spot.emirate}. ${spot.accessType} access. Best time: ${spot.bestTime}. GPS coordinates, facilities, and local tips.`;
+  const description = CUSTOM_DESCRIPTIONS[slug] ?? spot.description?.slice(0, 160) ?? '';
 
   const pageUrl = `https://uaeangler.com/spots/${spot.slug}`;
   const ogImageUrl = `https://uaeangler.com/api/og?title=${encodeURIComponent(`${spot.name} — ${spot.emirate}`)}&subtitle=${encodeURIComponent(`Fishing spot in ${spot.emirate}, UAE`)}`;
@@ -77,7 +74,7 @@ export default async function SpotPage({ params }: PageProps) {
       {
         '@type': 'Place',
         name: spot.name,
-        description: `Fishing spot in ${spot.emirate}, UAE. Species: ${spot.species.join(', ')}.`,
+        description: spot.description ?? `Fishing spot in ${spot.emirate}, UAE. Species: ${spot.species.join(', ')}.`,
         image: getSpotImage(spot.slug, spot.accessType),
         geo: {
           '@type': 'GeoCoordinates',
@@ -252,24 +249,17 @@ export default async function SpotPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Featured Tackle Partner slot (Business tier sponsorship) */}
-        <div className="mb-8 rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-              <BadgeCheck className="w-4 h-4 text-teal-400" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[11px] text-gray-600 uppercase tracking-wider mb-0.5">Featured Tackle Partner</p>
-              <p className="text-sm text-gray-500 italic">Sponsor this spot page — your shop here</p>
+        {/* About this spot */}
+        {spot.description && (
+          <div className="mb-10">
+            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">About this spot</h2>
+            <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+              <p className="text-gray-300 text-sm leading-relaxed">
+                {spot.description}
+              </p>
             </div>
           </div>
-          <Link
-            href="/advertise#pricing"
-            className="shrink-0 text-xs font-semibold text-teal-400 hover:text-teal-300 border border-teal-500/30 hover:border-teal-400 px-3 py-1.5 rounded-lg transition-all whitespace-nowrap"
-          >
-            Advertise here →
-          </Link>
-        </div>
+        )}
 
         {/* CTA */}
         <div className="p-6 rounded-xl bg-gradient-to-br from-teal-900/30 to-transparent border border-teal-500/20 text-center">
