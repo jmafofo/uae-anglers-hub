@@ -3,8 +3,9 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { MapPin, Fish, Clock, Building2, ArrowLeft, Navigation } from 'lucide-react';
-import { fishingSpots, getSpotBySlug, getSpotImage, getSpotGallery } from '@/lib/spots';
+import { fishingSpots, getSpotBySlug, getSpotImage, getSpotGallery, getSpotFishingTips } from '@/lib/spots';
 import { CreatorWaypoints } from '@/components/CreatorWaypoints';
+import Byline from '@/components/Byline';
 import { AdSlot } from '@/components/AdSlot';
 
 interface PageProps {
@@ -260,6 +261,18 @@ export default async function SpotPage({ params }: PageProps) {
             </div>
           </div>
         )}
+
+        {/* Fishing tips */}
+        <div className="mb-10">
+          <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Fishing tips</h2>
+          <div className="p-5 rounded-xl bg-white/5 border border-white/10">
+            <p className="text-gray-300 text-sm leading-relaxed">
+              {getSpotFishingTips(spot)}
+            </p>
+          </div>
+        </div>
+
+        <Byline sources="Local angler reports, MOCCAE access guidance" reviewedAt="June 2026" />
 
         {/* CTA */}
         <div className="p-6 rounded-xl bg-gradient-to-br from-teal-900/30 to-transparent border border-teal-500/20 text-center">

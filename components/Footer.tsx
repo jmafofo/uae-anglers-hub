@@ -20,6 +20,7 @@ const footerLinks = {
   Explore: [
     { href: '/spots', label: 'Fishing Spots' },
     { href: '/species', label: 'Fish Species' },
+    { href: '/beginners-guide', label: "Beginner's Guide" },
     { href: '/weather', label: 'Weather & Tides' },
     { href: '/regulations', label: 'Regulations' },
   ],

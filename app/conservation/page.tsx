@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ShieldCheck, AlertTriangle, Fish, MapPin, Phone, ExternalLink, CheckCircle, XCircle } from 'lucide-react';
 import { regulations } from '@/lib/regulations-data';
+import Byline from '@/components/Byline';
 
 export const metadata: Metadata = {
   title: 'UAE Fishing Regulations & Conservation — Fish Responsibly',
@@ -372,6 +373,8 @@ export default function ConservationPage() {
             </Link>
           </div>
         </section>
+
+        <Byline sources="MOCCAE, EAD, IUCN Red List" reviewedAt="June 2026" />
       </div>
     </div>
   );

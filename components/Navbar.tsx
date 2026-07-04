@@ -18,6 +18,7 @@ import {
   Newspaper,
   Anchor,
   Info,
+  BookOpen,
 } from 'lucide-react';
 import LocaleSwitcher from './LocaleSwitcher';
 import NotificationsDropdown from './NotificationsDropdown';
@@ -30,6 +31,7 @@ const navLinks = [
   { href: '/spots', label: 'Spots', icon: MapPin },
   { href: '/charters', label: 'Charters', icon: Anchor },
   { href: '/species', label: 'Species', icon: Fish },
+  { href: '/beginners-guide', label: "Beginner's Guide", icon: BookOpen },
   { href: '/clubs', label: 'Clubs', icon: Users },
   { href: '/conservation', label: 'Conservation', icon: ShieldCheck },
   { href: '/research', label: 'Research', icon: Beaker },

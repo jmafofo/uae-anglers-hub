@@ -120,6 +120,54 @@ export async function sendBidStatusUpdate(params: {
   }
 }
 
+export async function sendContactMessage(params: {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}): Promise<void> {
+  const resend = getResend();
+  const subject = `Website contact: ${params.subject}`;
+  const html = `
+    <div style="font-family: system-ui, sans-serif; max-width: 640px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
+      <h2 style="color: #0d1f33;">New UAE Anglers Hub Contact Message</h2>
+      <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+        <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Name</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee;">${escapeHtml(params.name)}</td></tr>
+        <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Email</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><a href="mailto:${escapeHtml(params.email)}">${escapeHtml(params.email)}</a></td></tr>
+        <tr><td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Subject</strong></td><td style="padding: 8px 0; border-bottom: 1px solid #eee;">${escapeHtml(params.subject)}</td></tr>
+      </table>
+      <p style="white-space: pre-wrap; line-height: 1.6;">${escapeHtml(params.message)}</p>
+    </div>
+  `;
+
+  if (!resend) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('RESEND_API_KEY is not configured');
+    }
+
+    console.log('[email] Would send contact message:', {
+      to: ADMIN_EMAIL,
+      subject,
+      from: params.email,
+      message: params.message.slice(0, 200),
+    });
+    return;
+  }
+
+  const { error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to: ADMIN_EMAIL,
+    replyTo: params.email,
+    subject,
+    html,
+  });
+
+  if (error) {
+    console.error('[email] Failed to send contact message:', error);
+    throw new Error('Failed to send contact message');
+  }
+}
+
 function escapeHtml(text: string): string {
   return text
     .replace(/&/g, '&amp;')

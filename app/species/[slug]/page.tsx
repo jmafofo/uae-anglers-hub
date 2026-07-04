@@ -7,6 +7,7 @@ import { fishSpecies, getSpeciesBySlug, getRelatedSpecies, type FishSpecies, typ
 import speciesPhotos from '@/lib/species-photos.json';
 import ResearchPanel from './ResearchPanel';
 import RegulationAlert from './RegulationAlert';
+import Byline from '@/components/Byline';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -338,6 +339,8 @@ export default async function SpeciesDetailPage({ params }: PageProps) {
               </div>
             </section>
           )}
+
+          <Byline sources="MOCCAE, EAD, FAO species profiles" reviewedAt="June 2026" />
         </div>
       </div>
     </>

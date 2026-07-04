@@ -238,6 +238,59 @@ export function generateSpotDescription(spot: FishingSpot): string {
   return sentences.join(' ');
 }
 
+/**
+ * Generates a concise, natural-sounding paragraph of tackle- and bait-specific
+ * fishing advice for a spot. Output is deterministic and stays between 80 and
+ * 150 words.
+ */
+export function getSpotFishingTips(spot: FishingSpot): string {
+  const species = joinList(spot.species.slice(0, 4));
+  const best = cleanPhrase(spot.bestTime).toLowerCase();
+  const access = spot.accessType.toLowerCase();
+
+  if (access.includes('deep sea') || access.includes('offshore')) {
+    return `For ${spot.name}, book a reputable charter with an experienced crew and fish ${best}. Troll rigged ballyhoo, diving plugs, or skirted lures over reefs and offshore structure for ${species}. Use conventional or heavy spinning gear with 40–60 lb leader to handle powerful runs from tuna, sailfish, and kingfish. Watch for birds, current breaks, and bait schools on the sounder, and keep live bait such as slimies or garfish ready for early morning bites. Confirm local regulations and recent reports in ${spot.emirate} before heading out.`;
+  }
+
+  if (access.includes('mangrove') || access.includes('flats')) {
+    return `Fish the mangroves and shallow flats of ${spot.name} with a stealthy approach during ${best}. A light 7–9 ft spinning rod, 10–15 lb braid, and a short fluorocarbon leader let you place small jigheads, shrimp imitations, or live bait quietly near roots and channels. Target ${species}, and watch for wakes, tails, and bait movement. Polarized sunglasses are essential, and a kayak or wading shoes will open up more ground. Stay patient, keep noise low, and respect protected mangrove areas in ${spot.emirate}.`;
+  }
+
+  if (access.includes('kayak')) {
+    return `From a kayak at ${spot.name}, you can reach channels and structure unreachable from shore. Launch early to fish ${best}, and use a medium 7–8 ft spinning setup with 10–20 lb braid. Small poppers, spoons, and weighted soft plastics work well for ${species}; add a live-bait rig if you can keep mullet or squid alive in a tube. Anchor up-current of likely spots, keep a low profile, and always wear a PFD. Check wind and tide forecasts for ${spot.emirate} before paddling out.`;
+  }
+
+  if (access.includes('freshwater')) {
+    return `At ${spot.name}, light freshwater tackle is the way to go. A 6–8 ft spinning rod with 4–8 lb monofilament or light braid will handle ${species}. Use float rigs with bread dough, corn, or worms for tilapia and carp, and small spinners or soft plastics for active predators. Fish ${best}, and focus on shaded margins, lilies, and drop-offs where fish hold during the heat. Keep baits still and be patient; light line and a subtle presentation usually win in ${spot.emirate}.`;
+  }
+
+  if (access.includes('tidal inlet')) {
+    return `Tidal inlets like ${spot.name} fish best on a moving tide, so plan around ${best}. Use a medium 8–9 ft rod with 15–25 lb braid and enough weight to hold bottom in the run-out. Live mullet, cut fish, and crab baits will tempt ${species} holding in the channel edges and drop-offs. Cast up-current and let your bait sweep naturally through the strike zone. Keep an eye on tide charts, because a strong ebb can quickly change conditions in ${spot.emirate}.`;
+  }
+
+  if (access.includes('camping')) {
+    return `Camping at ${spot.name} lets you fish the prime windows at ${best} without the long drive back. Set up a surf rod with 20–30 lb braid, a pulley or running ledger rig, and fresh cut bait or squid for ${species}. Bring a headlamp, extra water, and a cooler for your catch. Night sessions can be especially productive along this ${spot.emirate} beach, so keep noise low, follow local camping rules, and leave the shoreline cleaner than you found it.`;
+  }
+
+  if (access.includes('charter')) {
+    return `Chartering from ${spot.name} is the easiest way to reach productive offshore water, especially around ${best}. Bring a medium-heavy spinning or conventional outfit with 30–50 lb leader, and let the crew set live baits, trolling spreads, or vertical jigs depending on what is working. Target ${species} around reefs, wrecks, and current lines. Listen to the captain's advice on where fish have been holding, and carry sun protection, seasickness tablets, and plenty of water for a comfortable day out of ${spot.emirate}.`;
+  }
+
+  if (access.includes('lagoon')) {
+    return `The sheltered waters of ${spot.name} make it ideal for family fishing and lighter tackle. A 7–9 ft spinning rod with 10–20 lb braid, small jigheads, soft plastics, and live or peeled shrimp will tempt ${species}. Fish ${best} and work the channels, drop-offs, and mangrove edges where predators patrol. Keep casts accurate and noise to a minimum, especially in shallow areas, and always tidy up bait scraps and line to protect the lagoon environment in ${spot.emirate}.`;
+  }
+
+  if (access.includes('bridge') || access.includes('breakwater') || access.includes('marina') || access.includes('port')) {
+    return `At ${spot.name}, focus your casts around pylons, walls, and current seams, especially ${best}. A medium-heavy 8–10 ft rod with 20–30 lb braid gives you the leverage to turn ${species} away from structure. Use weighted rigs with fresh cut bait, live shrimp, or squid, and keep a few glow jigs and stickbaits handy for night sessions. Fish the tide change when flow sweeps food past the structure, and always be aware of boat traffic and local regulations in ${spot.emirate}.`;
+  }
+
+  if (access.includes('boat')) {
+    return `At ${spot.name}, you can fish from the shore or push out by boat to reach better structure. For shore work, use a 9–11 ft surf rod with 20–30 lb braid, metal slices, poppers, and bait rigs to cover ground for ${species}. If you launch a boat, focus on channels, reefs, and drop-offs, and drift or anchor with live bait such as mullet or squid. ${best} tends to be most productive, so plan accordingly and keep an eye on wind, tide, and any restrictions in ${spot.emirate}.`;
+  }
+
+  return `At ${spot.name}, a versatile shore setup will cover most sessions. Use a 9–11 ft surf or spinning rod with 15–25 lb braid, a shock leader, and a mix of metal spoons, poppers, soft plastics, and bait rigs. Fresh cut bait or live shrimp often tempts ${species} when lures go quiet. Fish ${best}, move along the beach to find channels and structure, and watch for bait activity and diving birds. Respect other anglers and local rules while fishing the ${spot.emirate} coastline.`;
+}
+
 const rawSpots = [
   { name: 'Al Garhoud Bridge', latitude: 25.2524, longitude: 55.3425, emirate: 'Dubai', accessType: 'Shore/Bridge', species: 'Barracuda, Milkfish, Tilapia, Striped Bass, Grouper, Sea Bream', access: 'Public - Under bridge', bestTime: 'Early morning, late evening', facilities: 'Parking, nearby restaurants' },
   { name: 'Al Maktoum Bridge', latitude: 25.266, longitude: 55.314, emirate: 'Dubai', accessType: 'Shore/Bridge', species: 'Catfish, Carp, Barracuda, Grouper', access: 'Public - Dedicated pier', bestTime: 'Early morning, late evening', facilities: 'Parking, dedicated fishing pier' },

@@ -4,6 +4,7 @@ import { Shield, ChevronRight, AlertTriangle } from 'lucide-react';
 import { getSupabase } from '@/lib/supabase';
 import RegulationsClient, { type Regulation } from './RegulationsClient';
 import staticRegulations from '@/lib/regulations-data';
+import Byline from '@/components/Byline';
 
 export const revalidate = 3600;
 
@@ -151,6 +152,8 @@ export default async function RegulationsPage() {
             ))}
           </div>
         </div>
+
+        <Byline sources="MOCCAE 2023 regulations, UAE federal fisheries law" reviewedAt="June 2026" />
       </div>
     </div>
   );

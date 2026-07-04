@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import ContactForm from './ContactForm';
 
 export const metadata: Metadata = {
   title: 'Contact UAE Anglers Hub',
@@ -102,90 +103,7 @@ export default function ContactPage() {
           </p>
 
           <h2 className="text-xl font-bold text-white mt-10 mb-4">Send us a message</h2>
-          <form
-            className="bg-white/5 border border-white/10 rounded-xl p-6 space-y-5"
-            action="#"
-          >
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
-                Name
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                required
-                className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2.5 text-white placeholder-gray-500 focus:border-teal-400 focus:ring-1 focus:ring-teal-400 outline-none transition-colors"
-                placeholder="Your name"
-              />
-            </div>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
-                Email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2.5 text-white placeholder-gray-500 focus:border-teal-400 focus:ring-1 focus:ring-teal-400 outline-none transition-colors"
-                placeholder="you@example.com"
-              />
-            </div>
-            <div>
-              <label htmlFor="subject" className="block text-sm font-medium text-gray-300 mb-1">
-                Subject
-              </label>
-              <select
-                id="subject"
-                name="subject"
-                required
-                className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2.5 text-white focus:border-teal-400 focus:ring-1 focus:ring-teal-400 outline-none transition-colors"
-              >
-                <option value="" className="bg-[#0a0f1a]">
-                  Select a topic
-                </option>
-                <option value="general" className="bg-[#0a0f1a]">
-                  General enquiry
-                </option>
-                <option value="support" className="bg-[#0a0f1a]">
-                  Support
-                </option>
-                <option value="partnership" className="bg-[#0a0f1a]">
-                  Partnership / advertising
-                </option>
-                <option value="press" className="bg-[#0a0f1a]">
-                  Press / media
-                </option>
-                <option value="other" className="bg-[#0a0f1a]">
-                  Other
-                </option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="message" className="block text-sm font-medium text-gray-300 mb-1">
-                Message
-              </label>
-              <textarea
-                id="message"
-                name="message"
-                rows={5}
-                required
-                className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-2.5 text-white placeholder-gray-500 focus:border-teal-400 focus:ring-1 focus:ring-teal-400 outline-none transition-colors resize-y"
-                placeholder="How can we help?"
-              />
-            </div>
-            <button
-              type="submit"
-              className="inline-flex items-center justify-center rounded-lg bg-teal-500 hover:bg-teal-400 text-[#0a0f1a] font-semibold px-6 py-2.5 transition-colors"
-            >
-              Send message
-            </button>
-            <p className="text-gray-500 text-xs">
-              This form is for demonstration purposes. Please use the email addresses above to reach
-              our team.
-            </p>
-          </form>
+          <ContactForm />
         </div>
       </div>
     </div>
