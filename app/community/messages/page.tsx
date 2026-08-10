@@ -37,7 +37,7 @@ function MessagesPage() {
   const [messages, setMessages] = useState<MessageRow[]>([]);
   const [memberMap, setMemberMap] = useState<Map<string, MemberProfile>>(new Map());
   const [loadingConvs, setLoadingConvs] = useState(true);
-  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [loadedConversationId, setLoadedConversationId] = useState<string | null>(null);
 
   /* ── Delete / leave ─────────────────────────────────────── */
   const [confirmDelete, setConfirmDelete] = useState<ConversationView | null>(null);
@@ -45,6 +45,11 @@ function MessagesPage() {
 
   /* ── Group creation ─────────────────────────────────────── */
   const [showGroupModal, setShowGroupModal] = useState(false);
+
+  const selectConversation = useCallback((id: string | null) => {
+    setActiveId(id);
+    router.replace(id ? `/community/messages?c=${encodeURIComponent(id)}` : '/community/messages');
+  }, [router]);
 
   /* ── Load conversations ─────────────────────────────────── */
   const loadConversations = useCallback(async () => {
@@ -87,17 +92,15 @@ function MessagesPage() {
       if (!target) return;
       const { data: convId, error } = await sb.rpc('get_or_create_dm', { p_other_user_id: target.id });
       if (error) { console.warn('[messages] rpc', error); return; }
-      router.replace(`/community/messages?c=${convId}`);
-      setActiveId(convId as string);
+      selectConversation(convId as string);
       await loadConversations();
     })();
-  }, [searchParams, userId, router, loadConversations]);
+  }, [searchParams, userId, loadConversations, selectConversation]);
 
   /* ── Active conversation: messages + realtime ───────────── */
   useEffect(() => {
-    if (!activeId || !userId) { setMessages([]); return; }
+    if (!activeId || !userId) return;
     let cancelled = false;
-    setLoadingMessages(true);
     const sb = getSupabase();
 
     (async () => {
@@ -110,14 +113,19 @@ function MessagesPage() {
         setMessages([]);
       } else {
         const json = await res.json();
-        setMessages((json.messages ?? []) as MessageRow[]);
+        const loaded = (json.messages ?? []) as MessageRow[];
+        setMessages((current) => {
+          const realtimeForThisConversation = current.filter((message) => message.conversation_id === activeId);
+          const byId = new Map([...loaded, ...realtimeForThisConversation].map((message) => [message.id, message]));
+          return [...byId.values()].sort((a, b) => a.created_at.localeCompare(b.created_at));
+        });
         // Bump last_read_at
         await sb.from('conversation_members')
           .update({ last_read_at: new Date().toISOString() })
           .eq('conversation_id', activeId).eq('user_id', userId);
         setConversations((cs) => cs.map((c) => c.id === activeId ? { ...c, my_last_read_at: new Date().toISOString() } : c));
       }
-      setLoadingMessages(false);
+      setLoadedConversationId(activeId);
     })();
 
     // Realtime
@@ -129,6 +137,24 @@ function MessagesPage() {
         (payload) => {
           const m = payload.new as MessageRow;
           setMessages((cur) => cur.some((x) => x.id === m.id) ? cur : [...cur, m]);
+          const readAt = new Date().toISOString();
+          setConversations((current) => current
+            .map((conversation) => conversation.id === activeId
+              ? { ...conversation, last_message_at: m.created_at, my_last_read_at: readAt }
+              : conversation)
+            .sort((a, b) => b.last_message_at.localeCompare(a.last_message_at)));
+          void sb.from('conversation_members')
+            .update({ last_read_at: readAt })
+            .eq('conversation_id', activeId)
+            .eq('user_id', userId);
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'messages', filter: `conversation_id=eq.${activeId}` },
+        (payload) => {
+          const updated = payload.new as MessageRow;
+          setMessages((current) => current.map((message) => message.id === updated.id ? updated : message));
         },
       )
       .subscribe();
@@ -155,6 +181,11 @@ function MessagesPage() {
     const msg = json.message as MessageRow;
     if (msg) {
       setMessages((cur) => cur.some((x) => x.id === msg.id) ? cur : [...cur, msg]);
+      setConversations((current) => current
+        .map((conversation) => conversation.id === activeId
+          ? { ...conversation, last_message_at: msg.created_at, my_last_read_at: msg.created_at }
+          : conversation)
+        .sort((a, b) => b.last_message_at.localeCompare(a.last_message_at)));
     }
   }
 
@@ -199,7 +230,7 @@ function MessagesPage() {
     setConfirmDelete(null);
     if (res.ok) {
       setConversations((prev) => prev.filter((c) => c.id !== conv.id));
-      if (activeId === conv.id) setActiveId(null);
+      if (activeId === conv.id) selectConversation(null);
     } else {
       const body = await res.json().catch(() => ({}));
       alert(body.error || 'Could not delete conversation.');
@@ -209,7 +240,7 @@ function MessagesPage() {
   /* ── Group creation ─────────────────────────────────────── */
   async function handleGroupCreated(convId: string) {
     setShowGroupModal(false);
-    setActiveId(convId);
+    selectConversation(convId);
     if (userId) await loadConversations();
   }
 
@@ -259,7 +290,7 @@ function MessagesPage() {
             activeId={activeId}
             userId={userId}
             loading={loadingConvs}
-            onSelect={setActiveId}
+            onSelect={(id) => selectConversation(id)}
             onDeleteOrLeave={setConfirmDelete}
             onNewGroup={() => setShowGroupModal(true)}
             deletingId={deletingId}
@@ -273,9 +304,9 @@ function MessagesPage() {
             messages={messages}
             memberMap={memberMap}
             userId={userId}
-            loadingMessages={loadingMessages}
+            loadingMessages={loadedConversationId !== activeId}
             activeId={activeId}
-            onBack={() => setActiveId(null)}
+            onBack={() => selectConversation(null)}
             onDeleteOrLeave={setConfirmDelete}
             onSend={sendMessage}
             onEditMessage={editMessage}

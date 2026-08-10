@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Check, X, Pencil, Trash2, MoreVertical, Loader2 } from 'lucide-react';
-import type { MessageRow, MemberProfile } from './types';
+import type { MessageRow } from './types';
 
 interface MessageBubbleProps {
   message: MessageRow;
@@ -39,10 +39,13 @@ export default function MessageBubble({
     e.preventDefault();
     if (!editDraft.trim()) return;
     setEditSaving(true);
-    await onEdit(message.id, editDraft.trim());
-    setEditSaving(false);
-    setIsEditing(false);
-    setEditDraft('');
+    try {
+      await onEdit(message.id, editDraft.trim());
+      setIsEditing(false);
+      setEditDraft('');
+    } finally {
+      setEditSaving(false);
+    }
   }
 
   async function handleDelete() {

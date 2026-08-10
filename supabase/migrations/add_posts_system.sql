@@ -64,8 +64,10 @@ create table if not exists public.post_views (
   viewer_id   uuid references public.profiles(id) on delete cascade,
   ip_hash     text,
   created_at  timestamptz not null default now(),
-  unique (post_id, viewer_id),
-  unique (post_id, ip_hash)
+  viewed_on   date not null default (timezone('utc', now())::date),
+  check (num_nonnulls(viewer_id, ip_hash) = 1),
+  unique (post_id, viewer_id, viewed_on),
+  unique (post_id, ip_hash, viewed_on)
 );
 
 create index if not exists idx_post_views_post on public.post_views(post_id);

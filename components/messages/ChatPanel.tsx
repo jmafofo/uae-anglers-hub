@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ArrowLeft, Users, Trash2, LogOut, Send, Loader2,
 } from 'lucide-react';
@@ -75,8 +75,8 @@ export default function ChatPanel({
     setSending(true);
     try {
       await onSend(trimmed);
-    } catch (err: any) {
-      setSendError(err?.message || 'Failed to send');
+    } catch (err: unknown) {
+      setSendError(err instanceof Error ? err.message : 'Failed to send');
       setDraft(trimmed);
     } finally {
       setSending(false);
@@ -170,14 +170,20 @@ export default function ChatPanel({
           </div>
         )}
         <div className="flex items-center gap-3">
-          <input
-            type="text"
+          <textarea
             value={draft}
             onChange={(e) => setDraft(e.target.value.slice(0, 4000))}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                e.currentTarget.form?.requestSubmit();
+              }
+            }}
             placeholder="Type a message…"
             maxLength={4000}
+            rows={1}
             aria-label="Message body"
-            className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-teal-500/40"
+            className="flex-1 min-h-10 max-h-32 resize-y bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-teal-500/40"
           />
           <button
             type="submit"

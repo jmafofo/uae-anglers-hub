@@ -40,7 +40,7 @@ export async function GET(
     .from('messages')
     .select('id, conversation_id, sender_id, body, created_at, edited_at, deleted_at, moderation_status')
     .eq('conversation_id', id)
-    .order('created_at')
+    .order('created_at', { ascending: false })
     .limit(200);
 
   if (error) {
@@ -48,7 +48,7 @@ export async function GET(
     return NextResponse.json({ error: 'Failed to load messages' }, { status: 500 });
   }
 
-  return NextResponse.json({ messages: data ?? [] });
+  return NextResponse.json({ messages: (data ?? []).reverse() });
 }
 
 export async function POST(
