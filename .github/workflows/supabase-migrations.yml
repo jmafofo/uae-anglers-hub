@@ -1,0 +1,70 @@
+name: Supabase migrations
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/**'
+      - 'scripts/prepare-supabase-migrations.sh'
+      - '.github/workflows/supabase-migrations.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/**'
+      - 'scripts/prepare-supabase-migrations.sh'
+      - '.github/workflows/supabase-migrations.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-production-migrations
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate migration files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Prepare tracked migrations
+        run: ./scripts/prepare-supabase-migrations.sh "$RUNNER_TEMP/supabase"
+      - name: Prevent changes to applied migrations
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          changed=$(git diff --name-status "$BASE_SHA"...HEAD -- 'supabase/migrations/[0-9]*_*.sql' | awk '$1 != "A" { print }')
+          if [ -n "$changed" ]; then
+            echo "Timestamped migrations are immutable after commit. Add a new migration instead:"
+            echo "$changed"
+            exit 1
+          fi
+
+  deploy:
+    name: Apply production migrations
+    if: github.event_name != 'pull_request'
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.101.0
+      - name: Prepare tracked migrations
+        run: ./scripts/prepare-supabase-migrations.sh "$RUNNER_TEMP/supabase"
+      - name: Preview pending migrations
+        working-directory: ${{ runner.temp }}/supabase
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          test -n "$SUPABASE_DB_URL" || { echo "Missing SUPABASE_DB_URL repository or production environment secret"; exit 1; }
+          supabase db push --db-url "$SUPABASE_DB_URL" --include-all --dry-run
+      - name: Apply pending migrations
+        working-directory: ${{ runner.temp }}/supabase
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: supabase db push --db-url "$SUPABASE_DB_URL" --include-all
