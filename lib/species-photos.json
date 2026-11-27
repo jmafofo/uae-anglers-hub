@@ -31,7 +31,8 @@
     "/fish-species/cobia.jpg"
   ],
   "common-mojarra": [
-    "/fish-species/common_mojarra.jpg"
+    "/fish-species/common_mojarra.jpg",
+    "/fish-species/commons/common-mojarra.jpg"
   ],
   "duskytail-grouper": [
     "/fish-species/duskytail-grouper.jpg"
@@ -147,7 +148,8 @@
     "/fish-species/whiptail_stingray.jpg"
   ],
   "yellowfin-seabream": [
-    "/fish-species/yellowfin_seabream.jpg"
+    "/fish-species/yellowfin_seabream.jpg",
+    "/fish-species/commons/yellowfin-seabream.jpg"
   ],
   "yellowfin-tuna": [
     "/fish-species/yellowfin_tuna.jpg"
@@ -232,5 +234,35 @@
   ],
   "blackspot-snapper": [
     "/fish-species/commons/blackspot-snapper.jpg"
+  ],
+  "spinycheek-grouper": [
+    "/fish-species/commons/spinycheek-grouper.jpg"
+  ],
+  "striped-grouper": [
+    "/fish-species/commons/striped-grouper.jpg"
+  ],
+  "snubnose-emperor": [
+    "/fish-species/commons/snubnose-emperor.jpg"
+  ],
+  "blacktip-trevally": [
+    "/fish-species/commons/blacktip-trevally.jpg"
+  ],
+  "herring-scad": [
+    "/fish-species/commons/herring-scad.jpg"
+  ],
+  "arabian-scad": [
+    "/fish-species/commons/arabian-scad.jpg"
+  ],
+  "snubnose-pompano": [
+    "/fish-species/commons/snubnose-pompano.jpg"
+  ],
+  "indian-threadfish": [
+    "/fish-species/commons/indian-threadfish.jpg"
+  ],
+  "silver-sillago": [
+    "/fish-species/commons/silver-sillago.jpg"
+  ],
+  "pickhandle-barracuda": [
+    "/fish-species/commons/pickhandle-barracuda.jpg"
   ]
 }

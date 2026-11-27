@@ -334,5 +334,101 @@
     "license": "CC BY 3.0",
     "licenseUrl": "https://commons.wikimedia.org/wiki/File:Khor_Fakkan_Beach_Fujairah_UAE_-_panoramio_(8).jpg",
     "source": "Wikimedia Commons"
+  },
+  "common-mojarra": {
+    "kind": "species",
+    "src": "/fish-species/commons/common-mojarra.jpg",
+    "author": "Paul Asman and Jill Lenoble",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Gerres_oyena_Blacktip_Mojarra_-_47498267112.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "yellowfin-seabream": {
+    "kind": "species",
+    "src": "/fish-species/commons/yellowfin-seabream.jpg",
+    "author": "Totti",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Acanthopagrus_latus_Umitamago.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "spinycheek-grouper": {
+    "kind": "species",
+    "src": "/fish-species/commons/spinycheek-grouper.jpg",
+    "author": "Marc Taquet",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Epinephelus_diacanthus_(Ifremer_00537-64845).jpg",
+    "source": "Wikimedia Commons"
+  },
+  "striped-grouper": {
+    "kind": "species",
+    "src": "/fish-species/commons/striped-grouper.jpg",
+    "author": "Diego Delso",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Mero_de_punta_negra_(Epinephelus_fasciatus),_parque_nacional_Ras_Muhammad,_Egipto,_2022-03-28,_DD_38.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "snubnose-emperor": {
+    "kind": "species",
+    "src": "/fish-species/commons/snubnose-emperor.jpg",
+    "author": "Diego Delso",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Letr%C3%ADnido_(Lethrinus_borbonicus),_Nosy_Tanikely,_Madagascar,_2025-09-19,_DD_128.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "blacktip-trevally": {
+    "kind": "species",
+    "src": "/fish-species/commons/blacktip-trevally.jpg",
+    "author": "Dr. Raju Kasambe",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Blacktip_Trevally_Caranx_heberi_03.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "herring-scad": {
+    "kind": "species",
+    "src": "/fish-species/commons/herring-scad.jpg",
+    "author": "Derek Keats from Johannesburg, South Africa",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:A_group_of_Herring_Scad,_Alepes_vari,_swimming_down_the_slope_(36149008690).jpg",
+    "source": "Wikimedia Commons"
+  },
+  "arabian-scad": {
+    "kind": "species",
+    "src": "/fish-species/commons/arabian-scad.jpg",
+    "author": "Rickard Zerpe",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Shrimp_scad_(Alepes_djedaba)_(43543204571).jpg",
+    "source": "Wikimedia Commons"
+  },
+  "snubnose-pompano": {
+    "kind": "species",
+    "src": "/fish-species/commons/snubnose-pompano.jpg",
+    "author": "Roberto Pillon",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Trachinotus_blochii_Praslin.JPG",
+    "source": "Wikimedia Commons"
+  },
+  "indian-threadfish": {
+    "kind": "species",
+    "src": "/fish-species/commons/indian-threadfish.jpg",
+    "author": "Anaxibia",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Alectis_indica.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "silver-sillago": {
+    "kind": "species",
+    "src": "/fish-species/commons/silver-sillago.jpg",
+    "author": "Sahat Ratmuangkhwang",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Sillago_sihama_Thailand.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "pickhandle-barracuda": {
+    "kind": "species",
+    "src": "/fish-species/commons/pickhandle-barracuda.jpg",
+    "author": "Rickard Zerpe",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Pickhandle_barracuda_(Sphyraena_jello)_(46864583875).jpg",
+    "source": "Wikimedia Commons"
   }
 }
