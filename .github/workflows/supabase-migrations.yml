@@ -78,8 +78,12 @@ jobs:
               ('20261127020000','marketplace_commerce'),
               ('20261127130000','community_lounges'),
               ('20261127140000','fix_conversation_members_rls_reapply'),
-              ('20261127150000','expeditions')
+              ('20261127150000','expeditions'),
+              ('20261127160000','retention_triggers')
             on conflict (version) do nothing;"
+          # 20261127160000 partially applied before failing on real data
+          # (constraint dropped, support tables not created); it is completed
+          # by 20261127170000_notifications_type_check_fix.sql.
       # The supabase CLI's db push proved unreliable over the session pooler
       # (reports "up to date" with an empty history table). This deterministic
       # runner applies any staged migration whose version is not recorded,
