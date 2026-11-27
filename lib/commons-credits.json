@@ -154,7 +154,7 @@
   "black-spotted-rubberlip": {
     "kind": "species",
     "src": "/fish-species/commons/black-spotted-rubberlip.jpg",
-    "author": "Liné1",
+    "author": "Lin\u00e91",
     "license": "CC BY 2.5",
     "licenseUrl": "https://commons.wikimedia.org/wiki/File:Plectorhinchus_gaterinus_by_Line1.jpg",
     "source": "Wikimedia Commons"
@@ -486,5 +486,13 @@
     "license": "CC BY 2.0",
     "licenseUrl": "https://commons.wikimedia.org/wiki/File:Rhizoprionodon_acutus_mangalore2.jpg",
     "source": "Wikimedia Commons"
+  },
+  "needlescaled-queenfish": {
+    "kind": "species",
+    "src": "/fish-species/commons/needlescaled-queenfish.jpg",
+    "author": "UAE Anglers Hub community submission",
+    "license": "Submitted with permission",
+    "licenseUrl": "/species/needlescaled-queenfish",
+    "source": "Community"
   }
 }
