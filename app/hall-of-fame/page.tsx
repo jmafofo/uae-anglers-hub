@@ -1,14 +1,34 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Crown, Fish, Scale, Ruler, Trophy, MapPin } from 'lucide-react';
+import { Crown, Fish, Scale, Ruler, Timer, Trophy, MapPin } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 import { catchWeek } from '@/lib/catch-week';
+import { getWeeklyKings, reignLength, type CrownReign } from '@/lib/crowns';
 import { KingCrown } from '@/components/KingCrown';
+import ShareVictory from '@/components/ShareVictory';
 
-export const metadata: Metadata = {
+const BASE_METADATA = {
   title: 'Hall of Fame — UAE Anglers',
   description: 'The biggest catches of the week, month and year across the UAE. The top angler is coronated with a king\u2019s crown.',
 };
+
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+  const raw = await searchParams;
+  const period = coerce(raw.period, ['week', 'month', 'year', 'all'] as const, 'week');
+  if (period !== 'week') return BASE_METADATA;
+  const [reign] = await getWeeklyKings(1);
+  if (!reign) return BASE_METADATA;
+  const params = new URLSearchParams({
+    name: reign.name,
+    species: reign.species ?? '',
+    value: reign.weightKg != null ? `${reign.weightKg} kg` : '',
+    week: reign.weekLabel,
+  });
+  return {
+    ...BASE_METADATA,
+    openGraph: { images: [`/api/og/victory?${params.toString()}`] },
+  };
+}
 
 export const revalidate = 300;
 
@@ -67,9 +87,9 @@ export default async function HallOfFamePage({ searchParams }: PageProps) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
 
+  const week = catchWeek();
   let entries: Entry[];
   if (period === 'week') {
-    const week = catchWeek();
     let query = supabase.from('hall_of_fame_entries').select('*')
       .gte('caught_at', week.start).lt('caught_at', week.end)
       .lte('caught_at', new Date().toISOString())
@@ -88,6 +108,13 @@ export default async function HallOfFamePage({ searchParams }: PageProps) {
   }
   const [king, ...rest] = entries;
   const periodLabel = PERIODS.find(p => p.key === period)!.label.toLowerCase();
+
+  // Reign tracking (weekly, by weight — the crown's official metric)
+  const reigns = period === 'week' && metric === 'weight' ? await getWeeklyKings(8) : [];
+  const currentReign = king && reigns[0]?.userId === king.user_id ? reignLength(reigns, king.user_id) : 0;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://uaeangler.com';
+  const msLeft = Date.parse(week.end) - Date.now();
+  const defenseLeft = msLeft > 0 ? `${Math.floor(msLeft / 86400000)}d ${Math.floor((msLeft % 86400000) / 3600000)}h` : null;
 
   return (
     <div className="min-h-screen pt-20 px-4 pb-16">
@@ -144,7 +171,20 @@ export default async function HallOfFamePage({ searchParams }: PageProps) {
           </div>
         ) : (
           <>
-            {king && <KingPodium entry={king} metric={metric} />}
+            {king && (
+              <KingPodium
+                entry={king}
+                metric={metric}
+                reign={currentReign}
+                defenseLeft={period === 'week' ? defenseLeft : null}
+                shareText={
+                  period === 'week'
+                    ? `👑 ${king.display_name ?? king.username ?? 'An angler'} wears the crown on UAE Anglers — ${metricValue(king, metric)} ${king.species ?? ''}!`
+                    : `Hall of Fame: ${king.display_name ?? king.username ?? 'An angler'} — ${metricValue(king, metric)} ${king.species ?? ''} on UAE Anglers`
+                }
+                shareUrl={`${appUrl}/hall-of-fame`}
+              />
+            )}
             {rest.length > 0 && (
               <ol className="mt-6 divide-y divide-white/5 rounded-2xl border border-white/10 bg-white/[0.02] overflow-hidden">
                 {rest.map(e => (
@@ -152,6 +192,7 @@ export default async function HallOfFamePage({ searchParams }: PageProps) {
                 ))}
               </ol>
             )}
+            {reigns.length > 1 && <PreviousReigns reigns={reigns.slice(1)} />}
           </>
         )}
       </div>
@@ -159,7 +200,21 @@ export default async function HallOfFamePage({ searchParams }: PageProps) {
   );
 }
 
-function KingPodium({ entry, metric }: { entry: Entry; metric: Metric }) {
+function KingPodium({
+  entry,
+  metric,
+  reign,
+  defenseLeft,
+  shareText,
+  shareUrl,
+}: {
+  entry: Entry;
+  metric: Metric;
+  reign: number;
+  defenseLeft: string | null;
+  shareText: string;
+  shareUrl: string;
+}) {
   const name = entry.display_name ?? entry.username ?? 'Anonymous angler';
   return (
     <Link
@@ -188,7 +243,11 @@ function KingPodium({ entry, metric }: { entry: Entry; metric: Metric }) {
         </div>
 
         <div className="flex-1 text-center md:text-left">
-          <div className="text-amber-300 text-xs font-bold tracking-wider mb-1">#1 — CROWNED</div>
+          <div className="text-amber-300 text-xs font-bold tracking-wider mb-1">
+            #1 — CROWNED
+            {reign > 1 && <span className="ml-2 rounded-full bg-amber-500/20 px-2 py-0.5 text-amber-200">Reigning · week {reign}</span>}
+            {reign === 1 && <span className="ml-2 rounded-full bg-amber-500/20 px-2 py-0.5 text-amber-200">Newly crowned</span>}
+          </div>
           <h2 className="text-2xl md:text-3xl font-extrabold text-white mb-1">{name}</h2>
           <div className="text-amber-200/90 text-sm mb-3">
             {entry.species ?? 'Unknown species'}
@@ -207,6 +266,15 @@ function KingPodium({ entry, metric }: { entry: Entry; metric: Metric }) {
                 {entry.catch_emirate}
               </span>
             )}
+            {defenseLeft && (
+              <span className="inline-flex items-center gap-1.5 text-gray-400">
+                <Timer className="w-3.5 h-3.5 text-amber-300" />
+                Crown defense ends in {defenseLeft}
+              </span>
+            )}
+          </div>
+          <div className="mt-4">
+            <ShareVictory text={shareText} url={shareUrl} />
           </div>
         </div>
 
@@ -220,6 +288,37 @@ function KingPodium({ entry, metric }: { entry: Entry; metric: Metric }) {
         )}
       </div>
     </Link>
+  );
+}
+
+function PreviousReigns({ reigns }: { reigns: CrownReign[] }) {
+  return (
+    <section className="mt-10">
+      <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold tracking-wider text-amber-300/90 uppercase">
+        <Crown className="h-4 w-4" /> Previous reigns
+      </h2>
+      <div className="flex gap-3 overflow-x-auto pb-2">
+        {reigns.map(r => (
+          <Link
+            key={r.weekStart}
+            href={r.username ? `/profile/${r.username}` : '#'}
+            className="group w-44 shrink-0 rounded-xl border border-amber-400/20 bg-gradient-to-b from-amber-500/5 to-transparent p-4 transition-colors hover:border-amber-400/40"
+          >
+            <div className="mb-3 flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-amber-500/15 text-sm font-bold text-amber-300">
+              {r.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={r.avatarUrl} alt={r.name} className="h-full w-full object-cover" />
+              ) : (
+                initials(r.name)
+              )}
+            </div>
+            <div className="truncate font-semibold text-white group-hover:text-amber-200">{r.name}</div>
+            <div className="truncate text-xs text-gray-400">{r.species ?? 'Unknown'}{r.weightKg != null ? ` · ${r.weightKg} kg` : ''}</div>
+            <div className="mt-1.5 text-[11px] text-gray-500">{r.weekLabel}</div>
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }
 

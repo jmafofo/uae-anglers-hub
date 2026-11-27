@@ -20,7 +20,14 @@ function normalize(value: string): string {
  *
  * Reduced motion (or very few products): a calm, manually scrollable rail.
  */
-export default function GearCarousel({ products }: { products: SponsoredProduct[] }) {
+export default function GearCarousel({
+  products,
+  mode = 'sponsored',
+}: {
+  products: SponsoredProduct[];
+  /** 'sponsored' = paid advertisers (gold verified tick); 'marketplace' = organic listings fallback */
+  mode?: 'sponsored' | 'marketplace';
+}) {
   const [leadBrands, setLeadBrands] = useState<string[]>([]);
   const [reduced, setReduced] = useState(true);
 
@@ -73,7 +80,9 @@ export default function GearCarousel({ products }: { products: SponsoredProduct[
         </div>
         <div className="p-4">
           <p className="flex items-center gap-1.5 truncate text-xs text-slate-500">
-            <BadgeCheck size={13} className="shrink-0 text-[#b8892d]" aria-label="Verified paid partner" />
+            {mode === 'sponsored' && (
+              <BadgeCheck size={13} className="shrink-0 text-[#b8892d]" aria-label="Verified paid partner" />
+            )}
             {product.dealer}{product.emirate ? ` · ${product.emirate}` : ''}
           </p>
           <h3 className="mt-1 truncate font-medium group-hover:text-teal-800">{product.title}</h3>
@@ -93,8 +102,12 @@ export default function GearCarousel({ products }: { products: SponsoredProduct[
       <div className="coastal-wrap coastal-hero-wide">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="coastal-eyebrow !text-[10px]">The tackle edit · Sponsored</p>
-            <h2 className="mt-2 font-serif text-2xl tracking-tight sm:text-3xl">Ready for your next cast.</h2>
+            <p className="coastal-eyebrow !text-[10px]">
+              {mode === 'sponsored' ? 'The tackle edit · Sponsored' : 'Fresh from the marketplace'}
+            </p>
+            <h2 className="mt-2 font-serif text-2xl tracking-tight sm:text-3xl">
+              {mode === 'sponsored' ? 'Ready for your next cast.' : 'New gear from UAE anglers.'}
+            </h2>
           </div>
           <Link href="/shop" className="text-sm font-medium text-teal-800 hover:underline">
             Explore the marketplace ↗

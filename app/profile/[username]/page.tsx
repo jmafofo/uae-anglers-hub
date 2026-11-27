@@ -1,12 +1,13 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { MapPin, Calendar } from 'lucide-react';
+import { MapPin, Calendar, Crown } from 'lucide-react';
 import OnlineDot from '@/components/OnlineDot';
 import FollowButton from '@/components/FollowButton';
 import ProfileTabs from '@/components/posts/ProfileTabs';
 import { createClient } from '@supabase/supabase-js';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { getCrownCount } from '@/lib/crowns';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -75,6 +76,9 @@ export default async function ProfilePage({ params }: PageProps) {
     .select('*', { count: 'exact', head: true })
     .eq('follower_id', profile.id);
 
+  // Hall of Fame crowns (weekly wins, best-effort over the past year)
+  const crownCount = await getCrownCount(profile.id);
+
   // Social links
   const socials = [
     { key: 'instagram_handle' as const, label: 'Instagram', url: (v: string) => `https://instagram.com/${v}` },
@@ -140,6 +144,15 @@ export default async function ProfilePage({ params }: PageProps) {
                 <span className="block text-base sm:text-lg font-bold text-teal-400">{profile.total_catches ?? 0}</span>
                 <span className="text-xs text-gray-500">catches</span>
               </div>
+              {crownCount > 0 && (
+                <Link href="/hall-of-fame" className="text-center group" title="Weekly Hall of Fame crowns">
+                  <span className="flex items-center justify-center gap-1 text-base sm:text-lg font-bold text-amber-400 group-hover:text-amber-300">
+                    <Crown className="w-4 h-4" fill="currentColor" fillOpacity={0.3} />
+                    {crownCount}
+                  </span>
+                  <span className="text-xs text-amber-500/70">crown{crownCount === 1 ? '' : 's'}</span>
+                </Link>
+              )}
             </div>
 
             {/* Bio + Meta */}

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { Menu, X, Plus, ChevronDown, Compass, Fish, Users, CloudSun, Anchor, BookOpen, ShieldCheck, ShoppingBag, FlaskConical, Smartphone, Info, BadgeCheck, Newspaper } from 'lucide-react';
+import { Menu, X, Plus, ChevronDown, Compass, Fish, Users, CloudSun, Anchor, BookOpen, ShieldCheck, ShoppingBag, FlaskConical, Smartphone, Info, BadgeCheck, Newspaper, MessagesSquare } from 'lucide-react';
 import { getSupabase } from '@/lib/supabase';
 import NotificationsDropdown from './NotificationsDropdown';
 import LocaleSwitcher from './LocaleSwitcher';
@@ -14,14 +14,15 @@ const primaryLinks = [
   { href: '/species', label: 'Species guide', icon: Fish },
   { href: '/community', label: 'Community', icon: Users },
   { href: '/weather', label: 'Weather', icon: CloudSun },
+  { href: '/shop', label: 'Shop', icon: ShoppingBag },
+  { href: '/charters', label: 'Charters', icon: Anchor },
+  { href: '/lounges', label: 'Chat', icon: MessagesSquare },
 ];
 const moreLinks = [
-  { href: '/charters', label: 'Fishing charters', icon: Anchor },
   { href: '/clubs', label: 'Local clubs', icon: Users },
   { href: '/feed', label: 'Following feed', icon: Newspaper },
   { href: '/beginners-guide', label: 'Beginner’s guide', icon: BookOpen },
   { href: '/regulations', label: 'Fishing regulations', icon: ShieldCheck },
-  { href: '/shop', label: 'Tackle shop', icon: ShoppingBag },
   { href: '/conservation', label: 'Conservation', icon: ShieldCheck },
   { href: '/research', label: 'Marine research', icon: FlaskConical },
   { href: '/ocean-sentinel', label: 'Ocean Sentinel app', icon: Smartphone },

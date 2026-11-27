@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import { SponsoredGear } from '@/components/SponsoredGear';
 import SponsoredFilms from '@/components/SponsoredFilms';
 import HeroBrandSpotlight from '@/components/HeroBrandSpotlight';
+import FishSplashBackdrop from '@/components/FishSplashBackdrop';
 import FishingBackdrop from '@/components/FishingBackdrop';
 import { Search, ChevronDown } from 'lucide-react';
 import { emirates } from '@/lib/spots';
@@ -11,6 +12,7 @@ export function HeroSection({ spotCount, speciesCount }: { spotCount: number; sp
   return <section className="coastal-hero">
     <div className="coastal-cinematic relative isolate overflow-hidden">
     <FishingBackdrop />
+    <FishSplashBackdrop tone="light" intensity={1.3} />
     <div className="coastal-wrap coastal-hero-wide relative z-[1] grid items-center gap-10 py-10 pb-24 lg:grid-cols-[minmax(0,.8fr)_minmax(0,1.4fr)] lg:gap-14 lg:py-14 lg:pb-28">
       <div className="max-w-2xl">
         <p className="coastal-eyebrow">Your guide to UAE waters</p>

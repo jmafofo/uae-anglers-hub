@@ -123,6 +123,12 @@ export default function FishSplashBackdrop({
     let nextLeapAt = 1.2 + Math.random() * 2;
     let clock = 0;
 
+    // Feeding frenzy: a burst of activity in one zone — several fish
+    // chasing bait to the surface in rapid succession, with spray and
+    // churning "boil" rings. Fires every ~15–30s.
+    let frenzy: { x: number; until: number; nextSpawn: number } | null = null;
+    let nextFrenzyAt = 6 + Math.random() * 8;
+
     const waterline = () => height * 0.68;
 
     function resize() {
@@ -138,20 +144,40 @@ export default function FishSplashBackdrop({
       ctx?.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
-    function spawnLeap() {
+    function spawnLeap(opts?: { x?: number; lunker?: boolean; frenzyFish?: boolean }) {
       const dir: 1 | -1 = Math.random() < 0.5 ? 1 : -1;
-      const x0 = width * (0.15 + Math.random() * 0.7);
+      const x0 = opts?.x ?? width * (0.15 + Math.random() * 0.7);
+      const lunker = opts?.lunker ?? false;
+      const frenzyFish = opts?.frenzyFish ?? false;
+      const size = lunker ? 52 + Math.random() * 18 : frenzyFish ? 18 + Math.random() * 14 : 26 + Math.random() * 22;
       fish.push({
         x0,
         dir,
-        vx: dir * (140 + Math.random() * 160),
-        vy: -(560 + Math.random() * 260),
+        vx: dir * (140 + Math.random() * 160) * (frenzyFish ? 1.25 : 1),
+        vy: -(560 + Math.random() * 260) * (lunker ? 1.15 : 1),
         t: 0,
-        size: 26 + Math.random() * 22,
+        size,
         splashedIn: false,
       });
-      splash(x0, waterline(), 10);
-      ripples.push({ x: x0, y: waterline(), r: 4, alpha: 0.8 });
+      splash(x0, waterline(), lunker ? 20 : frenzyFish ? 7 : 10);
+      ripples.push({ x: x0, y: waterline(), r: 4, alpha: lunker ? 1 : 0.8 });
+    }
+
+    // Bait spray — tiny panicked baitfish flicking out of the water.
+    function baitSpray(x: number, count: number) {
+      for (let i = 0; i < count; i++) {
+        const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.2;
+        const sp = 200 + Math.random() * 420;
+        droplets.push({
+          x: x + (Math.random() - 0.5) * 40,
+          y: waterline(),
+          vx: Math.cos(a) * sp,
+          vy: Math.sin(a) * sp,
+          life: 0,
+          maxLife: 0.3 + Math.random() * 0.35,
+          r: 0.8 + Math.random() * 1.2,
+        });
+      }
     }
 
     function splash(x: number, y: number, count: number) {
@@ -213,10 +239,59 @@ export default function FishSplashBackdrop({
 
       drawWaves(clock);
 
-      // Leap scheduling
+      // Frenzy "boil" — churning surface rings over the strike zone
+      if (frenzy) {
+        const boilAlpha = Math.min(0.5, (frenzy.until - clock) * 0.8);
+        for (let i = 0; i < 3; i++) {
+          const wobble = Math.sin(clock * 9 + i * 2.1) * 8;
+          ctx.globalAlpha = boilAlpha * (0.5 + i * 0.2);
+          ctx.strokeStyle = palette.ripple;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.ellipse(
+            frenzy.x + wobble + (i - 1) * 22,
+            waterline() + 2,
+            26 + i * 14 + Math.sin(clock * 7 + i) * 5,
+            6 + i * 2.5,
+            0, 0, Math.PI * 2,
+          );
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      // Leap scheduling — steady ambient action, with the occasional lunker
       if (clock >= nextLeapAt) {
-        spawnLeap();
-        nextLeapAt = clock + (2.5 + Math.random() * 4.5) / intensity;
+        spawnLeap({ lunker: Math.random() < 0.18 });
+        nextLeapAt = clock + (1.6 + Math.random() * 2.4) / intensity;
+      }
+
+      // Feeding frenzy scheduling + execution
+      if (clock >= nextFrenzyAt && !frenzy) {
+        frenzy = {
+          x: width * (0.2 + Math.random() * 0.6),
+          until: clock + 1.6 + Math.random() * 0.8,
+          nextSpawn: clock,
+        };
+        nextFrenzyAt = clock + (16 + Math.random() * 16) / intensity;
+      }
+      if (frenzy) {
+        if (clock >= frenzy.until) {
+          frenzy = null;
+        } else {
+          // Rapid-fire small fish + bait spray + churning surface
+          if (clock >= frenzy.nextSpawn) {
+            spawnLeap({ x: frenzy.x + (Math.random() - 0.5) * 70, frenzyFish: true });
+            baitSpray(frenzy.x + (Math.random() - 0.5) * 60, 14);
+            ripples.push({
+              x: frenzy.x + (Math.random() - 0.5) * 50,
+              y: waterline(),
+              r: 2,
+              alpha: 0.9,
+            });
+            frenzy.nextSpawn = clock + 0.12 + Math.random() * 0.18;
+          }
+        }
       }
 
       // Flying fish
