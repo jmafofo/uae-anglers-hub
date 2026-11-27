@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Waves, ArrowRight } from 'lucide-react';
 import type { fishSpecies } from '@/lib/species';
-import speciesPhotos from '@/lib/species-photos.json';
+import speciesPhotos from '@/lib/species-images';
 
 interface SpeciesShowcaseProps {
   photoSpecies: (typeof fishSpecies)[number][];

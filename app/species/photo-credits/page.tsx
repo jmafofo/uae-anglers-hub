@@ -1,0 +1,7 @@
+import Link from 'next/link';
+import { habitatPhotoCredits } from '@/lib/species-images';
+import { fishSpecies } from '@/lib/species';
+export const metadata = { title: 'Species photograph credits | UAEAngler' };
+export default function PhotoCredits() {
+  return <main className="min-h-screen bg-slate-50 px-6 pb-16 pt-28 text-slate-900"><div className="mx-auto max-w-4xl"><Link href="/species" className="text-teal-800">← Species guide</Link><h1 className="mt-6 font-serif text-4xl">Photographs from the wild</h1><p className="mt-4 text-slate-600">Real habitat photographs, credited to their photographers. Locations may be outside the UAE. Images are reproduced without edits; the source links include observation and licensing details.</p><div className="mt-8 grid gap-5 sm:grid-cols-2">{Object.entries(habitatPhotoCredits).map(([slug, photo]) => <article key={slug} className="rounded-xl border border-slate-200 bg-white p-5"><Link href={`/species/${slug}`} className="font-semibold text-teal-900">{fishSpecies.find(fish => fish.slug === slug)?.name ?? slug}</Link><p className="mt-3 text-sm">{photo.author}</p><p className="mt-2 text-xs leading-relaxed text-slate-500">{photo.caption}</p><p className="mt-3 text-sm"><a href={photo.source} className="text-teal-800 underline">Source photograph</a> · <a href={photo.licenseUrl} className="text-teal-800 underline">{photo.license}</a></p></article>)}</div></div></main>;
+}

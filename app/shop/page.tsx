@@ -1,198 +1,41 @@
+/* Product images are seller uploads; retain their original aspect ratio. */
+/* eslint-disable @next/next/no-img-element */
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ShoppingBag, Plus, MapPin, Tag, Zap, BadgeCheck, Percent, ChevronRight } from 'lucide-react';
+import { ShoppingBag, Search, ArrowUpRight, Anchor, Package, Store, RefreshCw } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
-import GoogleAd from '@/components/GoogleAd';
 
-export async function generateMetadata(): Promise<Metadata> {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-
-  const { data: listings } = await supabase
-    .from('listings')
-    .select('id')
-    .eq('is_active', true)
-    .eq('is_sold', false)
-    .limit(1);
-
-  const isEmpty = !listings || listings.length === 0;
-
-  return {
-    title: 'UAE Fishing Gear Marketplace — Buy & Sell Tackle',
-    description: 'Buy and sell fishing gear across the UAE. Rods, reels, lures, boats and accessories from UAE anglers.',
-    ...(isEmpty && { robots: { index: false, follow: true } }),
-  };
-}
-
-export const revalidate = 60;
-
-const CATEGORIES = ['All', 'Rod', 'Reel', 'Lure', 'Accessories', 'Boat', 'Other'];
-const CONDITIONS: Record<string, string> = { new: 'New', like_new: 'Like New', good: 'Good', fair: 'Fair' };
-
-export default async function ShopPage() {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-
-  const { data: listings } = await supabase
-    .from('listings')
-    .select('*, profiles(display_name, username, verified_retailer, account_type)')
-    .eq('is_active', true)
-    .eq('is_sold', false)
-    .order('is_boosted', { ascending: false })
-    .order('created_at', { ascending: false })
-    .limit(60);
-
-  return (
-    <div className="min-h-screen pt-20 px-4 pb-16">
-      <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-extrabold text-white mb-1">Gear Marketplace</h1>
-            <p className="text-gray-400">Buy & sell fishing gear across the UAE</p>
-          </div>
-          <Link href="/shop/create" className="flex items-center gap-2 bg-teal-500 hover:bg-teal-400 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors">
-            <Plus className="w-4 h-4" /> Sell Gear
-          </Link>
-        </div>
-
-        {/* Google Ad */}
-        <div className="mb-6 max-w-md">
-          <GoogleAd format="rectangle" />
-        </div>
-
-        {/* Retailer CTA banner */}
-        <Link href="/advertise" className="flex items-center justify-between gap-4 rounded-xl bg-teal-500/5 border border-teal-500/20 hover:border-teal-500/40 px-5 py-3.5 mb-6 transition-colors group">
-          <div className="flex items-center gap-3">
-            <BadgeCheck className="w-5 h-5 text-teal-400 shrink-0" />
-            <p className="text-sm text-gray-300 group-hover:text-white transition-colors">
-              <span className="font-semibold text-teal-400">Tackle shop or brand?</span> Get a Verified Retailer badge and priority placement.
-            </p>
-          </div>
-          <span className="text-xs font-bold text-teal-400 whitespace-nowrap">See plans →</span>
-        </Link>
-
-        {/* Category filter */}
-        <div className="flex flex-wrap gap-2 mb-8">
-          {CATEGORIES.map((c) => (
-            <span key={c} className="px-4 py-1.5 rounded-full text-sm border border-white/20 text-gray-400 cursor-pointer hover:border-teal-500/40 hover:text-white transition-colors">
-              {c}
-            </span>
-          ))}
-        </div>
-
-        {/* How selling works — commission model */}
-        <div className="rounded-2xl border border-white/10 bg-white/5 overflow-hidden mb-10">
-          <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Percent className="w-4 h-4 text-teal-400" />
-              <h2 className="text-sm font-bold text-white">How selling works</h2>
-            </div>
-            <Link href="/advertise" className="text-xs text-teal-400 hover:text-teal-300 transition-colors flex items-center gap-1">
-              See all plans <ChevronRight className="w-3 h-3" />
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-white/10">
-            {[
-              { plan: 'Free', commission: '5%', slots: '5 listings', badge: null, color: 'text-gray-300' },
-              { plan: 'Pro Retailer', commission: '3%', slots: '50 listings', badge: 'AED 299/mo', color: 'text-teal-400' },
-              { plan: 'Business', commission: '0%', slots: 'Unlimited', badge: 'AED 799/mo', color: 'text-teal-300' },
-            ].map(({ plan, commission, slots, badge, color }) => (
-              <div key={plan} className="px-6 py-5 flex flex-col gap-1">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{plan}</span>
-                  {badge && <span className="text-xs text-gray-500">{badge}</span>}
-                </div>
-                <p className={`text-2xl font-extrabold ${color}`}>{commission}</p>
-                <p className="text-xs text-gray-500">platform fee per sale</p>
-                <p className="text-xs text-gray-600 mt-1">{slots} included</p>
-              </div>
-            ))}
-          </div>
-          <div className="px-6 py-3 bg-white/[0.02] border-t border-white/10">
-            <p className="text-xs text-gray-600">
-              Platform fee applies to completed sales only — no charge for listings. Upgrade to reduce or eliminate your commission.{' '}
-              <Link href="/advertise" className="text-teal-500 hover:underline">View plans →</Link>
-            </p>
-          </div>
-        </div>
-
-        {(!listings || listings.length === 0) ? (
-          <div className="text-center py-24 text-gray-500">
-            <ShoppingBag className="w-12 h-12 mx-auto mb-4 opacity-20" />
-            <p className="text-lg mb-2">No listings yet.</p>
-            <Link href="/shop/create" className="text-teal-400 hover:underline text-sm">Be the first to sell</Link>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {listings.map((l) => {
-              const profile = l.profiles as { display_name: string; username: string; verified_retailer?: boolean; account_type?: string } | null;
-              const isBoosted = l.is_boosted && l.boosted_until && new Date(l.boosted_until) > new Date();
-              const isVerified = profile?.verified_retailer;
-              return (
-                <Link key={l.id} href={`/shop/${l.id}`}
-                  className={`group rounded-xl border hover:border-teal-500/40 transition-all overflow-hidden ${
-                    isBoosted
-                      ? 'bg-amber-500/5 border-amber-500/30 shadow-md shadow-amber-500/5'
-                      : 'bg-white/5 border-white/10'
-                  }`}>
-                  {/* Photo */}
-                  <div className="relative">
-                    {l.photos?.[0] ? (
-                      <div className="w-full h-44 bg-white/10 overflow-hidden">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={l.photos[0]} alt={l.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                      </div>
-                    ) : (
-                      <div className="w-full h-44 bg-white/5 flex items-center justify-center">
-                        <ShoppingBag className="w-10 h-10 text-gray-700" />
-                      </div>
-                    )}
-                    {/* Badges overlay */}
-                    <div className="absolute top-2 left-2 flex flex-col gap-1">
-                      {isBoosted && (
-                        <span className="flex items-center gap-1 text-xs font-bold bg-amber-500 text-white px-2 py-0.5 rounded-full shadow">
-                          <Zap className="w-3 h-3" /> Boosted
-                        </span>
-                      )}
-                      {isVerified && (
-                        <span className="flex items-center gap-1 text-xs font-semibold bg-teal-600 text-white px-2 py-0.5 rounded-full shadow">
-                          <BadgeCheck className="w-3 h-3" /> Verified Retailer
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="p-4">
-                    <h2 className="font-semibold text-white group-hover:text-teal-400 transition-colors truncate mb-1">{l.title}</h2>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-teal-400 font-bold text-lg">
-                        {l.price ? `AED ${l.price.toLocaleString()}` : 'Make an offer'}
-                      </span>
-                      <span className="text-xs bg-white/5 text-gray-400 border border-white/10 px-2 py-0.5 rounded-full">
-                        {CONDITIONS[l.condition] ?? l.condition}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <Tag className="w-3 h-3" /> {l.category}
-                      </span>
-                      {l.emirate && (
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3" /> {l.emirate}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    </div>
-  );
+export const metadata: Metadata = { title: 'Fishing tackle & pre-owned gear | UAEAngler', description: 'Explore fishing tackle from UAE dealers and pre-owned equipment from local anglers. Compare real product photographs, prices and sellers.' };
+export const revalidate = 0;
+const categories = ['All', 'Rod', 'Reel', 'Lure', 'Accessories', 'Boat', 'Other'];
+type Listing = { id: string; title: string; price: number | null; photos: string[] | null; condition: string; category: string; emirate: string | null; seller_type: string | null; profiles: { display_name: string | null; shop_name: string | null; verified_retailer: boolean | null; account_type: string | null } | null };
+export default async function ShopPage({ searchParams }: { searchParams: Promise<{ q?: string; category?: string; market?: string; sort?: string }> }) {
+  const params = await searchParams;
+  const market = params.market === 'used' ? 'used' : params.market === 'dealers' ? 'dealers' : 'all';
+  const category = categories.includes(params.category ?? '') ? params.category! : 'All';
+  const search = (params.q ?? '').trim().slice(0,100);
+  const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+  let query = db.from('listings').select('id,title,price,photos,condition,category,emirate,seller_type,profiles(display_name,shop_name,verified_retailer,account_type)').eq('is_active', true).eq('is_sold', false);
+  if (category !== 'All') query = query.eq('category', category);
+  if (search) query = query.ilike('title', `%${search.replace(/[%_\\]/g, '')}%`);
+  query = params.sort === 'price_low' ? query.order('price', { ascending: true, nullsFirst: false }) : params.sort === 'price_high' ? query.order('price', { ascending: false, nullsFirst: false }) : query.order('created_at', { ascending: false });
+  const { data, error } = await query.limit(120);
+  const listings = ((data ?? []) as unknown as Listing[]).filter(l => {
+    const dealer = l.profiles?.verified_retailer === true;
+    return market === 'all' || (market === 'dealers' ? dealer : !dealer && l.condition !== 'new');
+  });
+  function href(values: Record<string,string>) { const p = new URLSearchParams({ market, category, q: search, sort: params.sort ?? 'latest', ...values }); return `/shop?${p}`; }
+  return <main className="min-h-screen bg-[#f5f8f7] pb-16 pt-24 text-slate-900">
+    <section className="coastal-wrap pb-10 pt-6 sm:pt-10">
+      <div className="flex flex-wrap items-center justify-between gap-5"><div><p className="coastal-eyebrow">The UAEAngler marketplace</p><h1 className="mt-3 font-serif text-4xl tracking-tight sm:text-5xl">Good gear. Great days.</h1><p className="mt-4 max-w-xl text-slate-600">Find your next setup, discover local tackle shops, or give well-loved equipment a new adventure.</p></div><Link href="/shop/create" className="coastal-button">Sell your equipment <ArrowUpRight size={16} /></Link></div>
+      <div className="mt-8 grid gap-3 sm:grid-cols-3">{[{value:'all',label:'All fishing gear',text:'Explore the marketplace',Icon:ShoppingBag},{value:'dealers',label:'Tackle shops & dealers',text:'Browse verified retailer listings',Icon:Store},{value:'used',label:'Pre-owned by anglers',text:'Second-hand equipment, new adventures',Icon:RefreshCw}].map(({value,label,text,Icon}) => <Link key={value} href={href({market:value})} aria-current={market === value ? 'page' : undefined} className={`flex items-center gap-4 rounded-xl border p-5 transition-colors ${market===value?'border-teal-800 bg-teal-900 text-white':'border-slate-200 bg-white hover:border-teal-700'}`}><Icon size={24} className="shrink-0" /><span><strong className="block text-sm">{label}</strong><span className={`mt-1 block text-xs ${market===value?'text-teal-100':'text-slate-500'}`}>{text}</span></span></Link>)}</div>
+    </section>
+    <section className="coastal-wrap">
+      <form className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-4" action="/shop"><input type="hidden" name="market" value={market}/><input type="hidden" name="category" value={category}/><label className="flex min-w-[180px] flex-1 items-center gap-3"><Search size={19} className="text-teal-800"/><span className="sr-only">Search fishing gear</span><input name="q" defaultValue={search} placeholder="Search rods, reels, lures…" className="w-full bg-transparent py-2 outline-none"/></label><label><span className="sr-only">Sort products</span><select name="sort" defaultValue={params.sort ?? 'latest'} className="rounded-lg border border-slate-200 bg-white p-2 text-sm"><option value="latest">Latest arrivals</option><option value="price_low">Price: low to high</option><option value="price_high">Price: high to low</option></select></label><button className="coastal-button !py-2.5 !text-sm">Find gear</button></form>
+      <nav aria-label="Product categories" className="my-6 flex flex-wrap gap-2">{categories.map(c=><Link key={c} href={href({category:c})} aria-current={category===c?'page':undefined} className={`rounded-full border px-4 py-2 text-sm ${category===c?'border-teal-800 bg-teal-50 text-teal-900':'border-slate-200 bg-white text-slate-600 hover:border-teal-700'}`}>{c==='Rod'?'Rods':c==='Reel'?'Reels':c==='Lure'?'Lures':c}</Link>)}</nav>
+      <div className="mb-4 flex items-center justify-between"><h2 className="text-lg font-semibold">{market==='used'?'Pre-owned finds':market==='dealers'?'From local retailers':'Explore fishing gear'}</h2><span className="text-sm text-slate-500">{listings.length} items</span></div>
+      {error ? <p role="alert" className="rounded-xl bg-white p-8 text-slate-600">We couldn’t load the marketplace. Please try again shortly.</p> : listings.length ? <div className="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">{listings.map(l=><Link key={l.id} href={`/shop/${l.id}`} className="group overflow-hidden rounded-xl border border-slate-200 bg-white transition-shadow hover:shadow-lg"><div className="relative flex aspect-square items-center justify-center bg-white p-5">{l.photos?.[0]? <img src={l.photos[0]} alt={l.title} loading="lazy" className="h-full w-full object-contain"/>:<Package size={48} className="text-slate-200"/>}<span className="absolute left-3 top-3 rounded-full bg-[#f3f7f5] px-2 py-1 text-[10px] font-medium text-teal-900">{l.condition==='new'?'New':l.condition==='like_new'?'Like new':'Pre-owned'}</span></div><div className="border-t border-slate-100 p-4"><p className="truncate text-xs text-slate-500">{l.profiles?.shop_name || l.profiles?.display_name || 'UAEAngler seller'}</p><h3 className="mt-2 line-clamp-2 min-h-10 text-sm font-medium group-hover:text-teal-800">{l.title}</h3><p className="mt-3 text-lg font-semibold text-slate-900">{l.price!=null?`AED ${Number(l.price).toLocaleString('en-AE')}`:'Ask for price'}</p><p className="mt-2 text-xs text-slate-500">{l.emirate || 'United Arab Emirates'}{l.profiles?.verified_retailer?' · Verified retailer':''}</p></div></Link>)}</div>:<div className="rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center"><ShoppingBag size={38} className="mx-auto text-teal-800"/><h3 className="mt-4 font-serif text-2xl">Make room for your next adventure.</h3><p className="mx-auto mt-3 max-w-md text-sm text-slate-500">{search?'No items match this search. Try another term or category.':'This collection is waiting for its first listings. List your equipment or introduce your tackle shop.'}</p><Link href={search?'/shop':'/shop/create'} className="mt-5 inline-block font-medium text-teal-800 underline underline-offset-4">{search?'Browse all gear':'Create a listing'}</Link></div>}
+      <div className="mt-12 grid gap-4 sm:grid-cols-2"><Link href="/charters" className="flex items-center justify-between gap-4 rounded-2xl bg-[#163b48] p-7 text-white"><div><Anchor size={24}/><h2 className="mt-4 font-serif text-2xl">Take it offshore.</h2><p className="mt-2 text-sm text-slate-200">Explore fishing charters across the Emirates.</p></div><ArrowUpRight size={24}/></Link><Link href="/advertise" className="flex items-center justify-between gap-4 rounded-2xl border border-teal-900/15 bg-[#eaf3ee] p-7"><div><Store size={24} className="text-teal-800"/><h2 className="mt-4 font-serif text-2xl">Your shop. Their next catch.</h2><p className="mt-2 text-sm text-slate-600">Reach anglers with dedicated advertising placements.</p></div><ArrowUpRight size={24}/></Link></div>
+    </section>
+  </main>;
 }

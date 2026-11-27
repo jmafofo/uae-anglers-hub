@@ -78,11 +78,12 @@ async function getUserFromCookies(req: NextRequest) {
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user) return null;
 
-  // Extract the access token from cookies if available
-  const accessTokenCookie = req.cookies.get('sb-access-token') || req.cookies.get('sb-' + process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('https://', '').split('.')[0] + '-auth-token');
-  const token = accessTokenCookie?.value ?? '';
+  // The SSR client decodes and reassembles session cookies. Never use the
+  // serialized cookie value as a JWT. Identity was verified above with getUser.
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError || !session?.access_token || session.user.id !== user.id) return null;
 
-  return { user, token };
+  return { user, token: session.access_token };
 }
 
 /**

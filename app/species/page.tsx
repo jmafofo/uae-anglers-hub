@@ -1,42 +1,14 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { fishSpecies } from '@/lib/species';
-import SpeciesSearchBar from './SearchBar';
-import GoogleAd from '@/components/GoogleAd';
+import SpeciesSearchBar, { type SpeciesFilters } from './SearchBar';
 
 export const metadata: Metadata = {
-  title: 'UAE Fish Species Guide — MOCCAE 2023 Official List',
-  description:
-    'Comprehensive guide to fish species in UAE waters based on the MOCCAE 2023 official fish list. Scientific names, Arabic names, habitat, conservation status and edibility for Persian Gulf and Gulf of Oman species.',
-  alternates: {
-    canonical: 'https://uaeangler.com/species',
-  },
+  title: 'UAE fish species guide',
+  description: 'Explore fish species in UAE waters by common, Arabic, or scientific name. Discover habitats, conservation status, and species information.',
+  alternates: { canonical: 'https://uaeangler.com/species' },
 };
-
-export default function SpeciesPage() {
-  return (
-    <div className="min-h-screen pt-20 px-4 pb-16">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-10">
-          <div className="inline-flex items-center gap-2 bg-teal-500/10 border border-teal-500/30 rounded-full px-4 py-1.5 text-teal-400 text-sm mb-6">
-            <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
-            Citizen Science Database
-          </div>
-          <h1 className="text-4xl font-extrabold text-white mb-3">UAE Fish Species Guide</h1>
-          <p className="text-gray-400 text-lg max-w-2xl">
-            {fishSpecies.length}{' '}species documented with scientific names, habitats, and conservation status.
-            Every catch you log contributes to UAE marine research.
-          </p>
-        </div>
-
-        {/* Google Ad */}
-        <div className="mb-8 max-w-md">
-          <GoogleAd format="rectangle" />
-        </div>
-
-        {/* Search + Filter + Grid (client component) */}
-        <SpeciesSearchBar />
-      </div>
-    </div>
-  );
+export default async function SpeciesPage({ searchParams }: { searchParams: Promise<SpeciesFilters> }) {
+  const filters = await searchParams;
+  return <div className="coastal-page min-h-screen pb-20"><header className="border-b border-slate-200 bg-[#edf4f3]"><div className="coastal-wrap py-14 sm:py-20"><p className="coastal-eyebrow">A field guide for curious anglers</p><h1 className="coastal-display mt-4">Know what’s below the surface.</h1><p className="mt-5 max-w-2xl text-lg leading-relaxed text-slate-600">Discover {fishSpecies.length} species found in UAE waters. Learn their names, understand their habitats, and get to know the marine life around you.</p><div className="mt-6 flex flex-wrap gap-6 text-sm"><Link href="/research" className="coastal-text-link">Explore our research</Link><Link href="/regulations" className="coastal-text-link">Check fishing regulations</Link></div></div></header><div className="coastal-wrap pt-10"><SpeciesSearchBar filters={filters} /></div></div>;
 }

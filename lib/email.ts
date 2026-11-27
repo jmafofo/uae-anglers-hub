@@ -6,10 +6,9 @@
 import { Resend } from 'resend';
 
 const ADMIN_EMAIL = 'info@uaeangler.com';
-// Use onboarding@resend.dev for testing (only delivers to your verified email).
-// Switch to 'UAE Anglers Hub <noreply@uaeangler.com>' once you verify
-// uaeangler.com as a sending domain in Resend.
-const FROM_EMAIL = 'UAE Anglers Hub <onboarding@resend.dev>';
+// Keep automated notifications distinct from the connected support mailbox so
+// inbound contact submissions are not classified as the mailbox's sent mail.
+const FROM_EMAIL = 'UAEAngler Website <notifications@uaeangler.com>';
 
 function getResend(): Resend | null {
   if (!process.env.RESEND_API_KEY) {
@@ -60,6 +59,7 @@ export async function sendBidApprovalRequest(params: {
   const { error } = await resend.emails.send({
     from: FROM_EMAIL,
     to: ADMIN_EMAIL,
+    replyTo: ADMIN_EMAIL,
     subject,
     html,
   });
@@ -111,6 +111,7 @@ export async function sendBidStatusUpdate(params: {
   const { error } = await resend.emails.send({
     from: FROM_EMAIL,
     to: params.to,
+    replyTo: ADMIN_EMAIL,
     subject,
     html,
   });
@@ -127,6 +128,11 @@ export async function sendContactMessage(params: {
   message: string;
 }): Promise<void> {
   const resend = getResend();
+  const recipient = params.subject === 'Press / media'
+    ? 'press@uaeangler.com'
+    : params.subject === 'Partnership / advertising'
+      ? 'partnerships@uaeangler.com'
+      : ADMIN_EMAIL;
   const subject = `Website contact: ${params.subject}`;
   const html = `
     <div style="font-family: system-ui, sans-serif; max-width: 640px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
@@ -146,7 +152,7 @@ export async function sendContactMessage(params: {
     }
 
     console.log('[email] Would send contact message:', {
-      to: ADMIN_EMAIL,
+      to: recipient,
       subject,
       from: params.email,
       message: params.message.slice(0, 200),
@@ -156,7 +162,7 @@ export async function sendContactMessage(params: {
 
   const { error } = await resend.emails.send({
     from: FROM_EMAIL,
-    to: ADMIN_EMAIL,
+    to: recipient,
     replyTo: params.email,
     subject,
     html,

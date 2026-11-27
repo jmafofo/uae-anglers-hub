@@ -26,6 +26,8 @@ const footerLinks = {
   ],
   'Legal & Trust': [
     { href: '/privacy-policy', label: 'Privacy Policy' },
+    { href: '/species/photo-credits', label: 'Photo Credits' },
+    { href: '/orders', label: 'Orders & trips' },
     { href: '/terms-of-service', label: 'Terms of Service' },
     { href: '/editorial-policy', label: 'Editorial Policy' },
     { href: '/conservation', label: 'Conservation' },
@@ -42,7 +44,7 @@ export default function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-[#060b14] border-t border-white/10 mt-20">
+    <footer className="bg-[#060b14] border-t border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
 
@@ -83,7 +85,7 @@ export default function Footer() {
           {/* Nav columns */}
           {Object.entries(footerLinks).map(([section, links]) => (
             <div key={section}>
-              <h3 className="text-white text-xs font-semibold uppercase tracking-widest mb-4">
+              <h3 className="text-white text-sm font-semibold uppercase tracking-widest mb-4">
                 {section}
               </h3>
               <ul className="space-y-2.5">

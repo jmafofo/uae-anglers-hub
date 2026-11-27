@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import CharterCalendar from '@/components/commerce/CharterCalendar';
 import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import {
@@ -126,6 +127,8 @@ export default async function CharterDetailPage({ params }: { params: Promise<{ 
               ))}
             </ul>
           </div>
+
+          <CharterCalendar slug={slug} />
 
           {/* Contact */}
           <div className="flex flex-wrap gap-2">

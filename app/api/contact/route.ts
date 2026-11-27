@@ -22,6 +22,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 });
   }
 
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 });
+  }
   const data = body as Record<string, unknown>;
   const name = readString(data.name, 120);
   const email = readString(data.email, 180).toLowerCase();

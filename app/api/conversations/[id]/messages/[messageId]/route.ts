@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuthUniversal } from '@/lib/api-auth';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { redactMessage } from '@/lib/message-privacy';
 
 export async function PATCH(
   req: NextRequest,
@@ -57,7 +58,7 @@ export async function PATCH(
     return NextResponse.json({ error: 'Failed to edit message' }, { status: 500 });
   }
 
-  return NextResponse.json({ message: data });
+  return NextResponse.json({ message: redactMessage(data) });
 }
 
 export async function DELETE(

@@ -2,274 +2,113 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  MapPin,
-  Fish,
-  Users,
-  Menu,
-  X,
-  Plus,
-  ShieldCheck,
-  Beaker,
-  BadgeCheck,
-  Scale,
-  Smartphone,
-  Newspaper,
-  Anchor,
-  Info,
-  BookOpen,
-} from 'lucide-react';
-import LocaleSwitcher from './LocaleSwitcher';
-import NotificationsDropdown from './NotificationsDropdown';
+import { usePathname } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
+import { Menu, X, Plus, ChevronDown, Compass, Fish, Users, CloudSun, Anchor, BookOpen, ShieldCheck, ShoppingBag, FlaskConical, Smartphone, Info, BadgeCheck, Newspaper } from 'lucide-react';
 import { getSupabase } from '@/lib/supabase';
+import NotificationsDropdown from './NotificationsDropdown';
+import LocaleSwitcher from './LocaleSwitcher';
 
-const navLinks = [
-  { href: '/', label: 'Home', icon: null },
-  { href: '/about', label: 'About', icon: Info },
-  { href: '/feed', label: 'Feed', icon: Newspaper },
-  { href: '/spots', label: 'Spots', icon: MapPin },
-  { href: '/charters', label: 'Charters', icon: Anchor },
-  { href: '/species', label: 'Species', icon: Fish },
-  { href: '/beginners-guide', label: "Beginner's Guide", icon: BookOpen },
-  { href: '/clubs', label: 'Clubs', icon: Users },
-  { href: '/conservation', label: 'Conservation', icon: ShieldCheck },
-  { href: '/research', label: 'Research', icon: Beaker },
-  { href: '/regulations', label: 'Regulations', icon: Scale },
+const primaryLinks = [
+  { href: '/spots', label: 'Fishing spots', icon: Compass },
+  { href: '/species', label: 'Species guide', icon: Fish },
   { href: '/community', label: 'Community', icon: Users },
-  { href: '/shop', label: 'Shop', icon: null },
-  { href: '/advertise', label: 'Advertise', icon: BadgeCheck },
-  { href: '/ocean-sentinel', label: 'App', icon: Smartphone },
+  { href: '/weather', label: 'Weather', icon: CloudSun },
+];
+const moreLinks = [
+  { href: '/charters', label: 'Fishing charters', icon: Anchor },
+  { href: '/clubs', label: 'Local clubs', icon: Users },
+  { href: '/feed', label: 'Following feed', icon: Newspaper },
+  { href: '/beginners-guide', label: 'Beginner’s guide', icon: BookOpen },
+  { href: '/regulations', label: 'Fishing regulations', icon: ShieldCheck },
+  { href: '/shop', label: 'Tackle shop', icon: ShoppingBag },
+  { href: '/conservation', label: 'Conservation', icon: ShieldCheck },
+  { href: '/research', label: 'Marine research', icon: FlaskConical },
+  { href: '/ocean-sentinel', label: 'Ocean Sentinel app', icon: Smartphone },
+  { href: '/about', label: 'About UAEAngler', icon: Info },
+  { href: '/advertise', label: 'Advertise with us', icon: BadgeCheck },
 ];
 
+type Member = { id: string; email?: string };
+type Profile = { display_name?: string; username?: string };
 export default function Navbar() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
-  const [profile, setProfile] = useState<{ display_name?: string; username?: string } | null>(null);
-  const [avatarOpen, setAvatarOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const toggleRef = useRef<HTMLButtonElement>(null);
-  const avatarRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+  const [open, setOpen] = useState<'mobile' | 'more' | 'account' | null>(null);
+  const [user, setUser] = useState<Member | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const navRef = useRef<HTMLElement>(null);
+  const mobileRef = useRef<HTMLDivElement>(null);
+  const mobileToggle = useRef<HTMLButtonElement>(null);
+  const moreToggle = useRef<HTMLButtonElement>(null);
+  const accountToggle = useRef<HTMLButtonElement>(null);
 
-  const loadUser = useCallback(async () => {
+  useEffect(() => {
     const sb = getSupabase();
-    const { data: { user: u } } = await sb.auth.getUser();
-    if (u) {
-      setUser(u);
-      const { data: prof } = await sb.from('profiles').select('display_name, username').eq('id', u.id).single();
-      setProfile(prof);
+    let active = true;
+    let version = 0;
+    async function update(member: Member | null) {
+      const current = ++version;
+      if (!active) return;
+      setUser(member);
+      setProfile(null);
+      if (member) {
+        const { data } = await sb.from('profiles').select('display_name, username').eq('id', member.id).single();
+        if (active && current === version) setProfile(data);
+      }
     }
+    const { data: listener } = sb.auth.onAuthStateChange((_event, session) => { void update(session?.user ?? null); });
+    return () => { active = false; listener.subscription.unsubscribe(); };
   }, []);
 
   useEffect(() => {
-    loadUser();
-    const sb = getSupabase();
-    const { data: listener } = sb.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setUser(session.user);
-        sb.from('profiles').select('display_name, username').eq('id', session.user.id).single().then(({ data }) => setProfile(data));
-      } else {
-        setUser(null);
-        setProfile(null);
+    if (!open) return;
+    function dismiss(event: PointerEvent) { if (!navRef.current?.contains(event.target as Node)) setOpen(null); }
+    function escape(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setOpen(null);
+        (open === 'mobile' ? mobileToggle : open === 'more' ? moreToggle : accountToggle).current?.focus();
       }
-    });
-    return () => { listener?.subscription.unsubscribe(); };
-  }, [loadUser]);
+    }
+    document.addEventListener('pointerdown', dismiss);
+    document.addEventListener('keydown', escape);
+    return () => { document.removeEventListener('pointerdown', dismiss); document.removeEventListener('keydown', escape); };
+  }, [open]);
 
-  async function handleSignOut() {
-    await getSupabase().auth.signOut();
-    setUser(null);
-    setProfile(null);
-    setAvatarOpen(false);
-    window.location.href = '/';
+  useEffect(() => {
+    if (open !== 'mobile') return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const menu = mobileRef.current;
+    const focusable = menu?.querySelectorAll<HTMLElement>('a[href], button');
+    focusable?.[0]?.focus();
+    function trap(event: KeyboardEvent) {
+      if (event.key !== 'Tab' || !focusable?.length) return;
+      const first = focusable[0], last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    }
+    menu?.addEventListener('keydown', trap);
+    return () => { document.body.style.overflow = previousOverflow; menu?.removeEventListener('keydown', trap); };
+  }, [open]);
+
+  function active(href: string) { return pathname === href || pathname.startsWith(`${href}/`); }
+  function close() { setOpen(null); }
+  async function signOut() {
+    const { error } = await getSupabase().auth.signOut();
+    if (!error) { setUser(null); setProfile(null); close(); window.location.href = '/'; }
   }
-
-  // Close dropdowns on click outside
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (avatarRef.current && !avatarRef.current.contains(e.target as Node)) {
-        setAvatarOpen(false);
-      }
-    }
-    document.addEventListener('pointerdown', handleClick);
-    return () => document.removeEventListener('pointerdown', handleClick);
-  }, []);
-
-  // Close on Escape key
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        if (menuOpen) { setMenuOpen(false); toggleRef.current?.focus(); }
-        if (avatarOpen) setAvatarOpen(false);
-      }
-    }
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [menuOpen, avatarOpen]);
-
-  // Focus trap inside mobile menu
-  useEffect(() => {
-    if (!menuOpen || !menuRef.current) return;
-    const menu = menuRef.current;
-    const focusable = menu.querySelectorAll<HTMLElement>(
-      'a[href], button, [tabindex]:not([tabindex="-1"])'
-    );
-    const first = focusable[0];
-    const last = focusable[focusable.length - 1];
-    first?.focus();
-
-    function trap(e: KeyboardEvent) {
-      if (e.key !== 'Tab') return;
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last?.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first?.focus();
-      }
-    }
-    menu.addEventListener('keydown', trap);
-    return () => menu.removeEventListener('keydown', trap);
-  }, [menuOpen]);
-
-  return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0f1a]/95 md:bg-[#0a0f1a]/90 md:backdrop-blur-md border-b border-white/10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14">
-          {/* Logo + wordmark */}
-          <Link href="/" className="flex items-center gap-2 shrink-0">
-            <Image
-              src="/logo-icon.png"
-              alt="UAE Anglers Hub"
-              width={36}
-              height={36}
-              priority
-              className="rounded"
-            />
-            <span className="text-white font-bold text-sm tracking-tight hidden sm:inline">
-              UAE Anglers Hub
-            </span>
-          </Link>
-
-          {/* Desktop nav */}
-          <div className="hidden lg:flex items-center gap-1">
-            {navLinks.map(({ href, label, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
-              >
-                {Icon && <Icon className="w-3.5 h-3.5" />}
-                {label}
-              </Link>
-            ))}
-          </div>
-
-          {/* CTA + avatar + locale + notifications */}
-          <div className="hidden lg:flex items-center gap-3">
-            {user && <NotificationsDropdown />}
-            <LocaleSwitcher />
-            <Link
-              href="/log-catch"
-              className="flex items-center gap-1 bg-teal-500 hover:bg-teal-400 text-white text-xs font-semibold px-3 py-1.5 rounded-md transition-colors"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              Log Catch
-            </Link>
-            {user ? (
-              <div className="relative" ref={avatarRef}>
-                <button
-                  onClick={() => setAvatarOpen(!avatarOpen)}
-                  className="w-8 h-8 rounded-full bg-teal-600 hover:bg-teal-500 flex items-center justify-center text-white text-xs font-bold transition-colors"
-                >
-                  {profile?.display_name?.[0]?.toUpperCase() ?? user.email?.[0]?.toUpperCase() ?? '?'}
-                </button>
-                {avatarOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-[#0f1724] border border-white/10 rounded-xl shadow-2xl z-50 py-1">
-                    <p className="px-3 py-2 text-xs text-gray-400 border-b border-white/10 truncate">
-                      @{profile?.username ?? 'user'}
-                    </p>
-                    <Link
-                      href="/dashboard"
-                      onClick={() => setAvatarOpen(false)}
-                      className="block px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
-                    >
-                      Dashboard
-                    </Link>
-                    <Link
-                      href={`/profile/${profile?.username ?? ''}`}
-                      onClick={() => setAvatarOpen(false)}
-                      className="block px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
-                    >
-                      Profile
-                    </Link>
-                    <button
-                      onClick={handleSignOut}
-                      className="block w-full text-left px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors"
-                    >
-                      Sign out
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <Link
-                href="/login"
-                className="text-xs text-teal-400 hover:text-teal-300 font-semibold transition-colors"
-              >
-                Sign in
-              </Link>
-            )}
-          </div>
-
-          {/* Mobile hamburger */}
-          <button
-            ref={toggleRef}
-            className="lg:hidden text-gray-300 hover:text-white p-1"
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Toggle menu"
-            aria-expanded={menuOpen}
-            aria-controls="mobile-menu"
-          >
-            {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
+  return <nav ref={navRef} className="coastal-nav fixed inset-x-0 top-0 z-50" aria-label="Main navigation">
+    <div className="mx-auto flex h-14 max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+      <Link href="/" onClick={close} className="flex shrink-0 items-center gap-2.5" aria-label="UAEAngler home"><Image src="/logo-icon.png" width={34} height={34} alt="" className="rounded-lg bg-[#173744] p-1" priority /><span className="text-lg font-semibold tracking-tight text-[#173744]">UAE<span className="font-normal">Angler</span><span className="ml-1 text-teal-700">.</span></span></Link>
+      <div className="hidden items-center gap-1 xl:flex">{primaryLinks.map(link => <Link key={link.href} href={link.href} onClick={close} aria-current={active(link.href) ? 'page' : undefined} className="nav-link">{link.label}</Link>)}
+        <div className="relative"><button ref={moreToggle} className="nav-link" onClick={() => setOpen(open === 'more' ? null : 'more')} aria-expanded={open === 'more'} aria-controls="more-navigation">Explore <ChevronDown size={14} /></button>{open === 'more' && <div id="more-navigation" className="absolute right-0 top-full mt-3 grid w-[480px] grid-cols-2 gap-1 rounded-xl border border-slate-200 bg-white p-4 shadow-xl">{moreLinks.map(({ href, label, icon: Icon }) => <Link key={href} href={href} onClick={close} className="nav-link" aria-current={active(href) ? 'page' : undefined}><Icon size={16} />{label}</Link>)}</div>}</div>
       </div>
-
-      {/* Mobile menu */}
-      {menuOpen && (
-        <div
-          ref={menuRef}
-          id="mobile-menu"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Navigation menu"
-          className="lg:hidden bg-[#0a0f1a] border-t border-white/10 px-4 py-3 space-y-1"
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') setMenuOpen(false);
-          }}
-        >
-          {navLinks.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              onClick={() => setMenuOpen(false)}
-              className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
-            >
-              {Icon && <Icon className="w-4 h-4" />}
-              {label}
-            </Link>
-          ))}
-          <Link
-            href="/log-catch"
-            onClick={() => setMenuOpen(false)}
-            className="flex items-center gap-2 px-3 py-2 rounded-md text-sm bg-teal-500 text-white font-semibold"
-          >
-            <Plus className="w-4 h-4" />
-            Log Catch
-          </Link>
-        </div>
-      )}
-    </nav>
-  );
+      <div className="flex items-center gap-3">
+        <Link href="/log-catch" onClick={close} className="hidden items-center gap-1.5 rounded-lg bg-[#23675e] px-4 py-2 text-sm font-semibold text-white hover:bg-[#174e47] sm:flex"><Plus size={16} />Log a catch</Link>
+        <div className="hidden items-center gap-3 xl:flex"><LocaleSwitcher />{user ? <><NotificationsDropdown /><div className="relative"><button ref={accountToggle} className="flex h-9 w-9 items-center justify-center rounded-full bg-teal-50 text-sm font-semibold text-teal-900" aria-label="Account menu" aria-expanded={open === 'account'} aria-controls="account-menu" onClick={() => setOpen(open === 'account' ? null : 'account')}>{profile?.display_name?.[0]?.toUpperCase() ?? user.email?.[0]?.toUpperCase() ?? 'A'}</button>{open === 'account' && <div id="account-menu" className="absolute right-0 mt-3 w-52 rounded-xl border border-slate-200 bg-white p-2 shadow-xl"><Link href="/dashboard" onClick={close} className="nav-link">Dashboard</Link>{profile?.username && <Link href={`/profile/${profile.username}`} onClick={close} className="nav-link">My profile</Link>}<Link href="/community/messages" onClick={close} className="nav-link">Messages</Link><Link href="/settings" onClick={close} className="nav-link">Settings</Link><button onClick={signOut} className="nav-link w-full">Sign out</button></div>}</div></> : <Link href="/login" className="nav-link">Sign in</Link>}</div>
+        <button ref={mobileToggle} className="flex h-10 w-10 items-center justify-center xl:hidden" aria-label="Open navigation" aria-expanded={open === 'mobile'} aria-controls="mobile-menu" onClick={() => setOpen(open === 'mobile' ? null : 'mobile')}><Menu size={22} /></button>
+      </div>
+    </div>
+    {open === 'mobile' && <div ref={mobileRef} id="mobile-menu" role="dialog" aria-modal="true" aria-label="Navigation" className="fixed inset-0 overflow-y-auto bg-white px-5 pb-8 pt-4 xl:hidden"><div className="mb-5 flex items-center justify-between"><span className="text-lg font-semibold">Explore UAEAngler</span><button onClick={() => { close(); mobileToggle.current?.focus(); }} aria-label="Close navigation" className="p-3"><X size={22} /></button></div><div className="mb-6 flex flex-wrap gap-3 border-b border-slate-200 pb-6"><Link href="/log-catch" onClick={close} className="coastal-button">Log a catch</Link>{user ? <><Link href="/dashboard" onClick={close} className="coastal-button secondary">Dashboard</Link><Link href="/community/messages" onClick={close} className="coastal-button secondary">Messages</Link><Link href="/settings" onClick={close} className="coastal-button secondary">Settings</Link><button onClick={signOut} className="coastal-button secondary">Sign out</button></> : <><Link href="/login" onClick={close} className="coastal-button secondary">Sign in</Link><Link href="/signup" onClick={close} className="coastal-button secondary">Join the community</Link></>}</div><div className="mb-4"><LocaleSwitcher /></div><div className="grid gap-2 sm:grid-cols-2">{[...primaryLinks, ...moreLinks].map(({ href, label, icon: Icon }) => <Link href={href} key={href} onClick={close} aria-current={active(href) ? 'page' : undefined} className="nav-link min-h-11"><Icon size={18} />{label}</Link>)}</div></div>}
+  </nav>;
 }

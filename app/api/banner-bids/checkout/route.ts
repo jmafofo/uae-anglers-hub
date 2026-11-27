@@ -23,6 +23,10 @@ export async function POST(req: NextRequest) {
   const auth = await requireAuthUniversal(req);
   if (!auth.ok) return auth.response;
 
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return NextResponse.json({ error: 'Advertising payments are temporarily unavailable. Please contact partnerships@uaeangler.com.' }, { status: 503 });
+  }
+
   const body = await req.json().catch(() => ({}));
   const { bid_id } = body;
 

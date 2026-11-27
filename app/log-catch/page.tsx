@@ -7,6 +7,7 @@ import PhotoCropModal from '@/components/PhotoCropModal';
 import { getSupabase } from '@/lib/supabase';
 import { emirates } from '@/lib/spots';
 import { fishSpecies } from '@/lib/species';
+import { resolveSpeciesName } from '@/lib/discovery';
 
 const COMMON_SPECIES = [
   'Hammour (Grouper)', 'Kingfish', 'Barracuda', 'Queenfish', 'Trevally',
@@ -44,23 +45,9 @@ export default function LogCatchPage() {
     caught_at: new Date().toISOString().slice(0, 16),
   });
 
-  // Auto-suggest scientific name when species changes
-  const suggestedScientificName = useMemo(() => {
-    if (!form.species) return '';
-    const q = form.species.toLowerCase().replace(/[-_]/g, ' ');
-    const match = fishSpecies.find(
-      (s) => {
-        const nameNorm = s.name.toLowerCase().replace(/[-_]/g, ' ');
-        const aliasesNorm = s.aliases?.map((a) => a.toLowerCase().replace(/[-_]/g, ' ')) ?? [];
-        return (
-          nameNorm.includes(q) ||
-          q.includes(nameNorm.split(' ')[0]) ||
-          aliasesNorm.some((a) => a.includes(q) || q.includes(a.split(' ')[0]))
-        );
-      }
-    );
-    return match ? match.scientificName : '';
-  }, [form.species]);
+  // Only resolve exact, unambiguous names or aliases from the shared catalogue.
+  const suggestedScientificName = useMemo(() =>
+    resolveSpeciesName(fishSpecies, form.species)?.scientificName ?? '', [form.species]);
 
   useEffect(() => {
     getSupabase().auth.getUser().then(({ data: { user } }) => {
@@ -287,9 +274,15 @@ export default function LogCatchPage() {
               type="text"
               value={form.species}
               onChange={(e) => setForm({ ...form, species: e.target.value })}
-              placeholder="Or type species name..."
+              list="catch-species"
+              placeholder="Search English, Arabic, local or scientific name..."
               className="w-full bg-white/5 border border-white/20 focus:border-teal-500 rounded-lg px-4 py-3 text-white placeholder-gray-500 outline-none text-sm"
             />
+            <datalist id="catch-species">
+              {fishSpecies.flatMap(species => [species.name, species.localName, species.scientificName, ...(species.aliases ?? [])].filter(Boolean).map(name =>
+                <option key={`${species.slug}:${name}`} value={name}>{species.name} — {species.localName}</option>
+              ))}
+            </datalist>
             {/* Scientific name suggestion */}
             {suggestedScientificName && !form.scientific_name && (
               <p className="mt-1.5 text-xs text-gray-500">

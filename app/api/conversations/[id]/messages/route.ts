@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuthUniversal } from '@/lib/api-auth';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { redactMessage } from '@/lib/message-privacy';
 
 export async function GET(
   req: NextRequest,
@@ -48,7 +49,7 @@ export async function GET(
     return NextResponse.json({ error: 'Failed to load messages' }, { status: 500 });
   }
 
-  return NextResponse.json({ messages: (data ?? []).reverse() });
+  return NextResponse.json({ messages: (data ?? []).reverse().map(redactMessage) });
 }
 
 export async function POST(
@@ -101,5 +102,5 @@ export async function POST(
     );
   }
 
-  return NextResponse.json({ message: data });
+  return NextResponse.json({ message: redactMessage(data) });
 }

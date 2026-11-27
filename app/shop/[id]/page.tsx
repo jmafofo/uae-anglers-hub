@@ -1,3 +1,4 @@
+import CheckoutButton from '@/components/commerce/CheckoutButton';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -71,6 +72,7 @@ export default async function ListingPage({ params }: PageProps) {
           <p className="text-gray-300 leading-relaxed mb-8 whitespace-pre-wrap">{l.description}</p>
         )}
 
+        {!l.is_sold && l.is_active && <div className="mb-6 rounded-xl border border-white/10 p-5"><CheckoutButton kind="gear" itemId={id} enabled={process.env.COMMERCE_CHECKOUT_ENABLED === 'true'} /><p className="mt-3 text-xs text-gray-400">Checkout availability depends on the seller’s payment setup and stock.</p></div>}
         {/* Contact seller */}
         {!l.is_sold && (
           <div className="p-5 rounded-xl bg-white/5 border border-white/10 mb-6">

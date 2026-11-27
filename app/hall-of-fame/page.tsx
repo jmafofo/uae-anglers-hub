@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Crown, Fish, Scale, Ruler, Trophy, MapPin } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
+import { catchWeek } from '@/lib/catch-week';
 import { KingCrown } from '@/components/KingCrown';
 
 export const metadata: Metadata = {
@@ -66,14 +67,25 @@ export default async function HallOfFamePage({ searchParams }: PageProps) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
 
-  const { data } = await supabase.rpc('hall_of_fame', {
-    p_period:  period,
-    p_metric:  metric,
-    p_species: null,
-    p_emirate: raw.emirate ?? null,
-    p_limit:   10,
-  });
-  const entries = (data ?? []) as Entry[];
+  let entries: Entry[];
+  if (period === 'week') {
+    const week = catchWeek();
+    let query = supabase.from('hall_of_fame_entries').select('*')
+      .gte('caught_at', week.start).lt('caught_at', week.end)
+      .lte('caught_at', new Date().toISOString())
+      .order(metric === 'length' ? 'length_cm' : 'weight_kg', { ascending: false, nullsFirst: false })
+      .order('caught_at', { ascending: true }).order('catch_id').limit(10);
+    if (metric === 'length') query = query.not('length_cm', 'is', null);
+    if (raw.emirate) query = query.eq('catch_emirate', raw.emirate);
+    const { data } = await query;
+    entries = (data ?? []).map((entry, index) => ({ ...entry, rank: index + 1 })) as Entry[];
+  } else {
+    const { data } = await supabase.rpc('hall_of_fame', {
+      p_period: period, p_metric: metric, p_species: null,
+      p_emirate: raw.emirate ?? null, p_limit: 10,
+    });
+    entries = (data ?? []) as Entry[];
+  }
   const [king, ...rest] = entries;
   const periodLabel = PERIODS.find(p => p.key === period)!.label.toLowerCase();
 

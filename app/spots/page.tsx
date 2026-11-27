@@ -1,191 +1,42 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Image from 'next/image';
-import { MapPin, Fish, Clock, ChevronRight, Anchor, Plus } from 'lucide-react';
-import { fishingSpots, emirates, getSpotImage } from '@/lib/spots';
-import GoogleAd from '@/components/GoogleAd';
+import { Search, SlidersHorizontal, MapPin, ChevronDown, Plus } from 'lucide-react';
+import { fishingSpots, emirates } from '@/lib/spots';
+import { filterSpots } from '@/lib/discovery';
+import SpotCard from '@/components/SpotCard';
 
-export async function generateMetadata(): Promise<Metadata> {
-  return {
-    title: `UAE Fishing Spots — ${fishingSpots.length} Verified Locations Across All 7 Emirates`,
-    description:
-      `Browse ${fishingSpots.length} verified GPS-tagged fishing spots across Abu Dhabi, Dubai, Sharjah, Ajman, Umm Al Quwain, Ras Al Khaimah and Fujairah. Filter by emirate, species, and access type.`,
-    alternates: {
-      canonical: 'https://uaeangler.com/spots',
-    },
-  };
-}
+export const metadata: Metadata = {
+  title: 'Fishing spots across the UAE',
+  description: 'Find your next fishing spot. Search by location or fish species, and filter by emirate and access type.',
+  alternates: { canonical: 'https://uaeangler.com/spots' },
+};
 
-interface PageProps {
-  searchParams: Promise<{ emirate?: string }>;
-}
-
-export default async function SpotsPage({ searchParams }: PageProps) {
-  const { emirate: selectedEmirate } = await searchParams;
-
-  const filtered = selectedEmirate
-    ? fishingSpots.filter((s) => s.emirate === selectedEmirate)
-    : fishingSpots;
-
-  return (
-    <div className="min-h-screen pb-16">
-
-      {/* ── Hero ─────────────────────────────────────────────── */}
-      <section className="relative h-[420px] sm:h-[500px] w-full overflow-hidden">
-        {/* Background photo */}
-        <Image
-          src="/spot-photos/hameem-beach.jpg"
-          alt="Hameem Beach at sunset — UAE fishing"
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover object-center"
-        />
-
-        {/* Dark overlay — heavier at bottom so text pops */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1a] via-[#0a0f1a]/60 to-[#0a0f1a]/20" />
-
-        {/* Content */}
-        <div className="absolute inset-0 flex flex-col justify-end px-4 pb-10 max-w-6xl mx-auto w-full left-0 right-0">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="inline-flex items-center gap-1.5 bg-teal-500/20 border border-teal-500/40 text-teal-400 text-xs font-medium px-3 py-1 rounded-full backdrop-blur-sm">
-              <Anchor className="w-3.5 h-3.5" />
-              UAE Fishing Spots
-            </span>
-          </div>
-
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-3 leading-tight drop-shadow-lg">
-            Find Your Next
-            <br />
-            <span className="text-transparent bg-clip-text"
-              style={{ backgroundImage: 'linear-gradient(135deg, #00d4aa, #8ab4d4)' }}>
-              Perfect Spot
-            </span>
-          </h1>
-
-          <p className="text-gray-300 text-base sm:text-lg max-w-xl leading-relaxed drop-shadow">
-            {fishingSpots.length} verified locations across all 7 Emirates — GPS-tagged, species-listed, community-rated.
-          </p>
-
-          {/* Quick stats */}
-          <div className="flex gap-5 mt-5 flex-wrap">
-            {[
-              { value: fishingSpots.length,                                        label: 'Spots' },
-              { value: fishingSpots.filter(s => s.accessType === 'Free').length,   label: 'Free Access' },
-              { value: [...new Set(fishingSpots.flatMap(s => s.species))].length,  label: 'Species' },
-            ].map(({ value, label }) => (
-              <div key={label} className="text-center">
-                <p className="text-2xl font-extrabold text-teal-400">{value}</p>
-                <p className="text-gray-400 text-xs">{label}</p>
-              </div>
-            ))}
-          </div>
+type Filters = { q?: string; emirate?: string; access?: string; sort?: string };
+export default async function SpotsPage({ searchParams }: { searchParams: Promise<Filters> }) {
+  const params = await searchParams;
+  const q = typeof params.q === 'string' ? params.q : '';
+  const emirate = typeof params.emirate === 'string' ? params.emirate : '';
+  const access = typeof params.access === 'string' ? params.access : '';
+  const sort = params.sort === 'name' ? 'name' : '';
+  const filtered = filterSpots(fishingSpots, { q, emirate, access });
+  if (sort === 'name') filtered.sort((a, b) => a.name.localeCompare(b.name));
+  const hasFilters = Boolean(q || emirate || access || sort);
+  return <div className="coastal-page min-h-screen pb-20">
+    <header className="border-b border-slate-200 bg-[#edf4f3]"><div className="coastal-wrap py-14 sm:py-20"><p className="coastal-eyebrow">The UAE, one shoreline at a time</p><h1 className="coastal-display mt-4">Find your next favourite spot.</h1><p className="mt-5 max-w-2xl text-lg leading-relaxed text-slate-600">Explore {fishingSpots.length} locations across all seven emirates. Find the right setting, see what’s swimming, and plan your next outing.</p><div className="mt-6 flex flex-wrap gap-5 text-sm text-teal-800"><span className="flex items-center gap-2"><MapPin size={16} />GPS coordinates on every spot</span><Link href="/spots/suggest" className="flex items-center gap-2 underline underline-offset-4"><Plus size={16} />Suggest a location</Link></div></div></header>
+    <div className="coastal-wrap pt-10">
+      <form action="/spots" className="rounded-2xl border border-slate-200 bg-white p-6" key={JSON.stringify(params)}>
+        <div className="mb-5 flex items-center gap-2 text-sm font-semibold text-slate-800"><SlidersHorizontal size={17} />Make it your kind of fishing</div>
+        <div className="grid items-end gap-4 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_auto]">
+          <label><span className="coastal-label mb-2">Location or species</span><span className="relative block"><Search size={17} className="absolute left-3 top-4 text-slate-400" /><input name="q" type="search" defaultValue={q} placeholder="Try Dubai or queenfish" className="coastal-input pl-10" /></span></label>
+          <label><span className="coastal-label mb-2">Emirate</span><span className="relative block"><select name="emirate" defaultValue={emirate} className="coastal-input appearance-none pr-8"><option value="">All emirates</option>{emirates.map(em => <option key={em}>{em}</option>)}</select><ChevronDown size={15} className="pointer-events-none absolute right-3 top-4" /></span></label>
+          <label><span className="coastal-label mb-2">Access</span><span className="relative block"><select name="access" defaultValue={access} className="coastal-input appearance-none pr-8"><option value="">Any access</option>{['Shore', 'Boat', 'Kayak', 'Marina', 'Mangrove', 'Deep Sea', 'Freshwater'].map(a => <option key={a}>{a}</option>)}</select><ChevronDown size={15} className="pointer-events-none absolute right-3 top-4" /></span></label>
+          <label><span className="coastal-label mb-2">Sort by</span><span className="relative block"><select name="sort" defaultValue={sort} className="coastal-input appearance-none pr-8"><option value="">Directory order</option><option value="name">Name: A–Z</option></select><ChevronDown size={15} className="pointer-events-none absolute right-3 top-4" /></span></label>
+          <button type="submit" className="coastal-button">Find spots</button>
         </div>
-      </section>
-
-      {/* ── Filters + grid ───────────────────────────────────── */}
-      <div className="max-w-6xl mx-auto px-4 pt-10">
-
-        {/* Emirate filter + community CTA */}
-        <div className="flex flex-wrap items-center gap-2 mb-10">
-          <Link
-            href="/spots"
-            className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-              !selectedEmirate
-                ? 'bg-teal-500 border-teal-500 text-white'
-                : 'border-white/20 text-gray-400 hover:border-teal-500/40 hover:text-white'
-            }`}
-          >
-            All ({fishingSpots.length})
-          </Link>
-          {emirates.map((em) => {
-            const count = fishingSpots.filter((s) => s.emirate === em).length;
-            return (
-              <Link
-                key={em}
-                href={`/spots?emirate=${encodeURIComponent(em)}`}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-                  selectedEmirate === em
-                    ? 'bg-teal-500 border-teal-500 text-white'
-                    : 'border-white/20 text-gray-400 hover:border-teal-500/40 hover:text-white'
-                }`}
-              >
-                {em} ({count})
-              </Link>
-            );
-          })}
-          <Link
-            href="/spots/suggest"
-            className="ml-auto inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium border border-dashed border-teal-500/40 text-teal-400 hover:bg-teal-500/10 hover:border-teal-500 transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Suggest a spot
-          </Link>
-        </div>
-
-        {/* Google Ad */}
-        <div className="mb-8 max-w-sm">
-          <GoogleAd format="rectangle" />
-        </div>
-
-        {/* Results count */}
-        <p className="text-gray-500 text-sm mb-6">
-          Showing {filtered.length} spot{filtered.length !== 1 ? 's' : ''}
-          {selectedEmirate ? ` in ${selectedEmirate}` : ''}
-        </p>
-
-        {/* Spots grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filtered.map((spot) => (
-            <Link
-              key={spot.id}
-              href={`/spots/${spot.slug}`}
-              className="group flex flex-col rounded-xl bg-white/5 border border-white/10 hover:border-teal-500/40 transition-all overflow-hidden"
-            >
-              {/* Thumbnail */}
-              <div className="relative w-full h-44 overflow-hidden">
-                <Image
-                  src={getSpotImage(spot.slug, spot.accessType)}
-                  alt={spot.name}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1a] via-transparent to-transparent" />
-                <span className="absolute bottom-2 left-3 text-xs bg-black/50 text-teal-400 border border-teal-500/30 backdrop-blur-sm px-2 py-0.5 rounded-full">
-                  {spot.accessType}
-                </span>
-              </div>
-
-              {/* Info */}
-              <div className="p-4 flex flex-col flex-1">
-                <div className="mb-2">
-                  <h2 className="font-semibold text-white group-hover:text-teal-400 transition-colors truncate">
-                    {spot.name}
-                  </h2>
-                  <p className="text-gray-500 text-xs mt-0.5 flex items-center gap-1">
-                    <MapPin className="w-3 h-3" />{spot.emirate}
-                  </p>
-                </div>
-
-                <div className="flex items-start gap-1.5 mb-2">
-                  <Fish className="w-3.5 h-3.5 text-gray-500 mt-0.5 shrink-0" />
-                  <p className="text-gray-400 text-xs leading-relaxed">
-                    {spot.species.slice(0, 3).join(', ')}
-                    {spot.species.length > 3 && <span className="text-gray-600"> +{spot.species.length - 3} more</span>}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-1.5 mt-auto pt-2 border-t border-white/5">
-                  <Clock className="w-3.5 h-3.5 text-gray-500 shrink-0" />
-                  <p className="text-gray-500 text-xs truncate flex-1">{spot.bestTime}</p>
-                  <ChevronRight className="w-3.5 h-3.5 text-gray-600 shrink-0 group-hover:text-teal-400 transition-colors" />
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>{/* end spots grid */}
-      </div>{/* end max-w-6xl */}
+      </form>
+      <div className="my-7 flex flex-wrap items-center justify-between gap-4"><p className="text-sm text-slate-600"><strong className="text-slate-900">{filtered.length}</strong> {filtered.length === 1 ? 'spot' : 'spots'}{emirate ? ` in ${emirate}` : ' to explore'}{q ? ` matching “${q}”` : ''}</p>{hasFilters && <Link href="/spots" className="coastal-text-link">Clear all filters</Link>}</div>
+      {filtered.length ? <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{filtered.map(spot => <SpotCard key={spot.id} spot={spot} />)}</div> : <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-20 text-center"><Search className="mx-auto mb-5 text-teal-800" size={30} /><h2 className="text-xl font-semibold text-slate-900">No spots match just yet.</h2><p className="mt-3 text-slate-600">Try another species, a nearby emirate, or a different access type.</p><Link href="/spots" className="coastal-button mt-6">Explore all spots</Link></div>}
+      <p className="mt-10 border-t border-slate-200 pt-6 text-sm leading-relaxed text-slate-500">Access and local restrictions can change. <Link href="/regulations" className="underline underline-offset-4 text-teal-800">Check fishing regulations</Link> and confirm access before travelling.</p>
     </div>
-  );
+  </div>;
 }

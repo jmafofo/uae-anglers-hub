@@ -1,323 +1,60 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
+import { TrendingNews } from '@/components/TrendingNews';
+import VisitorCounter from '@/components/VisitorCounter';
+import FeaturedCatch from '@/components/FeaturedCatch';
 import Image from 'next/image';
-import {
-  MapPin, Fish, Users, Anchor, Bot, Trophy, ShieldCheck,
-  ChevronRight, Microscope, Waves, Smartphone, ArrowRight,
-  FlaskConical, Database, Dna, BarChart3, FileText, Mail, Info,
-} from 'lucide-react';
+import { Compass, Fish, CloudSun, BookOpen, Users, Camera, ShieldCheck, Waves } from 'lucide-react';
 import { fishingSpots, emirates } from '@/lib/spots';
 import { fishSpecies } from '@/lib/species';
-import speciesPhotos from '@/lib/species-photos.json';
-import { TrendingNews } from '@/components/TrendingNews';
+import speciesPhotos from '@/lib/species-images';
 import { HeroSection } from './(home)/sections/HeroSection';
-import { DataGapSection } from './(home)/sections/DataGapSection';
-import { PlatformFeatures } from './(home)/sections/PlatformFeatures';
-import { SpeciesShowcase } from './(home)/sections/SpeciesShowcase';
-import { SpotsShowcase } from './(home)/sections/SpotsShowcase';
-import { CTASection } from './(home)/sections/CTASection';
+import SpotCard from '@/components/SpotCard';
 import GoogleAd from '@/components/GoogleAd';
-import VisitorCounter from '@/components/VisitorCounter';
 
-export const revalidate = 300;
+// Paid placements must be checked against current booking state on every request.
+export const revalidate = 0;
 
-export default async function HomePage() {
-  const spotCount    = fishingSpots.length;
-  const speciesCount = fishSpecies.length;
-
-  // Species that have real photos for the showcase
-  const photoSpecies = fishSpecies
-    .filter((s) => (speciesPhotos as Record<string, string[]>)[s.slug]?.[0])
-    .slice(0, 6);
-
-  // Featured spots
-  const featuredSpotSlugs = [
-    'hameem-beach', 'fujairah-marine-club', 'khor-fakkan',
-    'dibba', 'al-zorah-nature-reserve', 'al-hamra-marina',
-  ];
-  const featuredSpots = featuredSpotSlugs
-    .map((slug) => fishingSpots.find((s) => s.slug === slug))
-    .filter(Boolean) as typeof fishingSpots;
-
-  const homeJsonLd = {
-    '@context': 'https://schema.org',
-    '@graph': [
-      {
-        '@type': 'Organization',
-        name: 'UAE Anglers Hub',
-        url: 'https://uaeangler.com',
-        logo: 'https://uaeangler.com/logo.png',
-        sameAs: [
-          'https://www.instagram.com/uaeanglershub',
-        ],
-      },
-      {
-        '@type': 'WebSite',
-        name: 'UAE Anglers Hub',
-        url: 'https://uaeangler.com',
-        potentialAction: {
-          '@type': 'SearchAction',
-          target: 'https://uaeangler.com/species?q={search_term_string}',
-          'query-input': 'required name=search_term_string',
-        },
-      },
-    ],
-  };
-
-  return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(homeJsonLd).replace(/</g, '\\u003c'),
-        }}
-      />
-      <div className="flex flex-col min-h-screen overflow-x-hidden">
-      {/* ═══════════════════════════════════════════════════════════
-          HERO
-      ═══════════════════════════════════════════════════════════ */}
-      <HeroSection spotCount={spotCount} speciesCount={speciesCount} />
-
-      {/* ═══════════════════════════════════════════════════════════
-          GOOGLE AD — homepage leaderboard
-      ═══════════════════════════════════════════════════════════ */}
-      <section className="px-4 py-4">
-        <div className="max-w-4xl mx-auto">
-          <GoogleAd format="leaderboard" slot={process.env.NEXT_PUBLIC_GOOGLE_ADS_SLOT_HOME} />
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          TRENDING NEWS + SEASONAL BANS
-      ═══════════════════════════════════════════════════════════ */}
-      <TrendingNews />
-
-      {/* ═══════════════════════════════════════════════════════════
-          THE MISSING LINK — science positioning
-      ═══════════════════════════════════════════════════════════ */}
-      <DataGapSection speciesCount={speciesCount} />
-
-      {/* ═══════════════════════════════════════════════════════════
-          DUAL IDENTITY — Angler + Science
-      ═══════════════════════════════════════════════════════════ */}
-      <PlatformFeatures spotCount={spotCount} speciesCount={speciesCount} />
-
-      {/* ═══════════════════════════════════════════════════════════
-          SPECIES SHOWCASE
-      ═══════════════════════════════════════════════════════════ */}
-      <SpeciesShowcase photoSpecies={photoSpecies} speciesCount={speciesCount} />
-
-      {/* ═══════════════════════════════════════════════════════════
-          FEATURED SPOTS
-      ═══════════════════════════════════════════════════════════ */}
-      <SpotsShowcase featuredSpots={featuredSpots} spotCount={spotCount} />
-
-      {/* ═══════════════════════════════════════════════════════════
-          PLATFORM FEATURES
-      ═══════════════════════════════════════════════════════════ */}
-      <section className="py-24 px-4 bg-[#0d1f33]">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-teal-400 text-xs font-semibold uppercase tracking-[0.2em] mb-3">The Platform</p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white">Everything UAE anglers need</h2>
-            <p className="text-gray-400 mt-3 max-w-xl mx-auto">
-              From mangrove creeks to offshore blue water — built for UAE conditions, both coastlines.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[
-              { icon: Bot,          title: 'AI Fishing Assistant',    href: '/assistant',     accent: 'teal',   desc: 'Real-time spot recommendations, bait advice, and optimal windows powered by live weather and solunar data.' },
-              { icon: Fish,         title: 'Species Database',         href: '/species',       accent: 'teal',   desc: `${speciesCount} UAE species from the MOCCAE 2023 official list — Arabic names, scientific names, habitat and conservation status.` },
-              { icon: Trophy,       title: 'Tournaments',              href: '/tournaments',   accent: 'amber',  desc: 'Join or create fishing tournaments with live leaderboards, multiple scoring types, and prize tracking.' },
-              { icon: ShieldCheck,  title: 'Conservation & Regulations', href: '/conservation', accent: 'green', desc: 'UAE fishing licence requirements, protected species, closed seasons, and minimum size limits.' },
-              { icon: Smartphone,   title: 'Ocean Sentinel App',       href: '/ocean-sentinel', accent: 'blue',  desc: 'AI-powered mobile fish ID app — point your camera at a catch for an instant species identification. Works offline.' },
-              { icon: Users,        title: 'Community & Forum',        href: '/forum',         accent: 'purple', desc: 'Connect with UAE anglers, share spots, post catches, discuss gear, and learn from experienced local fishermen.' },
-            ].map(({ icon: Icon, title, desc, href, accent }) => (
-              <Link key={title} href={href}
-                className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-teal-500/30 hover:bg-white/8 transition-all">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 border ${
-                  accent === 'teal'   ? 'bg-teal-500/10   border-teal-500/20'   :
-                  accent === 'blue'   ? 'bg-blue-500/10   border-blue-500/20'   :
-                  accent === 'amber'  ? 'bg-amber-500/10  border-amber-500/20'  :
-                  accent === 'green'  ? 'bg-green-500/10  border-green-500/20'  :
-                  accent === 'purple' ? 'bg-purple-500/10 border-purple-500/20' :
-                                        'bg-white/5 border-white/10'
-                }`}>
-                  <Icon className={`w-5 h-5 ${
-                    accent === 'teal'   ? 'text-teal-400'   :
-                    accent === 'blue'   ? 'text-blue-400'   :
-                    accent === 'amber'  ? 'text-amber-400'  :
-                    accent === 'green'  ? 'text-green-400'  :
-                    accent === 'purple' ? 'text-purple-400' : 'text-gray-400'
-                  }`} />
-                </div>
-                <h3 className="font-bold text-white group-hover:text-teal-400 transition-colors mb-2">{title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{desc}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          OCEAN SENTINEL APP PROMO
-      ═══════════════════════════════════════════════════════════ */}
-      <section className="py-16 px-4">
-        <div className="max-w-5xl mx-auto">
-          <div className="relative rounded-3xl overflow-hidden border border-teal-500/20 bg-gradient-to-br from-[#061a2e] to-[#040d1a] p-8 sm:p-12">
-            {/* Background glow */}
-            <div className="absolute inset-0 pointer-events-none"
-              style={{ background: 'radial-gradient(ellipse 60% 80% at 0% 50%, rgba(0,180,150,0.10) 0%, transparent 60%)' }} />
-            <div className="relative z-10 flex flex-col sm:flex-row items-center gap-8">
-              {/* Phone mock */}
-              <div className="shrink-0 w-28 aspect-[9/19] rounded-3xl bg-gradient-to-b from-teal-900/80 to-[#0a0f1a] border border-white/15 flex flex-col items-center justify-center gap-2 p-3 shadow-2xl">
-                <div className="w-6 h-1.5 rounded-full bg-white/20" />
-                <div className="text-3xl mt-1">🐟</div>
-                <div className="w-full space-y-1.5 mt-2">
-                  <div className="h-2 bg-teal-400/25 rounded-full" />
-                  <div className="h-1.5 bg-white/10 rounded-full w-4/5" />
-                  <div className="h-1.5 bg-white/5 rounded-full w-2/3" />
-                </div>
-                <div className="w-full h-6 rounded-lg bg-teal-500/30 mt-auto flex items-center justify-center">
-                  <span className="text-[9px] text-teal-300 font-semibold">IDENTIFY</span>
-                </div>
-              </div>
-
-              {/* Copy */}
-              <div className="flex-1 text-center sm:text-left">
-                <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/25 rounded-full px-3 py-1 text-yellow-400 text-xs mb-3">
-                  <Smartphone className="w-3.5 h-3.5" />
-                  Coming Soon
-                </div>
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-2">
-                  Ocean Sentinel App
-                </h2>
-                <p className="text-gray-400 text-sm leading-relaxed mb-6 max-w-xl">
-                  Point your camera at any catch — AI identifies the species instantly. Works fully offline at sea.
-                  Built on UAE waters, trained on the same{' '}{speciesCount} MOCCAE-verified species in this database.
-                </p>
-                <Link
-                  href="/ocean-sentinel"
-                  className="inline-flex items-center gap-2 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/40 hover:border-teal-400 text-teal-400 hover:text-teal-300 font-semibold px-5 py-2.5 rounded-xl text-sm transition-all"
-                >
-                  <Smartphone className="w-4 h-4" />
-                  Learn more & get notified
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-
-              {/* Store badges */}
-              <div className="shrink-0 flex flex-col gap-2 sm:gap-3">
-                {[
-                  { icon: '🍎', top: 'Download on the', bottom: 'App Store' },
-                  { icon: '🤖', top: 'Get it on', bottom: 'Google Play' },
-                ].map(({ icon, top, bottom }) => (
-                  <Link key={bottom} href="/ocean-sentinel"
-                    className="flex items-center gap-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl px-4 py-2.5 transition-all">
-                    <span className="text-xl">{icon}</span>
-                    <div>
-                      <p className="text-[10px] text-gray-500 leading-none mb-0.5">{top}</p>
-                      <p className="text-white font-bold text-xs">{bottom}</p>
-                    </div>
-                    <span className="ml-1 text-[9px] bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-1.5 py-0.5 rounded-full">Soon</span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          AUTHORITY & TRUST
-      ═══════════════════════════════════════════════════════════ */}
-      <section className="py-20 px-4 bg-[#0a1828] border-y border-white/5">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-blue-400 text-xs font-semibold uppercase tracking-[0.2em] mb-3">Authority & Transparency</p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white">Built with rigour, open by design</h2>
-            <p className="text-gray-400 mt-3 max-w-2xl mx-auto leading-relaxed">
-              UAE Anglers Hub is run by anglers and developed with input from
-              marine researchers, conservation practitioners, and local fishing
-              communities. We publish our sources, update our content as
-              regulations evolve, and welcome corrections and collaboration.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-            {[
-              {
-                icon: Info,
-                title: 'About the project',
-                desc: 'Learn why we started UAE Anglers Hub, who runs it, and how angler data supports marine research.',
-                href: '/about',
-                accent: 'teal',
-              },
-              {
-                icon: FileText,
-                title: 'Editorial policy',
-                desc: 'Our standards for species information, source verification, updates, and corrections.',
-                href: '/editorial-policy',
-                accent: 'blue',
-              },
-              {
-                icon: Mail,
-                title: 'Contact us',
-                desc: 'Reach out for research partnerships, media enquiries, corrections, or conservation collaboration.',
-                href: '/contact',
-                accent: 'cyan',
-              },
-            ].map(({ icon: Icon, title, desc, href, accent }) => (
-              <Link key={title} href={href}
-                className="group p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-teal-500/30 hover:bg-white/8 transition-all">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 border ${
-                  accent === 'teal' ? 'bg-teal-500/10 border-teal-500/20' :
-                  accent === 'blue' ? 'bg-blue-500/10 border-blue-500/20' :
-                                      'bg-cyan-500/10 border-cyan-500/20'
-                }`}>
-                  <Icon className={`w-5 h-5 ${
-                    accent === 'teal' ? 'text-teal-400' :
-                    accent === 'blue' ? 'text-blue-400' : 'text-cyan-400'
-                  }`} />
-                </div>
-                <h3 className="font-bold text-white group-hover:text-teal-400 transition-colors mb-2">{title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{desc}</p>
-              </Link>
-            ))}
-          </div>
-
-          <div className="p-6 rounded-2xl border border-white/10 bg-white/[0.03]">
-            <h3 className="text-white font-semibold mb-4 text-sm uppercase tracking-wide text-center">
-              What makes this data authoritative
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-center">
-              {[
-                { value: 'MOCCAE 2023', label: 'Official species baseline' },
-                { value: 'GPS + Depth', label: 'Georeferenced catch records' },
-                { value: 'FAIR-aligned', label: 'Findable, interoperable data' },
-                { value: 'Open feedback', label: 'Community-verified content' },
-              ].map(({ value, label }) => (
-                <div key={value} className="p-3">
-                  <p className="text-teal-400 font-bold text-sm">{value}</p>
-                  <p className="text-gray-500 text-xs mt-1">{label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          FINAL CTA
-      ═══════════════════════════════════════════════════════════ */}
-      <CTASection />
-
-      {/* ═══════════════════════════════════════════════════════════
-          VISITOR COUNTER
-      ═══════════════════════════════════════════════════════════ */}
-      <VisitorCounter />
-
-    </div>
-    </>
-  );
+export default function HomePage() {
+  const featured = ['hameem-beach', 'al-zorah-nature-reserve', 'mina-breakwater'].flatMap(slug => fishingSpots.filter(s => s.slug === slug));
+  const species = fishSpecies.filter(s => (speciesPhotos as Record<string, string[]>)[s.slug]?.[0]).slice(0, 4);
+  const structuredData = { '@context': 'https://schema.org', '@type': 'WebSite', name: 'UAE Anglers Hub', url: 'https://uaeangler.com', potentialAction: { '@type': 'SearchAction', target: 'https://uaeangler.com/species?q={search_term_string}', 'query-input': 'required name=search_term_string' } };
+  return <div className="coastal-page">
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, '\\u003c') }} />
+    <HeroSection spotCount={fishingSpots.length} speciesCount={fishSpecies.length} />
+    <section className="border-y border-slate-200 bg-white">
+      <div className="coastal-wrap grid gap-6 py-8 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { href: '/spots', icon: Compass, title: 'Find your next spot', detail: 'Explore the UAE coastline' },
+          { href: '/weather', icon: CloudSun, title: 'Check the conditions', detail: 'Weather before you head out' },
+          { href: '/species', icon: Fish, title: 'Know your catch', detail: 'Your local species field guide' },
+          { href: '/log-catch', icon: Camera, title: 'Keep the memory', detail: 'Add a catch to your fishing log' },
+        ].map(({ href, icon: Icon, title, detail }) => <Link key={href} href={href} className="flex items-center gap-4 rounded-xl p-2 transition-colors hover:bg-teal-50"><Icon size={25} strokeWidth={1.5} className="shrink-0 text-teal-800" /><div><h2 className="text-sm font-semibold text-slate-900">{title}</h2><p className="mt-1 text-sm text-slate-500">{detail}</p></div></Link>)}
+      </div>
+    </section>
+    <section className="coastal-wrap coastal-section">
+      <div className="coastal-section-heading"><div><p className="coastal-eyebrow">A coastline worth exploring</p><h2>Where will the water take you?</h2><p>Quiet shores, city breakwaters, and a new favourite waiting to happen.</p></div><Link className="coastal-text-link" href="/spots">View all {fishingSpots.length} spots</Link></div>
+      <div className="mb-8 flex flex-wrap gap-2">{emirates.map(em => <Link key={em} href={`/spots?emirate=${encodeURIComponent(em)}`} className="coastal-chip">{em}</Link>)}</div>
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{featured.map(spot => <SpotCard key={spot.id} spot={spot} />)}</div>
+    </section>
+    <Suspense fallback={null}><TrendingNews /></Suspense>
+    <section className="bg-[#eaf2f1]">
+      <div className="coastal-wrap coastal-section grid items-center gap-12 lg:grid-cols-2">
+        <div><p className="coastal-eyebrow">Make every outing count</p><h2 className="coastal-heading mt-4">A little preparation.<br />A much better day.</h2><p className="mt-5 max-w-lg leading-relaxed text-slate-600">Whether it’s your first cast or your favourite weekend ritual, the right information makes all the difference.</p><Link className="coastal-button mt-7" href="/beginners-guide">Start with the essentials</Link></div>
+        <div className="space-y-3">{[
+          { icon: CloudSun, title: 'Check the weather', description: 'Look at the forecast before choosing when to head out.', href: '/weather' },
+          { icon: ShieldCheck, title: 'Fish responsibly', description: 'Review local rules, permits, and conservation guidance.', href: '/regulations' },
+          { icon: BookOpen, title: 'Build your confidence', description: 'Get familiar with tackle, techniques, and shore fishing.', href: '/beginners-guide' },
+        ].map(({ icon: Icon, title, description, href }) => <Link key={href} href={href} className="flex gap-4 rounded-2xl border border-white bg-white/80 p-6 hover:bg-white"><Icon size={24} strokeWidth={1.5} className="shrink-0 text-teal-800" /><div><h3 className="font-semibold text-slate-900">{title}</h3><p className="mt-1 text-sm leading-relaxed text-slate-600">{description}</p></div></Link>)}</div>
+      </div>
+    </section>
+    <section className="coastal-wrap coastal-section">
+      <div className="coastal-section-heading"><div><p className="coastal-eyebrow">Below the surface</p><h2>Get to know UAE waters.</h2><p>Explore the species, habitats, and stories behind your next catch.</p></div><Link className="coastal-text-link" href="/species">Explore the species guide</Link></div>
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{species.map(s => <Link key={s.slug} href={`/species/${s.slug}`} className="coastal-card group"><div className="relative aspect-[4/3] overflow-hidden bg-slate-100"><Image src={(speciesPhotos as Record<string, string[]>)[s.slug][0]} alt={s.name} fill sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 25vw" className="object-cover transition-transform duration-500 group-hover:scale-105" /></div><div className="p-5"><p className="text-xs font-medium uppercase tracking-wider text-teal-800">{s.habitatCategory}</p><h3 className="mt-2 text-lg font-semibold text-slate-900">{s.name}</h3><p className="mt-1 text-sm italic text-slate-500">{s.scientificName}</p></div></Link>)}</div>
+    </section>
+    {process.env.NEXT_PUBLIC_GOOGLE_ADS_CLIENT && <div className="coastal-wrap pb-12"><p className="mb-2 text-center text-xs text-slate-500">Advertisement</p><GoogleAd format="leaderboard" slot={process.env.NEXT_PUBLIC_GOOGLE_ADS_SLOT_HOME} /></div>}
+    <section className="coastal-wrap pb-20"><div className="relative overflow-hidden rounded-[2rem] bg-[#112f3d] px-7 py-14 text-white sm:px-12 lg:px-16"><Waves className="pointer-events-none absolute -right-10 -top-10 h-80 w-80 text-white/5" strokeWidth={.5} /><div className="relative grid items-center gap-8 lg:grid-cols-[1fr_auto]"><div><p className="text-sm font-medium uppercase tracking-[.15em] text-teal-200">Better together</p><h2 className="mt-4 max-w-xl font-serif text-4xl leading-tight sm:text-5xl">Good spots. Great stories.<br />Your fishing community.</h2><p className="mt-5 max-w-xl leading-relaxed text-slate-300">Share a catch, find a local club, or learn from anglers who know these waters.</p></div><div className="flex flex-col gap-5"><FeaturedCatch /><Link href="/signup" className="coastal-button light"><Users size={18} />Join the community</Link><Link href="/clubs" className="rounded-xl border border-white/25 px-6 py-3 text-center text-sm font-semibold hover:bg-white/10">Discover local clubs</Link></div></div></div></section>
+    <div className="border-t border-slate-200 bg-white"><div className="coastal-wrap flex flex-wrap items-center justify-between gap-4 py-7 text-sm text-slate-500"><p>Explore thoughtfully. Leave the coastline better than you found it.</p><div className="flex gap-6"><Link href="/research" className="hover:text-teal-800">Marine research</Link><Link href="/conservation" className="hover:text-teal-800">Conservation</Link></div></div></div>
+    <VisitorCounter />
+  </div>;
 }

@@ -56,3 +56,54 @@ body {
 .animate-wave-fast {
   animation: waveSlide 7s linear infinite;
 }
+
+/* Coastal design system: scoped so existing account and editorial pages retain
+   their contrast while discovery pages adopt the new light surface palette. */
+.coastal-page { background: #f7f9fa; color: #182e3c; padding-top: 56px; }
+.coastal-wrap { width: min(100% - 3rem, 1200px); margin-inline: auto; }
+.coastal-section { padding-block: 5.5rem; }
+.coastal-eyebrow { color: #27685f; font-size: .75rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+.coastal-display { color: #15313f; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(2.8rem, 5.2vw, 4.9rem); line-height: 1.05; letter-spacing: -.045em; }
+.coastal-display em { color: #367b70; font-weight: 400; }
+.coastal-heading, .coastal-section-heading h2 { color: #18333f; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(2rem, 3.2vw, 3.1rem); line-height: 1.15; letter-spacing: -.035em; }
+.coastal-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 1.5rem; margin-bottom: 2rem; }
+.coastal-section-heading h2 { margin-top: .8rem; }
+.coastal-section-heading p:not(.coastal-eyebrow) { color: #5b6b77; margin-top: .9rem; line-height: 1.7; }
+.coastal-button { display: inline-flex; align-items: center; justify-content: center; gap: .6rem; min-height: 48px; padding: .85rem 1.5rem; border: 1px solid #23675e; border-radius: .65rem; background: #23675e; color: white; font-size: .875rem; font-weight: 600; transition: background .2s, border-color .2s; cursor: pointer; }
+.coastal-button:hover { background: #174e47; border-color: #174e47; }
+.coastal-button.secondary { background: transparent; border-color: #cbd5dc; color: #18333f; }
+.coastal-button.secondary:hover { background: #eaf1f2; }
+.coastal-button.light { background: #eef8f4; border-color: #eef8f4; color: #183f39; }
+.coastal-text-link { color: #23675e; font-weight: 600; font-size: .875rem; text-decoration: underline; text-underline-offset: 6px; white-space: nowrap; }
+.coastal-card { display: flex; flex-direction: column; overflow: hidden; border: 1px solid #e1e7eb; border-radius: 1rem; background: white; transition: box-shadow .2s, border-color .2s; }
+.coastal-card:hover { border-color: #a8c9c2; box-shadow: 0 12px 32px #173b4a0b; }
+.coastal-chip { display: inline-flex; align-items: center; justify-content: center; padding: .65rem 1rem; border: 1px solid #dce4e8; border-radius: 999px; color: #4a5d68; background: white; font-size: .875rem; cursor: pointer; }
+.coastal-chip:hover, .coastal-chip[aria-pressed=true], .coastal-chip[aria-current=true] { background: #e7f2ee; border-color: #6f9f94; color: #205b52; }
+.coastal-search-panel { display: flex; align-items: center; gap: 2rem; padding: 1.6rem 2rem; background: white; border: 1px solid #e0e7ea; border-radius: 1rem; box-shadow: 0 10px 35px #173b4a08; }
+.coastal-label { display: block; font-size: .75rem; font-weight: 600; color: #586b76; letter-spacing: .03em; }
+.coastal-input { width: 100%; min-height: 48px; border: 1px solid #d4dfe4; border-radius: .65rem; padding: .75rem 1rem; background: white; color: #18333f; font-size: 1rem; }
+.coastal-input::placeholder { color: #7a8891; }
+.coastal-page select, .coastal-nav select { color-scheme: light; }
+:where(a, button, input, select, textarea, summary):focus-visible { outline: 3px solid #45a99b; outline-offset: 4px; }
+.skip-link { position: fixed; z-index: 100; left: 1rem; top: -100px; padding: .75rem 1.25rem; border-radius: .5rem; background: white; color: #18333f; }
+.skip-link:focus { top: .5rem; }
+.coastal-nav { color: #263f4c; background: #fffffffa; border-bottom: 1px solid #e3e9ec; box-shadow: 0 2px 12px #173b4a04; }
+.coastal-nav a, .coastal-nav button { -webkit-tap-highlight-color: transparent; }
+.coastal-nav .nav-link { display: flex; align-items: center; gap: .4rem; padding: .55rem .7rem; border-radius: .4rem; font-size: .875rem; color: #526572; transition: color .2s, background .2s; }
+.coastal-nav .nav-link:hover, .coastal-nav .nav-link[aria-current=page] { color: #205b52; background: #edf5f2; }
+@media (max-width: 1023px) { .coastal-search-panel { flex-direction: column; align-items: stretch; gap: 1.25rem; } .coastal-section { padding-block: 3.5rem; } }
+@media (max-width: 639px) { .coastal-wrap { width: calc(100% - 2rem); } .coastal-section-heading { align-items: start; flex-direction: column; } .coastal-search-panel { padding: 1.25rem; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+
+.coastal-input[type="search"] { padding-inline-start: 2.75rem; }
+.coastal-nav button[aria-label="Switch language"], .coastal-nav button[aria-label="Notifications"] { color: #526572; }
+.coastal-nav button[aria-label="Switch language"]:hover, .coastal-nav button[aria-label="Notifications"]:hover { color: #205b52; background: #edf5f2; }
+
+/* Light coastal hero with a larger creator showcase. */
+.coastal-hero-wide { width: min(100% - 3rem, 1600px); }
+.coastal-cinematic .coastal-display { font-size: clamp(2.65rem, 4vw, 4.5rem); }
+.coastal-cinematic .coastal-display, .coastal-cinematic strong { color: #15313f; }
+.coastal-cinematic .coastal-display em, .coastal-cinematic .coastal-eyebrow { color: #276c63; }
+.coastal-cinematic .coastal-button.secondary { background: rgb(255 255 255 / .85); border-color: #aebfbe; color: #15313f; }
+.coastal-cinematic button:focus-visible { outline: 2px solid #276c63; outline-offset: 3px; }
+@media (max-width: 639px) { .coastal-hero-wide { width: calc(100% - 2rem); } }

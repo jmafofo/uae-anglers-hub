@@ -176,7 +176,7 @@ export async function POST(req: NextRequest) {
     .map(([family, members]) => {
       const lines = members.map(s => {
         const morph = speciesMorphologyMap[s.id];
-        const sizeTag = `to ${s.maxSizeCm}cm`;
+        const sizeTag = s.maxSizeCm === null ? 'size unverified' : `to ${s.maxSizeCm}cm`;
         const morphTag = morph ? ` | STRUCTURE: ${morph}` : '';
         return `  • ${s.name} (${s.scientificName}) | ${s.localName} | ${s.habitatCategory} | ${sizeTag}${morphTag}`;
       });

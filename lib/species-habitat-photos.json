@@ -1,0 +1,90 @@
+{
+  "greater-amberjack": {
+    "src": "/fish-habitat/greater-amberjack.jpg",
+    "author": "NOAA Photo Library",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Seriola_dumerili_-_Sanc2431.jpg",
+    "caption": "A greater amberjack (Seriola dumerili) swims above the reef.\n   Image ID: sanc2431, NOAA's Sanctuaries Collection\n   Location: Gulf of Mexico, Flower Garden Banks NMS\n   Photographer: G. P. Schmahl, Flower Garden Banks NMS\n\n    Credit: Flower Garden Banks National Marine Sanctuary"
+  },
+  "black-seabream": {
+    "src": "/fish-habitat/black-seabream.jpg",
+    "author": "Tim Sheerman-Chase",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:CIMG2613_Twobar_Seabream,_Lighthouse_Reef_(2692852537).jpg",
+    "caption": "Acanthopagrus bifasciatus"
+  },
+  "blue-spotted-grouper": {
+    "src": "/fish-habitat/blue-spotted-grouper.jpg",
+    "author": "Brocken Inaglory",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Cephalopholis_argus_at_Kona.jpg",
+    "caption": "Blue Spotted Grouper,Cephalopholis argus.The image was taken at Kona by Brocken Inaglory"
+  },
+  "spangled-emperor": {
+    "src": "/fish-habitat/spangled-emperor.jpg",
+    "author": "Diego Delso",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Emperador_rel%C3%A1mpago_(Lethrinus_nebulosus),_Zanz%C3%ADbar,_Tanzania,_2024-06-01,_DD_129.jpg",
+    "caption": "Spangled emperor (Lethrinus nebulosus), Zanzibar, Tanzania"
+  },
+  "one-spot-snapper": {
+    "src": "/fish-habitat/one-spot-snapper.jpg",
+    "author": "Diego Delso",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Pargo_de_una_mancha_(Lutjanus_monostigma),_parque_nacional_Ras_Muhammad,_Egipto,_2022-03-29,_DD_58.jpg",
+    "caption": "One-spot snapper (Lutjanus monostigma), Ras Muhammad National Park, Egypt"
+  },
+  "streaked-spinefoot": {
+    "src": "/fish-habitat/streaked-spinefoot.jpg",
+    "author": "Rickard Zerpe",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Java_rabbitfish_(Siganus_javus)_(46722835271).jpg",
+    "caption": "Raja Ampat, Indonesia - Java rabbitfish (Siganus javus)"
+  },
+  "longnose-emperor": {
+    "src": "/fish-habitat/longnose-emperor.jpg",
+    "author": "Diego Delso",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Emperador_trompudo_(Lethrinus_olivaceus),_Anilao,_Filipinas,_2023-08-24,_DD_94.jpg",
+    "caption": "Longface emperor (Lethrinus olivaceus), Anilao, Philippines"
+  },
+  "largescaled-therapon": {
+    "src": "/fish-habitat/largescaled-therapon.jpg",
+    "author": "Paul Asman and Jill Lenoble",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Terapon_jarbua_-_Fiji.jpg",
+    "caption": "Terapon jarbua, Levuka, Eastern, Fiji"
+  },
+  "whiptail-stingray": {
+    "src": "/fish-habitat/whiptail-stingray.jpg",
+    "author": "Aurimas Mikalauskas from Paliūniškis, Lithuania",
+    "license": "CC BY-SA 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Himantura_uarnak_egypt.jpg",
+    "caption": "Honeycomb stingray (Himantura uarnak) in the Red Sea off Al Bahr al Ahmar, Egypt"
+  },
+  "long-finned-sea-bream": {
+    "src": "/fish-habitat/long-finned-sea-bream.jpg",
+    "author": "(c) shahar chaikin, some rights reserved (CC BY)",
+    "license": "CC-BY",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "source": "https://www.inaturalist.org/observations/149533508",
+    "caption": "South District, Israel"
+  },
+  "silver-bream": {
+    "src": "/fish-habitat/silver-bream.jpg",
+    "author": "(c) Ben Jobson, some rights reserved (CC BY)",
+    "license": "CC-BY",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "source": "https://www.inaturalist.org/observations/326622681",
+    "caption": "442V+RF5 - Marsa Dubai - Dubai - United Arab Emirates"
+  }
+}

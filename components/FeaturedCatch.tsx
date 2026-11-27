@@ -2,138 +2,63 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { Trophy, Fish } from 'lucide-react';
+import { Trophy, Fish, ArrowUpRight } from 'lucide-react';
 import { getSupabase } from '@/lib/supabase';
+import { catchWeek } from '@/lib/catch-week';
 
-interface FeaturedCatchData {
-  id: string;
-  species: string;
-  weight_kg: number | null;
-  length_cm: number | null;
-  bait: string | null;
-  technique: string | null;
-  photo_url: string | null;
-  photo_urls: string[] | null;
-  caught_at: string;
-  profiles: { display_name: string; username: string } | null;
-}
-
-function formatCaption(c: FeaturedCatchData): string {
-  const name = c.profiles?.display_name ?? 'An angler';
-  const weight = c.weight_kg ? `${c.weight_kg}kg` : null;
-  const species = c.species;
-  const bait = c.bait ? ` on ${c.bait.toLowerCase()}` : '';
-  const technique = c.technique ? ` using ${c.technique.toLowerCase()}` : '';
-
-  if (weight) {
-    return `${name} caught a ${weight} ${species}${bait}${technique}`;
-  }
-  return `${name} caught a ${species}${bait}${technique}`;
-}
+type Entry = {
+  id: string; species: string; weight_kg: number; photo_url: string | null;
+  photo_urls: string[] | null; caught_at: string;
+  profiles: { display_name: string | null; username: string | null } | null;
+};
 
 export default function FeaturedCatch() {
-  const [catch_, setCatch] = useState<FeaturedCatchData | null>(null);
+  const [entries, setEntries] = useState<Entry[]>([]);
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [period, setPeriod] = useState('This week');
   const [imageError, setImageError] = useState(false);
-
   useEffect(() => {
+    let active = true;
     async function load() {
-      const sb = getSupabase();
-
-      const monthAgo = new Date();
-      monthAgo.setDate(monthAgo.getDate() - 30);
-
-      let { data: winner } = await sb
-        .from('catches')
-        .select('id, species, weight_kg, length_cm, bait, technique, photo_url, photo_urls, caught_at, profiles(display_name, username)')
-        .eq('is_public', true)
-        .not('weight_kg', 'is', null)
-        .gte('caught_at', monthAgo.toISOString())
-        .order('weight_kg', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (!winner) {
-        const { data: allTime } = await sb
-          .from('catches')
-          .select('id, species, weight_kg, length_cm, bait, technique, photo_url, photo_urls, caught_at, profiles(display_name, username)')
-          .eq('is_public', true)
-          .not('weight_kg', 'is', null)
-          .order('weight_kg', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        winner = allTime;
-      }
-
-      if (winner) {
-        // Supabase returns one-to-one joins as an array of one
-        const mapped: FeaturedCatchData = {
-          ...winner,
-          profiles: Array.isArray(winner.profiles) ? winner.profiles[0] ?? null : winner.profiles,
-        } as FeaturedCatchData;
-        console.log('[FeaturedCatch] loaded:', mapped);
-        setCatch(mapped);
-      }
+      try {
+        const week = catchWeek();
+        const { data, error } = await getSupabase().from('catches')
+          .select('id, species, weight_kg, photo_url, photo_urls, caught_at, profiles(display_name, username)')
+          .eq('is_public', true).gt('weight_kg', 0)
+          .or('identification_status.eq.identified,identification_status.is.null')
+          .gte('caught_at', week.start).lt('caught_at', week.end)
+          .lte('caught_at', new Date().toISOString())
+          .order('weight_kg', { ascending: false }).order('caught_at', { ascending: true }).order('id')
+          .limit(3);
+        if (!active) return;
+        if (error) { setStatus('error'); return; }
+        setPeriod(week.label);
+        setEntries((data ?? []).map(row => ({ ...row, profiles: Array.isArray(row.profiles) ? row.profiles[0] ?? null : row.profiles })) as Entry[]);
+        setStatus('ready');
+      } catch { if (active) setStatus('error'); }
     }
-    load();
+    void load();
+    return () => { active = false; };
   }, []);
-
-  if (!catch_) return null;
-
-  const imageUrl = catch_.photo_urls?.[0] ?? catch_.photo_url;
-  if (imageUrl) {
-    console.log('[FeaturedCatch] image URL:', imageUrl);
-  }
-
-  return (
-    <div className="hidden xl:flex flex-col w-[360px] shrink-0">
-      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0a1828]/70 backdrop-blur-md shadow-2xl">
-        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-teal-400 via-blue-400 to-teal-400" />
-
-        <div className="p-4 pb-3">
-          <div className="flex items-center gap-2 text-teal-400 mb-1">
-            <Trophy className="w-4 h-4" />
-            <span className="text-xs font-bold uppercase tracking-wider">Featured Catch</span>
-          </div>
-          <p className="text-[10px] text-gray-500">Biggest catch this month</p>
-        </div>
-
-        <Link href={`/catches/${catch_.id}`} className="block group">
-          {imageUrl && !imageError ? (
-            <div className="relative w-full aspect-[4/3] overflow-hidden bg-white/5">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={imageUrl}
-                alt={catch_.species}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                onError={(e) => {
-                  console.error('[FeaturedCatch] image failed:', imageUrl, e);
-                  setImageError(true);
-                }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0a1828]/90 via-transparent to-transparent" />
-            </div>
-          ) : (
-            <div className="w-full aspect-[4/3] bg-white/5 flex flex-col items-center justify-center text-gray-500 px-6 text-center">
-              <Fish className="w-12 h-12 mb-2 opacity-20" />
-              <span className="text-xs">{imageUrl ? 'Photo unavailable' : 'No photo'}</span>
-              {imageUrl && (
-                <span className="text-[9px] text-gray-600 mt-1 break-all line-clamp-2">
-                  {imageUrl}
-                </span>
-              )}
-            </div>
-          )}
-
-          <div className="px-4 pb-4 pt-3">
-            <p className="text-sm font-semibold text-white leading-snug group-hover:text-teal-300 transition-colors">
-              {formatCaption(catch_)}
-            </p>
-            {catch_.length_cm && (
-              <p className="text-xs text-gray-500 mt-1">{catch_.length_cm} cm</p>
-            )}
-          </div>
-        </Link>
-      </div>
+  const [winner, ...runnersUp] = entries;
+  const image = winner?.photo_urls?.[0] || winner?.photo_url;
+  return <section className="w-full overflow-hidden rounded-2xl border border-white/15 bg-[#0b2532] text-white shadow-xl" aria-label="Weekly wall of fame">
+    <div className="border-b border-white/10 p-5">
+      <div className="flex items-center gap-2 text-teal-200"><Trophy size={18} /><h3 className="text-sm font-semibold uppercase tracking-widest">Weekly wall of fame</h3></div>
+      <p className="mt-2 text-sm text-slate-300">{period} · UAE time</p>
+      <p className="mt-1 text-xs text-slate-400">Biggest public catches by recorded weight · resets Monday</p>
     </div>
-  );
+    {winner ? <>
+      <Link href={`/catches/${winner.id}`} className="group block">
+        {image && !imageError ? <div className="relative aspect-[4/3] overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={image} alt={`${winner.species}, this week's leading catch`} loading="lazy" className="h-full w-full object-cover" onError={() => setImageError(true)} />
+          <span className="absolute left-4 top-4 rounded-full bg-[#0b2532]/90 px-4 py-2 text-sm font-semibold">#1 this week · {winner.weight_kg} kg</span>
+        </div> : <div className="flex h-40 items-center justify-center bg-white/5"><Fish size={48} className="text-teal-200" /></div>}
+        <div className="p-5"><p className="text-xl font-semibold group-hover:text-teal-200">{winner.species} · {winner.weight_kg} kg</p><p className="mt-1 text-sm text-slate-300">Caught by {winner.profiles?.display_name || winner.profiles?.username || 'a community angler'}</p></div>
+      </Link>
+      {runnersUp.map((entry, index) => <Link key={entry.id} href={`/catches/${entry.id}`} className="flex items-center gap-3 border-t border-white/10 px-5 py-3 hover:bg-white/5"><span className="text-teal-200">#{index + 2}</span><span className="min-w-0 flex-1"><span className="block truncate text-sm">{entry.species}</span><span className="text-xs text-slate-400">{entry.profiles?.display_name || entry.profiles?.username || 'Community angler'}</span></span><strong className="text-sm">{entry.weight_kg} kg</strong></Link>)}
+    </> : <div className="px-6 py-10 text-center" role="status"><Trophy className="mx-auto mb-4 text-teal-200" size={32} /><p className="font-medium">{status === 'loading' ? 'Finding this week’s biggest catches…' : status === 'error' ? 'The leaderboard is temporarily unavailable.' : 'This week’s crown is waiting.'}</p><p className="mt-2 text-sm text-slate-300">{status === 'ready' ? 'Log a public, identified catch with its weight to join the weekly standings.' : 'Public catches from the UAE fishing community.'}</p><Link href="/log-catch" className="mt-5 inline-block rounded-lg bg-teal-200 px-4 py-2 text-sm font-semibold text-slate-900">Log your catch</Link></div>}
+    <Link href="/hall-of-fame?period=week" className="flex items-center justify-between border-t border-white/10 px-5 py-4 text-sm text-teal-200">Explore the hall of fame<ArrowUpRight size={16} /></Link>
+  </section>;
 }

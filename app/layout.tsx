@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
-import Script from 'next/script';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -93,8 +92,9 @@ export default function RootLayout({
         )}
       </head>
       <body className={`${inter.className} bg-[#0a0f1a] text-white antialiased`}>
+        <a href="#main-content" className="skip-link">Skip to content</a>
         <Navbar />
-        <main>{children}</main>
+        <main id="main-content">{children}</main>
         <Footer />
         <AIChatButton />
       </body>

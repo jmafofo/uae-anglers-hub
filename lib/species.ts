@@ -1,4 +1,7 @@
+import { additionalSpecies, localNameUpdates } from './species-expansion';
+
 export type ConservationStatus =
+  | 'Not verified'
   | 'Least Concern'
   | 'Near Threatened'
   | 'Vulnerable'
@@ -9,7 +12,7 @@ export type ConservationStatus =
 
 export type DangerLevel = 'none' | 'venomous' | 'potentially dangerous' | 'toxic' | 'dangerous';
 
-export type Edibility = 'Excellent' | 'Good' | 'Fair' | 'Avoid' | 'Not Edible';
+export type Edibility = 'Excellent' | 'Good' | 'Fair' | 'Avoid' | 'Not Edible' | 'Not verified';
 
 export type HabitatCategory = 'Reef' | 'Pelagic' | 'Demersal' | 'Coastal' | 'Open Ocean' | 'Other';
 
@@ -24,8 +27,8 @@ export interface FishSpecies {
   habitatCategory: HabitatCategory;
   depth: string;
   diet: string;
-  maxSizeCm: number;
-  maxWeightKg: number;
+  maxSizeCm: number | null;
+  maxWeightKg: number | null;
   conservationStatus: ConservationStatus;
   edibility: Edibility;
   dangerLevel: DangerLevel;
@@ -39,6 +42,9 @@ export interface FishSpecies {
   morphology?: string;
   /** Alternate common names that anglers may use (e.g. "mahi mahi" for "Mahi-Mahi"). */
   aliases?: string[];
+  sources?: { title: string; url: string }[];
+  conservationScope?: string;
+  reviewedAt?: string;
 }
 
 export function slugify(name: string): string {
@@ -48,8 +54,8 @@ export function slugify(name: string): string {
     .replace(/^-|-$/g, '');
 }
 
-// Source: MOCCAE Local Fish List 2023 — 33 authentic UAE species
-export const fishSpecies: FishSpecies[] = [
+// Original catalogue, supplemented by source-linked UAE records below.
+const originalSpecies: FishSpecies[] = [
   {
     id: 'giant-catfish',
     slug: 'giant-catfish',
@@ -2048,6 +2054,11 @@ export const fishSpecies: FishSpecies[] = [
   },
 ];
 
+export const fishSpecies: FishSpecies[] = [...originalSpecies.map(species => {
+  const update = localNameUpdates[species.slug];
+  return update ? { ...species, ...update, aliases: [...new Set([...(species.aliases ?? []), ...(update.aliases ?? [])])] } : species;
+}), ...additionalSpecies];
+
 // ── Per-species morphology hints ─────────────────────────────────────────────
 // Keyed by species id. These describe dirt-resistant structural features:
 // body depth ratio (BD = max depth ÷ standard length), snout profile, mouth,
@@ -2167,7 +2178,7 @@ export const habitatCategories: HabitatCategory[] = [
 ];
 
 export const conservationStatuses: ConservationStatus[] = [
-  'Least Concern', 'Near Threatened', 'Vulnerable', 'Endangered', 'Critically Endangered', 'Data Deficient', 'Not Evaluated',
+  'Least Concern', 'Near Threatened', 'Vulnerable', 'Endangered', 'Critically Endangered', 'Data Deficient', 'Not Evaluated', 'Not verified',
 ];
 
 export function getSpeciesBySlug(slug: string): FishSpecies | undefined {

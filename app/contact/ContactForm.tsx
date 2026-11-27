@@ -23,6 +23,7 @@ export default function ContactForm() {
     const form = event.currentTarget;
     const formData = new FormData(form);
 
+    try {
     const res = await fetch('/api/contact', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -44,6 +45,10 @@ export default function ContactForm() {
 
     form.reset();
     setStatus('sent');
+    } catch {
+      setStatus('error');
+      setError('Connection interrupted. Please try again or email info@uaeangler.com.');
+    }
   }
 
   return (

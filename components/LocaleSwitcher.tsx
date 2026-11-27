@@ -40,7 +40,7 @@ export default function LocaleSwitcher() {
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-xs text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+        className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm text-slate-600 hover:text-teal-800 hover:bg-teal-50 transition-colors"
         aria-label="Switch language"
         aria-expanded={open}
         aria-haspopup="listbox"

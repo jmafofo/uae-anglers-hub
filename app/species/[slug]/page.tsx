@@ -3,8 +3,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { Fish, ChevronRight, MapPin, Ruler, Weight, Layers, AlertTriangle } from 'lucide-react';
-import { fishSpecies, getSpeciesBySlug, getRelatedSpecies, type FishSpecies, type ConservationStatus } from '@/lib/species';
-import speciesPhotos from '@/lib/species-photos.json';
+import { fishSpecies, getSpeciesBySlug, getRelatedSpecies } from '@/lib/species';
+import speciesPhotos, { habitatPhotoCredits } from '@/lib/species-images';
 import ResearchPanel from './ResearchPanel';
 import RegulationAlert from './RegulationAlert';
 import Byline from '@/components/Byline';
@@ -47,35 +47,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-function habitatGradient(category: FishSpecies['habitatCategory']): string {
-  switch (category) {
-    case 'Reef': return 'from-cyan-950 via-teal-900 to-[#0a0f1a]';
-    case 'Open Ocean': return 'from-blue-950 via-indigo-900 to-[#0a0f1a]';
-    case 'Pelagic': return 'from-sky-950 via-blue-900 to-[#0a0f1a]';
-    case 'Coastal': return 'from-teal-950 via-green-900 to-[#0a0f1a]';
-    case 'Demersal': return 'from-stone-900 via-slate-900 to-[#0a0f1a]';
-    case 'Other': return 'from-gray-900 via-slate-900 to-[#0a0f1a]';
-    default: return 'from-gray-900 to-[#0a0f1a]';
-  }
-}
-
-function conservationColor(status: ConservationStatus): string {
-  switch (status) {
-    case 'Least Concern': return 'text-green-400 bg-green-500/10 border-green-500/30';
-    case 'Near Threatened': return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30';
-    case 'Vulnerable': return 'text-orange-400 bg-orange-500/10 border-orange-500/30';
-    case 'Endangered': return 'text-red-400 bg-red-500/10 border-red-500/30';
-    case 'Critically Endangered': return 'text-red-300 bg-red-600/20 border-red-600/30';
-    default: return 'text-gray-400 bg-gray-500/10 border-gray-500/30';
-  }
-}
-
 export default async function SpeciesDetailPage({ params }: PageProps) {
   const { slug } = await params;
   const species = getSpeciesBySlug(slug);
   if (!species) notFound();
 
   const related = getRelatedSpecies(species);
+  const credit = habitatPhotoCredits[species.slug];
   const heroPhoto = (speciesPhotos as Record<string, string[]>)[species.slug]?.[0];
 
   const pageUrl = `https://uaeangler.com/species/${species.slug}`;
@@ -128,56 +106,42 @@ export default async function SpeciesDetailPage({ params }: PageProps) {
       />
 
       <div className="min-h-screen">
-        {/* Hero — real photo if available, else habitat gradient */}
-        <div className={`relative min-h-[340px] flex items-end pt-20 ${!heroPhoto ? `bg-gradient-to-b ${habitatGradient(species.habitatCategory)}` : 'bg-[#0a0f1a]'}`}>
-          {heroPhoto ? (
-            <>
-              <Image
-                src={heroPhoto}
-                alt={species.name}
-                fill
-                priority
-                sizes="100vw"
-                className="object-cover object-center"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0f1a] via-[#0a0f1a]/60 to-[#0a0f1a]/10" />
-            </>
-          ) : (
-            <div className="absolute inset-0 opacity-[0.03]"
-              style={{
-                backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)',
-                backgroundSize: '30px 30px',
-              }}
-            />
-          )}
-          <div className="relative z-10 max-w-4xl mx-auto px-4 pb-10 w-full">
-            {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-gray-400 text-sm mb-4">
-              <Link href="/species" className="hover:text-teal-400 transition-colors">Species Guide</Link>
-              <ChevronRight className="w-3.5 h-3.5" />
-              <span className="text-white">{species.name}</span>
-            </div>
-
-            <div className="flex flex-wrap items-start gap-4">
-              <div className="flex-1">
-                <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-2">{species.name}</h1>
-                <p className="text-xl text-gray-300 italic mb-4">{species.scientificName}</p>
-                <p className="text-gray-400 text-sm">{species.family} family · {species.habitatCategory}</p>
-              </div>
-              <div className="flex flex-col gap-2">
-                <span className={`text-sm border px-3 py-1 rounded-full font-medium ${conservationColor(species.conservationStatus)}`}>
-                  {species.conservationStatus}
-                </span>
-                {species.dangerLevel !== 'none' && (
-                  <span className="flex items-center gap-1.5 text-sm bg-orange-500/10 border border-orange-500/30 text-orange-400 px-3 py-1 rounded-full">
-                    <AlertTriangle className="w-3.5 h-3.5" />
-                    {species.dangerLevel}
-                  </span>
-                )}
+        <header className="bg-[#edf4f3] px-4 pb-10 pt-24 text-[#182e3c] sm:pb-14">
+          <div className="mx-auto max-w-7xl">
+            <nav aria-label="Breadcrumb" className="mb-7 flex flex-wrap items-center gap-2 text-sm text-slate-600">
+              <Link href="/species" className="hover:text-teal-800">Species Guide</Link>
+              <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>{species.name}</span>
+            </nav>
+            <div className="grid items-center gap-8 lg:grid-cols-[1.6fr_1fr] lg:gap-12">
+              <figure className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                {heroPhoto ? <a href={heroPhoto} target="_blank" rel="noopener noreferrer" aria-label={`Open full-size photo of ${species.name} in a new tab`} className="relative block aspect-[4/3] sm:aspect-[3/2] focus-visible:outline-4 focus-visible:outline-teal-700">
+                  <Image src={heroPhoto} alt={species.name} fill preload sizes="(max-width:1024px) 100vw, 780px" className="object-contain p-4 sm:p-6" />
+                </a> : <div className="flex aspect-[3/2] flex-col items-center justify-center gap-4 p-8 text-center text-slate-500"><Fish size={72} strokeWidth={1} /><p>A verified identification photo is not yet available.</p></div>}
+                <figcaption className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 px-5 py-4 text-sm text-slate-600">
+                  <span>{heroPhoto ? 'Identification photo · shown without cropping' : 'Species reference photo'}</span>
+                  {heroPhoto && <a href={heroPhoto} target="_blank" rel="noopener noreferrer" className="font-semibold text-teal-800 underline underline-offset-4">View full-size ↗</a>}
+                  {credit && <span className="w-full text-xs leading-relaxed">Photo: {credit.author} · <a href={credit.source} target="_blank" rel="noopener noreferrer" className="underline">Original source</a> · <a href={credit.licenseUrl} target="_blank" rel="noopener noreferrer" className="underline">{credit.license}</a>. Original photograph; displayed without cropping.</span>}
+                </figcaption>
+              </figure>
+              <div className="min-w-0">
+                <p className="coastal-eyebrow">{species.family} · {species.habitatCategory}</p>
+                <h1 className="mt-4 font-serif text-4xl leading-tight sm:text-5xl">{species.name}</h1>
+                <p className="mt-3 text-lg italic text-slate-600">{species.scientificName}</p>
+                <p className="mt-5 text-xl text-teal-800" dir="auto">{species.localName || 'Local name awaiting verification'}</p>
+                {!!species.aliases?.length && <p className="mt-4 text-sm leading-relaxed text-slate-600">Also known as: {species.aliases.join(' · ')}</p>}
+                <div className="mt-6 flex flex-wrap gap-2">
+                  <span className="rounded-full border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700">{species.conservationStatus}</span>
+                  {species.dangerLevel !== 'none' && <span className="flex items-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-3 py-1.5 text-sm text-amber-900"><AlertTriangle size={16} />{species.dangerLevel}</span>}
+                </div>
+                {species.conservationScope && <p className="mt-3 text-xs text-slate-600">{species.conservationScope}</p>}
               </div>
             </div>
+            {((speciesPhotos as Record<string, string[]>)[species.slug]?.length ?? 0) > 1 && <div className="mt-6 flex flex-wrap gap-4" aria-label="More identification photos">
+              {(speciesPhotos as Record<string, string[]>)[species.slug].slice(1).map((photo, index) => <a key={photo} href={photo} target="_blank" rel="noopener noreferrer" className="relative block h-32 w-48 rounded-xl border border-slate-200 bg-white" aria-label={`Open additional photo ${index + 2} of ${species.name}`}><Image src={photo} alt={`${species.name}, additional photo ${index + 2}`} fill sizes="192px" className="object-contain p-3" /></a>)}
+            </div>}
           </div>
-        </div>
+        </header>
 
         <div className="max-w-4xl mx-auto px-4 py-10">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -198,12 +162,12 @@ export default async function SpeciesDetailPage({ params }: PageProps) {
                   <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                     <Ruler className="w-4 h-4 text-teal-400 mb-2" />
                     <p className="text-xs text-gray-500 mb-1">Max Length</p>
-                    <p className="text-white font-semibold">{species.maxSizeCm} cm</p>
+                    <p className="text-white font-semibold">{species.maxSizeCm === null ? 'Not verified' : `${species.maxSizeCm} cm`}</p>
                   </div>
                   <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                     <Weight className="w-4 h-4 text-teal-400 mb-2" />
                     <p className="text-xs text-gray-500 mb-1">Max Weight</p>
-                    <p className="text-white font-semibold">{species.maxWeightKg} kg</p>
+                    <p className="text-white font-semibold">{species.maxWeightKg === null ? 'Not verified' : `${species.maxWeightKg} kg`}</p>
                   </div>
                   <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                     <Layers className="w-4 h-4 text-teal-400 mb-2" />
@@ -234,7 +198,7 @@ export default async function SpeciesDetailPage({ params }: PageProps) {
               )}
 
               {/* Fun facts */}
-              <section>
+              {species.funFacts.length > 0 && <section>
                 <h2 className="text-lg font-semibold text-white mb-4">Fun Facts</h2>
                 <ul className="space-y-3">
                   {species.funFacts.map((fact, i) => (
@@ -246,7 +210,7 @@ export default async function SpeciesDetailPage({ params }: PageProps) {
                     </li>
                   ))}
                 </ul>
-              </section>
+              </section>}
 
               {/* Research papers */}
               <ResearchPanel slug={species.slug} />
@@ -340,7 +304,12 @@ export default async function SpeciesDetailPage({ params }: PageProps) {
             </section>
           )}
 
-          <Byline sources="MOCCAE, EAD, FAO species profiles" reviewedAt="June 2026" />
+          {species.sources && <section className="mb-6 rounded-xl border border-white/10 p-5">
+            <h2 className="font-semibold text-white mb-3">References</h2>
+            <ul className="space-y-2">{species.sources.map(source => <li key={source.url}><a href={source.url} target="_blank" rel="noopener noreferrer" className="text-sm text-teal-300 underline underline-offset-4">{source.title}</a></li>)}</ul>
+            <p className="mt-3 text-xs text-gray-400">Local names vary between fishing communities and may refer to more than one species. Unverified details are marked explicitly.</p>
+          </section>}
+          <Byline sources={species.sources ? 'See linked references above' : 'MOCCAE, EAD, FAO species profiles'} reviewedAt={species.reviewedAt ?? 'June 2026'} />
         </div>
       </div>
     </>
