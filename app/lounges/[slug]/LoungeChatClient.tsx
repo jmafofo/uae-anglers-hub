@@ -2,10 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Loader2, Lock, Send } from 'lucide-react';
+import { ArrowLeft, CalendarPlus, Loader2, Lock, Send } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 import { getSupabase } from '@/lib/supabase';
 import { redactMessage } from '@/lib/message-privacy';
+import PlanTripModal from './PlanTripModal';
+import EventStrip from './EventStrip';
 
 interface Lounge {
   id: string;
@@ -50,8 +52,12 @@ export default function LoungeChatClient({ slug }: { slug: string }) {
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
+  const [connState, setConnState] = useState<'live' | 'reconnecting'>('live');
+  const [showPlanTrip, setShowPlanTrip] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const profileCache = useRef(new Map<string, { name: string; initial: string }>());
+  const latestRef = useRef<string | null>(null);
+  const retryRef = useRef<{ attempts: number; timer: ReturnType<typeof setTimeout> | null }>({ attempts: 0, timer: null });
 
   const profileFor = useCallback(async (senderId: string) => {
     const cached = profileCache.current.get(senderId);
@@ -81,6 +87,7 @@ export default function LoungeChatClient({ slug }: { slug: string }) {
     let cancelled = false;
     let channel: ReturnType<ReturnType<typeof getSupabase>['channel']> | null = null;
     const sb = getSupabase();
+    const retry = retryRef.current;
 
     (async () => {
       const { data: conv } = await sb
@@ -122,42 +129,85 @@ export default function LoungeChatClient({ slug }: { slug: string }) {
       }
       setMessages(hydrated);
       setState('ready');
+      latestRef.current = hydrated.length ? hydrated[hydrated.length - 1].created_at : new Date().toISOString();
+      const convId = conv.id;
 
-      const ch = sb
-        .channel(`lounge:${conv.id}`)
-        .on(
-          'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conv.id}` },
-          (payload) => {
-            const row = payload.new as {
-              id: string; body: string; created_at: string; sender_id: string;
-              deleted_at: string | null; moderation_status: string;
-            };
-            void profileFor(row.sender_id).then((profile) => {
-              if (cancelled) return;
-              const redacted = redactMessage(row);
-              setMessages((prev) =>
-                prev.some((m) => m.id === row.id)
-                  ? prev
-                  : [...prev, {
-                      id: row.id,
-                      body: redacted.body,
-                      created_at: row.created_at,
-                      sender_id: row.sender_id,
-                      senderName: profile.name,
-                      senderInitial: profile.initial,
-                    }],
-              );
-            });
-          },
-        )
-        .subscribe();
-      channel = ch;
-      if (cancelled) void sb.removeChannel(ch);
+      interface IncomingRow {
+        id: string; body: string; created_at: string; sender_id: string;
+        deleted_at: string | null; moderation_status: string;
+      }
+
+      const handleInsert = (row: IncomingRow) => {
+        if (row.created_at > (latestRef.current ?? '')) latestRef.current = row.created_at;
+        void profileFor(row.sender_id).then((profile) => {
+          if (cancelled) return;
+          const redacted = redactMessage(row);
+          setMessages((prev) => {
+            // Settle the optimistic twin of this real row, if present.
+            const settled = prev.filter(
+              (m) => !(m.id.startsWith('temp-') && m.sender_id === row.sender_id && m.body === row.body),
+            );
+            if (settled.some((m) => m.id === row.id)) return settled;
+            return [...settled, {
+              id: row.id,
+              body: redacted.body,
+              created_at: row.created_at,
+              sender_id: row.sender_id,
+              senderName: profile.name,
+              senderInitial: profile.initial,
+            }];
+          });
+        });
+      };
+
+      // Fetch anything missed while the socket was down.
+      async function catchUp() {
+        const since = latestRef.current;
+        if (!since) return;
+        const { data: missed } = await sb
+          .from('messages')
+          .select('id, body, created_at, sender_id, deleted_at, moderation_status')
+          .eq('conversation_id', convId)
+          .gt('created_at', since)
+          .order('created_at', { ascending: true });
+        for (const row of missed ?? []) handleInsert(row as IncomingRow);
+      }
+
+      function subscribe() {
+        if (cancelled) return;
+        const ch = sb
+          .channel(`lounge:${convId}`)
+          .on(
+            'postgres_changes',
+            { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${convId}` },
+            (payload) => handleInsert(payload.new as IncomingRow),
+          )
+          .subscribe((status) => {
+            if (cancelled) return;
+            if (status === 'SUBSCRIBED') {
+              retryRef.current.attempts = 0;
+              setConnState('live');
+              void catchUp();
+            } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+              setConnState('reconnecting');
+              const attempts = ++retryRef.current.attempts;
+              const delay = Math.min(30000, 1000 * 2 ** attempts);
+              retryRef.current.timer = setTimeout(() => {
+                void sb.removeChannel(ch);
+                subscribe();
+              }, delay);
+            }
+          });
+        channel = ch;
+        if (cancelled) void sb.removeChannel(ch);
+      }
+
+      subscribe();
     })();
 
     return () => {
       cancelled = true;
+      if (retry.timer) clearTimeout(retry.timer);
       if (channel) void sb.removeChannel(channel);
     };
   }, [authChecked, user, slug, profileFor]);
@@ -170,6 +220,21 @@ export default function LoungeChatClient({ slug }: { slug: string }) {
   async function send() {
     const body = draft.trim();
     if (!body || !lounge || !user || sending) return;
+    const myName =
+      profileCache.current.get(user.id)?.name ??
+      (user.user_metadata?.display_name as string | undefined) ??
+      (user.user_metadata?.username as string | undefined) ??
+      'You';
+    const tempId = `temp-${Date.now()}`;
+    setMessages((prev) => [...prev, {
+      id: tempId,
+      body,
+      created_at: new Date().toISOString(),
+      sender_id: user.id,
+      senderName: myName,
+      senderInitial: initialOf(myName),
+    }]);
+    setDraft('');
     setSending(true);
     setSendError(null);
     const { error } = await getSupabase().from('messages').insert({
@@ -179,9 +244,10 @@ export default function LoungeChatClient({ slug }: { slug: string }) {
     });
     setSending(false);
     if (error) {
+      // Roll back the optimistic bubble and restore the draft.
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
       setSendError(error.message);
-    } else {
-      setDraft('');
+      setDraft(body);
     }
   }
 
@@ -236,12 +302,25 @@ export default function LoungeChatClient({ slug }: { slug: string }) {
               <p className="line-clamp-1 text-xs text-[#5b6b77]">{lounge.description}</p>
             )}
           </div>
-          <span className="ms-auto inline-flex items-center gap-1.5 rounded-full bg-[#e7f2ee] px-2.5 py-1 text-xs font-semibold text-[#205b52]">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#23675e]" />
-            Live
+          <button
+            type="button"
+            onClick={() => setShowPlanTrip(true)}
+            className="ms-auto inline-flex items-center gap-1.5 rounded-full border border-[#23675e] bg-[#23675e] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#174e47]"
+          >
+            <CalendarPlus size={13} />
+            <span className="hidden sm:inline">Plan a trip</span>
+          </button>
+          <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
+            connState === 'live' ? 'bg-[#e7f2ee] text-[#205b52]' : 'bg-[#faf3e3] text-[#8a651c]'
+          }`}>
+            <span className={`h-1.5 w-1.5 animate-pulse rounded-full ${connState === 'live' ? 'bg-[#23675e]' : 'bg-[#b8892d]'}`} />
+            {connState === 'live' ? 'Live' : 'Reconnecting…'}
           </span>
         </div>
       </div>
+
+      {/* Upcoming expeditions */}
+      {lounge && user && <EventStrip conversationId={lounge.id} userId={user.id} />}
 
       {/* Messages */}
       <div className="min-h-0 flex-1 overflow-y-auto">
@@ -260,8 +339,9 @@ export default function LoungeChatClient({ slug }: { slug: string }) {
           <div className="flex flex-col gap-3">
             {messages.map((m) => {
               const mine = m.sender_id === user?.id;
+              const pending = m.id.startsWith('temp-');
               return (
-                <div key={m.id} className={`flex gap-2.5 ${mine ? 'flex-row-reverse' : ''}`}>
+                <div key={m.id} className={`flex gap-2.5 ${mine ? 'flex-row-reverse' : ''} ${pending ? 'opacity-60' : ''}`}>
                   <div
                     aria-hidden
                     className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
@@ -272,7 +352,7 @@ export default function LoungeChatClient({ slug }: { slug: string }) {
                   </div>
                   <div className={`max-w-[75%] ${mine ? 'text-right' : ''}`}>
                     <p className="mb-0.5 text-[11px] font-medium text-[#7a8891]">
-                      {mine ? 'You' : m.senderName} · {timeLabel(m.created_at)}
+                      {mine ? 'You' : m.senderName} · {pending ? 'Sending…' : timeLabel(m.created_at)}
                     </p>
                     <div
                       className={`inline-block whitespace-pre-wrap rounded-2xl px-3.5 py-2 text-left text-sm leading-relaxed ${
@@ -324,6 +404,14 @@ export default function LoungeChatClient({ slug }: { slug: string }) {
           </div>
         </div>
       </div>
+
+      {showPlanTrip && lounge && user && (
+        <PlanTripModal
+          conversationId={lounge.id}
+          userId={user.id}
+          onClose={() => setShowPlanTrip(false)}
+        />
+      )}
     </div>
   );
 }
