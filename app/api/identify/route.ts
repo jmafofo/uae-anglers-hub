@@ -29,9 +29,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { ImageBlockParam } from '@anthropic-ai/sdk/resources/messages';
 import Anthropic from '@anthropic-ai/sdk';
+import exifr from 'exifr';
 import { getUserSupabase } from '@/lib/api-auth';
 import { createClient } from '@supabase/supabase-js';
 import { fishSpecies, speciesMorphologyMap, type FishSpecies } from '@/lib/species';
+import speciesPhotos from '@/lib/species-images';
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -75,6 +77,55 @@ function buildLocationContext(lat?: number, lng?: number): string {
   const coast = detectCoast(lat, lng);
   const region = coast ?? 'UAE waters';
   return `Capture location: ${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E — ${region}`;
+}
+
+/** Extract GPS + capture time from a base64-encoded photo (EXIF).
+ *  Returns nulls when absent — many chat apps strip EXIF. */
+async function extractExif(imageBase64: string): Promise<{ latitude: number | null; longitude: number | null; takenAt: string | null }> {
+  try {
+    const buffer = Buffer.from(imageBase64, 'base64');
+    const data = await exifr.parse(buffer, { gps: true, pick: ['DateTimeOriginal', 'CreateDate'] });
+    if (!data) return { latitude: null, longitude: null, takenAt: null };
+    const taken = (data.DateTimeOriginal ?? data.CreateDate) as Date | undefined;
+    return {
+      latitude: typeof data.latitude === 'number' ? data.latitude : null,
+      longitude: typeof data.longitude === 'number' ? data.longitude : null,
+      takenAt: taken instanceof Date && !isNaN(taken.getTime()) ? taken.toISOString() : null,
+    };
+  } catch {
+    return { latitude: null, longitude: null, takenAt: null };
+  }
+}
+
+/** Cap on reference exemplar images attached to the vision call. */
+const MAX_EXEMPLARS = 6;
+
+/**
+ * Pick reference exemplars — species that (a) pass the coast filter, (b) have
+ * a reviewed local photo. Most-caught species first (self-improving: the DB
+ * learns which species anglers actually need identified), catalogue order as
+ * fallback. Fail-open: any error just means no exemplars.
+ */
+async function pickExemplars(relevant: FishSpecies[]): Promise<FishSpecies[]> {
+  const withPhotos = relevant.filter((s) => (speciesPhotos[s.slug] ?? []).length > 0);
+  try {
+    const admin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } },
+    );
+    const { data } = await admin.from('catches').select('species').limit(1000);
+    const counts = new Map<string, number>();
+    for (const row of data ?? []) {
+      const key = String(row.species ?? '').trim().toLowerCase();
+      if (key) counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    const score = (s: FishSpecies) =>
+      counts.get(s.name.toLowerCase()) ?? counts.get(s.localName.toLowerCase()) ?? 0;
+    return [...withPhotos].sort((a, b) => score(b) - score(a)).slice(0, MAX_EXEMPLARS);
+  } catch {
+    return withPhotos.slice(0, MAX_EXEMPLARS);
+  }
 }
 
 // ── Unnamed key generator ─────────────────────────────────────────────────────
@@ -159,10 +210,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // ── EXIF geopositioning (Ocean Sentinel photo metadata) ──────────────────
+  // Client-supplied coords win; otherwise fall back to the photo's own GPS.
+  const exif = imageBase64 ? await extractExif(imageBase64) : null;
+  const effLat = latitude ?? exif?.latitude ?? undefined;
+  const effLng = longitude ?? exif?.longitude ?? undefined;
+
   // ── Build GPS-filtered species context ────────────────────────────────────
-  const relevantSpecies = getSpeciesForLocation(latitude, longitude);
-  const coast = latitude != null && longitude != null ? detectCoast(latitude, longitude) : null;
-  const locationCtx = buildLocationContext(latitude, longitude);
+  const relevantSpecies = getSpeciesForLocation(effLat, effLng);
+  const coast = effLat != null && effLng != null ? detectCoast(effLat, effLng) : null;
+  const locationCtx = buildLocationContext(effLat, effLng);
 
   // Build species reference grouped by family, with morphology hints for better structural ID
   const familyGroups = new Map<string, FishSpecies[]>();
@@ -295,17 +352,35 @@ Rules:
     ? { type: 'image', source: { type: 'base64', media_type: validMime, data: imageBase64 } }
     : { type: 'image', source: { type: 'url', url: imageUrl! } };
 
+  // ── Verified reference exemplars from our own species database ───────────
+  const exemplars = await pickExemplars(relevantSpecies);
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://uaeangler.com';
+  const exemplarBlocks: Array<ImageBlockParam | { type: 'text'; text: string }> = exemplars.flatMap((s) => [
+    {
+      type: 'text' as const,
+      text: `Reference exemplar — ${s.name} (${s.scientificName}), verified UAE database photo:`,
+    },
+    {
+      type: 'image' as const,
+      source: { type: 'url' as const, url: `${appUrl}${speciesPhotos[s.slug][0]}` },
+    },
+  ]);
+  const exemplarPrompt = exemplars.length
+    ? `\n━━━ VERIFIED REFERENCE EXEMPLARS ━━━\nAttached BEFORE the catch photo are ${exemplars.length} verified reference photos from our UAE species database (${exemplars.map((s) => s.name).join(', ')}). Compare the catch against them using STRUCTURE only — fin shapes, mouth geometry, body proportions. Reference photos may show ideal coloration the dirty catch lacks; never use their colour as evidence.\n`
+    : '';
+
   // ── Claude Sonnet Vision ──────────────────────────────────────────────────
   let raw: string;
   try {
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 2048,
-      system: systemPrompt,
+      system: systemPrompt + exemplarPrompt,
       messages: [
         {
           role: 'user',
           content: [
+            ...exemplarBlocks,
             imageBlock,
             {
               type: 'text',
@@ -400,8 +475,8 @@ Rules:
         scientific_name: scientificName,
         confidence_pct:  confidencePct,
         candidates,
-        latitude:        latitude ?? null,
-        longitude:       longitude ?? null,
+        latitude:        effLat ?? null,
+        longitude:       effLng ?? null,
         image_url:       imageUrl ?? null,
       })
       .select('id')
@@ -447,6 +522,9 @@ Rules:
       image_quality:    parsed.image_quality ?? null,
       notes:            parsed.notes ?? null,
       premium:          isPremium,
+      // Ocean Sentinel metadata loop
+      exif:             exif,
+      reference_exemplars: exemplars.map((s) => s.name),
     });
   }
 
