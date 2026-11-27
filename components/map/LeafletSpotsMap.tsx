@@ -1,10 +1,22 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, CircleMarker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { FishingSpot } from '@/lib/spots';
+
+const TILES = {
+  street: {
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+    attribution:
+      'Esri, HERE, Garmin, FAO, NOAA, USGS, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  },
+  satellite: {
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Esri, Maxar, Earthstar Geographics',
+  },
+} as const;
 
 /**
  * LeafletSpotsMap — interactive UAE fishing-spots map.
@@ -130,34 +142,48 @@ export default function LeafletSpotsMap({
   userPos: { lat: number; lng: number } | null;
   onSelect: (spot: FishingSpot) => void;
 }) {
-  const tileAttribution = useMemo(
-    () => 'Esri, HERE, Garmin, FAO, NOAA, USGS, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    [],
-  );
+  const [layer, setLayer] = useState<keyof typeof TILES>('satellite');
+  const tiles = TILES[layer];
 
   return (
-    <MapContainer
-      center={UAE_CENTER}
-      zoom={8}
-      minZoom={6}
-      maxZoom={17}
-      className="h-full w-full"
-      style={{ background: '#e8f0f2' }}
-    >
-      <TileLayer
-        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
-        attribution={tileAttribution}
-        maxZoom={19}
-      />
-      <ClusterLayer spots={spots} onSelect={onSelect} />
-      <FlyToUser pos={userPos} />
-      {userPos && (
-        <CircleMarker
-          center={[userPos.lat, userPos.lng]}
-          radius={9}
-          pathOptions={{ color: '#ffffff', weight: 3, fillColor: '#45a99b', fillOpacity: 1 }}
-        />
-      )}
-    </MapContainer>
+    <>
+      <MapContainer
+        center={UAE_CENTER}
+        zoom={8}
+        minZoom={6}
+        maxZoom={17}
+        className="h-full w-full"
+        style={{ background: layer === 'satellite' ? '#0d1f33' : '#e8f0f2' }}
+      >
+        <TileLayer key={layer} url={tiles.url} attribution={tiles.attribution} maxZoom={19} />
+        <ClusterLayer spots={spots} onSelect={onSelect} />
+        <FlyToUser pos={userPos} />
+        {userPos && (
+          <CircleMarker
+            center={[userPos.lat, userPos.lng]}
+            radius={9}
+            pathOptions={{ color: '#ffffff', weight: 3, fillColor: '#45a99b', fillOpacity: 1 }}
+          />
+        )}
+      </MapContainer>
+
+      {/* Street / satellite toggle — satellite helps anglers recognise
+          the actual shoreline, rocks and access points */}
+      <div className="absolute right-3 top-3 z-[500] flex overflow-hidden rounded-lg border border-[#e1e7eb] bg-white shadow-md">
+        {(['street', 'satellite'] as const).map((mode) => (
+          <button
+            key={mode}
+            type="button"
+            onClick={() => setLayer(mode)}
+            aria-pressed={layer === mode}
+            className={`px-3.5 py-2 text-xs font-semibold capitalize transition-colors ${
+              layer === mode ? 'bg-[#23675e] text-white' : 'bg-white text-[#4a5d68] hover:bg-[#f0f4f5]'
+            }`}
+          >
+            {mode}
+          </button>
+        ))}
+      </div>
+    </>
   );
 }

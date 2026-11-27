@@ -1,9 +1,21 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, CircleMarker, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+
+const TILES = {
+  street: {
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+    attribution:
+      'Esri, HERE, Garmin, FAO, NOAA, USGS, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  },
+  satellite: {
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Esri, Maxar, Earthstar Geographics',
+  },
+} as const;
 
 /** Live guide map: meeting pin + your position + a line between them. */
 
@@ -36,21 +48,36 @@ export default function TripGuideMap({
   userPos: { lat: number; lng: number } | null;
 }) {
   const user: [number, number] | null = userPos ? [userPos.lat, userPos.lng] : null;
+  const [layer, setLayer] = useState<keyof typeof TILES>('satellite');
+  const tiles = TILES[layer];
   return (
-    <MapContainer center={meeting} zoom={13} className="h-full w-full" style={{ background: '#dce9ec' }}>
-      <TileLayer
-        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
-        attribution='Esri, HERE, Garmin, FAO, NOAA, USGS, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        maxZoom={19}
-      />
-      <Marker position={meeting} icon={pinIcon} title={meetingLabel} />
-      {user && (
-        <>
-          <CircleMarker center={user} radius={9} pathOptions={{ color: '#ffffff', weight: 3, fillColor: '#45a99b', fillOpacity: 1 }} />
-          <Polyline positions={[user, meeting]} pathOptions={{ color: '#23675e', weight: 3, dashArray: '6 8' }} />
-        </>
-      )}
-      <FitBoth meeting={meeting} user={user} />
-    </MapContainer>
+    <>
+      <MapContainer center={meeting} zoom={13} className="h-full w-full" style={{ background: layer === 'satellite' ? '#0d1f33' : '#dce9ec' }}>
+        <TileLayer key={layer} url={tiles.url} attribution={tiles.attribution} maxZoom={19} />
+        <Marker position={meeting} icon={pinIcon} title={meetingLabel} />
+        {user && (
+          <>
+            <CircleMarker center={user} radius={9} pathOptions={{ color: '#ffffff', weight: 3, fillColor: '#45a99b', fillOpacity: 1 }} />
+            <Polyline positions={[user, meeting]} pathOptions={{ color: '#23675e', weight: 3, dashArray: '6 8' }} />
+          </>
+        )}
+        <FitBoth meeting={meeting} user={user} />
+      </MapContainer>
+      <div className="absolute right-3 top-3 z-[500] flex overflow-hidden rounded-lg border border-[#e1e7eb] bg-white shadow-md">
+        {(['street', 'satellite'] as const).map((mode) => (
+          <button
+            key={mode}
+            type="button"
+            onClick={() => setLayer(mode)}
+            aria-pressed={layer === mode}
+            className={`px-3 py-1.5 text-xs font-semibold capitalize transition-colors ${
+              layer === mode ? 'bg-[#23675e] text-white' : 'bg-white text-[#4a5d68] hover:bg-[#f0f4f5]'
+            }`}
+          >
+            {mode}
+          </button>
+        ))}
+      </div>
+    </>
   );
 }
