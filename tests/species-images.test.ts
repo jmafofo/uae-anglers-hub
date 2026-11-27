@@ -12,6 +12,8 @@ test('habitat images retain credits, licenses and local originals', () => {
   }
 });
 test('rejected specimens and incorrect secondary photographs are not displayed', () => {
-  for (const slug of ['giant-catfish', 'silver-grunt', 'smallscaled-therapon', 'yellowfin-seabream']) assert.equal(photos[slug], undefined);
+  for (const slug of ['giant-catfish', 'silver-grunt', 'yellowfin-seabream']) assert.equal(photos[slug], undefined);
+  // smallscaled-therapon was reinstated 2026-11-27 with a reviewed, approved photo
+  assert.ok(photos['smallscaled-therapon'].includes('/fish-species/commons/smallscaled-therapon.jpg'));
   assert.ok(!photos.queenfish.includes('/fish-species/jesh.jpg'));
 });

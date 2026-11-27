@@ -3,10 +3,12 @@ import habitat from './species-habitat-photos.json';
 
 export const habitatPhotoCredits: Record<string, { src: string; author: string; license: string; licenseUrl: string; source: string; caption: string }> = habitat;
 // Unsuitable specimen, out-of-water, aquarium, watermarked, or mismatched photos.
+// hammour, golden-trevally, smallscaled-therapon and areolate-grouper were
+// removed 2026-11-27 — they now have reviewed, approved photos.
 const excluded = new Set([
-  'giant-catfish', 'large-scale-mullet', 'silver-grunt', 'smallscaled-therapon',
-  'sultan-ibrahim', 'yellowfin-seabream', 'golden-trevally', 'common-mojarra',
-  'hammour', 'areolate-grouper', 'epaulet-grouper',
+  'giant-catfish', 'large-scale-mullet', 'silver-grunt',
+  'sultan-ibrahim', 'yellowfin-seabream', 'common-mojarra',
+  'epaulet-grouper',
 ]);
 const photos: Record<string, string[]> = Object.fromEntries(Object.entries(original)
   .filter(([slug]) => !excluded.has(slug))

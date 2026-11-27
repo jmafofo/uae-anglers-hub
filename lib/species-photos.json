@@ -1,6 +1,7 @@
 {
   "areolate-grouper": [
-    "/fish-species/areolate-grouper.jpg"
+    "/fish-species/areolate-grouper.jpg",
+    "/fish-species/commons/areolate-grouper.jpg"
   ],
   "black-marlin": [
     "/fish-species/black_marlin.jpg"
@@ -51,7 +52,8 @@
     "/fish-species/giant_moray.jpg"
   ],
   "golden-trevally": [
-    "/fish-species/golden_trevally.jpg"
+    "/fish-species/golden_trevally.jpg",
+    "/fish-species/commons/golden-trevally.jpg"
   ],
   "greasy-grouper": [
     "/fish-species/greasy_grouper.jpg"
@@ -61,7 +63,8 @@
   ],
   "hammour": [
     "/fish-species/orange-spotted_grouper.jpg",
-    "/fish-species/hammour.jpg"
+    "/fish-species/hammour.jpg",
+    "/fish-species/commons/hammour.jpg"
   ],
   "indian-flathead": [
     "/fish-species/indian_flathead.jpg"
@@ -122,7 +125,8 @@
     "/fish-species/sky_emperor.jpg"
   ],
   "smallscaled-therapon": [
-    "/fish-species/small-scaled_therapon.jpg"
+    "/fish-species/small-scaled_therapon.jpg",
+    "/fish-species/commons/smallscaled-therapon.jpg"
   ],
   "starry-blowfish": [
     "/fish-species/starry_blowfish.jpg"
@@ -147,5 +151,86 @@
   ],
   "yellowfin-tuna": [
     "/fish-species/yellowfin_tuna.jpg"
+  ],
+  "rainbow-runner": [
+    "/fish-species/commons/rainbow-runner.jpg"
+  ],
+  "yellowfin-hind": [
+    "/fish-species/commons/yellowfin-hind.jpg"
+  ],
+  "smalltooth-emperor": [
+    "/fish-species/commons/smalltooth-emperor.jpg"
+  ],
+  "pink-ear-emperor": [
+    "/fish-species/commons/pink-ear-emperor.jpg"
+  ],
+  "mangrove-red-snapper": [
+    "/fish-species/commons/mangrove-red-snapper.jpg"
+  ],
+  "five-lined-snapper": [
+    "/fish-species/commons/five-lined-snapper.jpg"
+  ],
+  "bigeye-snapper": [
+    "/fish-species/commons/bigeye-snapper.jpg"
+  ],
+  "pinjal-snapper": [
+    "/fish-species/commons/pinjal-snapper.jpg"
+  ],
+  "orange-spotted-trevally": [
+    "/fish-species/commons/orange-spotted-trevally.jpg"
+  ],
+  "yellow-scad": [
+    "/fish-species/commons/yellow-scad.jpg"
+  ],
+  "indian-pompano": [
+    "/fish-species/commons/indian-pompano.jpg"
+  ],
+  "mackerel-tuna": [
+    "/fish-species/commons/mackerel-tuna.jpg"
+  ],
+  "sobaity-seabream": [
+    "/fish-species/commons/sobaity-seabream.jpg"
+  ],
+  "arabian-pandora": [
+    "/fish-species/commons/arabian-pandora.jpg"
+  ],
+  "onespot-seabream": [
+    "/fish-species/commons/onespot-seabream.jpg"
+  ],
+  "black-spotted-rubberlip": [
+    "/fish-species/commons/black-spotted-rubberlip.jpg"
+  ],
+  "giant-trevally": [
+    "/fish-species/commons/giant-trevally.jpg"
+  ],
+  "minstrel-sweetlip": [
+    "/fish-species/commons/minstrel-sweetlip.jpg"
+  ],
+  "whipfin-silver-biddy": [
+    "/fish-species/commons/whipfin-silver-biddy.jpg"
+  ],
+  "notchedfin-threadfin-bream": [
+    "/fish-species/commons/notchedfin-threadfin-bream.jpg"
+  ],
+  "arabian-monocle-bream": [
+    "/fish-species/commons/arabian-monocle-bream.jpg"
+  ],
+  "black-streaked-monocle-bream": [
+    "/fish-species/commons/black-streaked-monocle-bream.jpg"
+  ],
+  "white-spotted-rabbitfish": [
+    "/fish-species/commons/white-spotted-rabbitfish.jpg"
+  ],
+  "gizzard-shad": [
+    "/fish-species/commons/gizzard-shad.jpg"
+  ],
+  "yellowbar-angelfish": [
+    "/fish-species/commons/yellowbar-angelfish.jpg"
+  ],
+  "blacktip-shark": [
+    "/fish-species/commons/blacktip-shark.jpg"
+  ],
+  "blackspot-snapper": [
+    "/fish-species/commons/blackspot-snapper.jpg"
   ]
 }

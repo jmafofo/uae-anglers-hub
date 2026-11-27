@@ -1,0 +1,338 @@
+{
+  "hammour": {
+    "kind": "species",
+    "src": "/fish-species/commons/hammour.jpg",
+    "author": "Bruce Deagle",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Epinephelus_coioides_129018144.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "golden-trevally": {
+    "kind": "species",
+    "src": "/fish-species/commons/golden-trevally.jpg",
+    "author": "Stan Shebs",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Gnathanodon_speciosus_1.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "smallscaled-therapon": {
+    "kind": "species",
+    "src": "/fish-species/commons/smallscaled-therapon.jpg",
+    "author": "Raju Saravanan",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Terapon_puta.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "rainbow-runner": {
+    "kind": "species",
+    "src": "/fish-species/commons/rainbow-runner.jpg",
+    "author": "Dr. Dwayne Meadows, NOAA/NMFS/OPR",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Elagatis_bipinnulata.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "areolate-grouper": {
+    "kind": "species",
+    "src": "/fish-species/commons/areolate-grouper.jpg",
+    "author": "Jeanloujustine",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Epinephelus_areolatus,_black_background,_New_Caledonia.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "yellowfin-hind": {
+    "kind": "species",
+    "src": "/fish-species/commons/yellowfin-hind.jpg",
+    "author": "This photo has been taken by Matthieu Sontag (User:Mirgolth) and released under the licenses stated below. You are free to use it for any purpose as long as you credit me as author, Wikimedia Commons ",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Cephalopholis_hemistiktos.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "smalltooth-emperor": {
+    "kind": "species",
+    "src": "/fish-species/commons/smalltooth-emperor.jpg",
+    "author": "Dr. Dwayne Meadows, NOAA/NMFS/OPR",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Lethrinus_microdon.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "pink-ear-emperor": {
+    "kind": "species",
+    "src": "/fish-species/commons/pink-ear-emperor.jpg",
+    "author": "Unspecified",
+    "license": "Copyrighted free use",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Lethrinus_lentjan.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "mangrove-red-snapper": {
+    "kind": "species",
+    "src": "/fish-species/commons/mangrove-red-snapper.jpg",
+    "author": "Bernd",
+    "license": "CC BY-SA 2.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Mangrove_Snapper_-_Lutjanus_argentimaculatus.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "five-lined-snapper": {
+    "kind": "species",
+    "src": "/fish-species/commons/five-lined-snapper.jpg",
+    "author": "Rickard Zerpe",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Five-lined_snapper_(Lutjanus_quinquelineatus)_(46863118701).jpg",
+    "source": "Wikimedia Commons"
+  },
+  "bigeye-snapper": {
+    "kind": "species",
+    "src": "/fish-species/commons/bigeye-snapper.jpg",
+    "author": "Jens Petersen",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Lutjanus_lutjanus.JPG",
+    "source": "Wikimedia Commons"
+  },
+  "pinjal-snapper": {
+    "kind": "species",
+    "src": "/fish-species/commons/pinjal-snapper.jpg",
+    "author": "Rickard Zerpe",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Blubberlip_snapper_(Lutjanus_rivulatus).jpg",
+    "source": "Wikimedia Commons"
+  },
+  "orange-spotted-trevally": {
+    "kind": "species",
+    "src": "/fish-species/commons/orange-spotted-trevally.jpg",
+    "author": "Alan Slater(Photo2222)",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Carangoides_bajad_2.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "yellow-scad": {
+    "kind": "species",
+    "src": "/fish-species/commons/yellow-scad.jpg",
+    "author": "Kare Kare",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Selaroides_leptolepis.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "indian-pompano": {
+    "kind": "species",
+    "src": "/fish-species/commons/indian-pompano.jpg",
+    "author": "renjus box",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Trachinotus_mookalee.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "mackerel-tuna": {
+    "kind": "species",
+    "src": "/fish-species/commons/mackerel-tuna.jpg",
+    "author": "Mohammad Moazzam Khan",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Euthynnus_affinis.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "sobaity-seabream": {
+    "kind": "species",
+    "src": "/fish-species/commons/sobaity-seabream.jpg",
+    "author": "Hamid Badar Osmany",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Sparidentex_hasta.png",
+    "source": "Wikimedia Commons"
+  },
+  "arabian-pandora": {
+    "kind": "species",
+    "src": "/fish-species/commons/arabian-pandora.jpg",
+    "author": "Hamid Badar Osmany",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Pagellus_affinis.png",
+    "source": "Wikimedia Commons"
+  },
+  "onespot-seabream": {
+    "kind": "species",
+    "src": "/fish-species/commons/onespot-seabream.jpg",
+    "author": "Frederick Hermanus Van der Bank, University of Johannesburg",
+    "license": "Copyrighted free use",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Cheimerius_nufar.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "black-spotted-rubberlip": {
+    "kind": "species",
+    "src": "/fish-species/commons/black-spotted-rubberlip.jpg",
+    "author": "Liné1",
+    "license": "CC BY 2.5",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Plectorhinchus_gaterinus_by_Line1.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "giant-trevally": {
+    "kind": "species",
+    "src": "/fish-species/commons/giant-trevally.jpg",
+    "author": "Dr. Dwayne Meadows, NOAA/NMFS/OPR",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Caranx_ignobilis.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "dibba": {
+    "kind": "spot",
+    "src": "/spot-photos/commons/dibba.jpg",
+    "author": "Bjoertvedt",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Dibba_09.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "fujairah-beaches": {
+    "kind": "spot",
+    "src": "/spot-photos/commons/fujairah-beaches.jpg",
+    "author": "Imre Solt",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Fujairah_Beach_Pict_1.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "minstrel-sweetlip": {
+    "kind": "species",
+    "src": "/fish-species/commons/minstrel-sweetlip.jpg",
+    "author": "Jens Petersen",
+    "license": "CC BY 2.5",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Plectorhinchus_chaetodonoides.JPG",
+    "source": "Wikimedia Commons"
+  },
+  "whipfin-silver-biddy": {
+    "kind": "species",
+    "src": "/fish-species/commons/whipfin-silver-biddy.jpg",
+    "author": "BEDO (Thailand)",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Gerres_filamentosus_(Cuvier,_1829).jpg",
+    "source": "Wikimedia Commons"
+  },
+  "notchedfin-threadfin-bream": {
+    "kind": "species",
+    "src": "/fish-species/commons/notchedfin-threadfin-bream.jpg",
+    "author": "Landro M. Guiamel",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Nemipterus_peronii_Philippines.png",
+    "source": "Wikimedia Commons"
+  },
+  "arabian-monocle-bream": {
+    "kind": "species",
+    "src": "/fish-species/commons/arabian-monocle-bream.jpg",
+    "author": "This photo has been taken by Matthieu Sontag (User:Mirgolth) and released under the licenses stated below. You are free to use it for any purpose as long as you credit me as author, Wikimedia Commons ",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Scolopsis_ghanam.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "black-streaked-monocle-bream": {
+    "kind": "species",
+    "src": "/fish-species/commons/black-streaked-monocle-bream.jpg",
+    "author": "Rickard Zerpe",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Lattice_monocle_bream_(Scolopsis_taenioptera)_(41471641921).jpg",
+    "source": "Wikimedia Commons"
+  },
+  "white-spotted-rabbitfish": {
+    "kind": "species",
+    "src": "/fish-species/commons/white-spotted-rabbitfish.jpg",
+    "author": "Diego Delso",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Sigano_pintado_(Siganus_canaliculatus),_Anilao,_Filipinas,_2023-08-23,_DD_193.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "gizzard-shad": {
+    "kind": "species",
+    "src": "/fish-species/commons/gizzard-shad.jpg",
+    "author": "Jean-Lou Justine",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Anodontostoma_chacunda.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "yellowbar-angelfish": {
+    "kind": "species",
+    "src": "/fish-species/commons/yellowbar-angelfish.jpg",
+    "author": "Diego Delso",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Pez_%C3%A1ngel_de_barra_amarilla_(Pomacanthus_maculosus),_parque_nacional_Ras_Muhammad,_Egipto,_2022-03-26,_DD_138.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "blacktip-shark": {
+    "kind": "species",
+    "src": "/fish-species/commons/blacktip-shark.jpg",
+    "author": "Albert Kok at Dutch Wikipedia Later versions were uploaded by Siebrand at nl.wikipedia.",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Carcharhinus_limbatus_-_Caraibische_zwartpunthaai.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "blackspot-snapper": {
+    "kind": "species",
+    "src": "/fish-species/commons/blackspot-snapper.jpg",
+    "author": "This photo has been taken by Matthieu Sontag (User:Mirgolth) and released under the licenses stated below. You are free to use it for any purpose as long as you credit me as author, Wikimedia Commons ",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Lutjanus_ehrenbergii.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "jumeirah-beach": {
+    "kind": "spot",
+    "src": "/spot-photos/commons/jumeirah-beach.jpg",
+    "author": "Gryffindor",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Jumeirah_Dubai_March_2008pano.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "the-palm-jumeirah": {
+    "kind": "spot",
+    "src": "/spot-photos/commons/the-palm-jumeirah.jpg",
+    "author": "Commander Leroy Chiao",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Palm_Island_Resort.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "jebel-ali-beach": {
+    "kind": "spot",
+    "src": "/spot-photos/commons/jebel-ali-beach.jpg",
+    "author": "CT Cooper",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Jebel_Ali_from_a_beach_in_Dubai_4.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "dubai-marina": {
+    "kind": "spot",
+    "src": "/spot-photos/commons/dubai-marina.jpg",
+    "author": "pe-sa",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Dubai_Jumeirah_Beach.JPG",
+    "source": "Wikimedia Commons"
+  },
+  "umm-suqeim-beach": {
+    "kind": "spot",
+    "src": "/spot-photos/commons/umm-suqeim-beach.jpg",
+    "author": "Fabio Achilli from Milano, Italy",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Umm_Suqeim_Beach,_Dubai_(8973729736).jpg",
+    "source": "Wikimedia Commons"
+  },
+  "khor-kalba": {
+    "kind": "spot",
+    "src": "/spot-photos/commons/khor-kalba.jpg",
+    "author": "Angela Manthorpe",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Khor_Kalba_01.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "ajman-beach": {
+    "kind": "spot",
+    "src": "/spot-photos/commons/ajman-beach.jpg",
+    "author": "en:User:MMuzammils",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Ajman_beach-11.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "fujairah-marine-club": {
+    "kind": "spot",
+    "src": "/spot-photos/commons/fujairah-marine-club.jpg",
+    "author": "Jpbowen",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Fujairah_International_Marine_Sports_Club_from_the_road.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "khor-fakkan": {
+    "kind": "spot",
+    "src": "/spot-photos/commons/khor-fakkan.jpg",
+    "author": "Rizwan Ullah Wazir",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Khor_Fakkan_Beach_Fujairah_UAE_-_panoramio_(8).jpg",
+    "source": "Wikimedia Commons"
+  }
+}
