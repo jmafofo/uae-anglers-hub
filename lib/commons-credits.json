@@ -430,5 +430,61 @@
     "license": "CC BY 2.0",
     "licenseUrl": "https://commons.wikimedia.org/wiki/File:Pickhandle_barracuda_(Sphyraena_jello)_(46864583875).jpg",
     "source": "Wikimedia Commons"
+  },
+  "malabar-blood-snapper": {
+    "kind": "species",
+    "src": "/fish-species/commons/malabar-blood-snapper.jpg",
+    "author": "The U.S. Food and Drug Administration",
+    "license": "Public domain",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Lutjanus_malabaricus_(FDA_164).jpg",
+    "source": "Wikimedia Commons"
+  },
+  "spanish-mackerel": {
+    "kind": "species",
+    "src": "/fish-species/commons/spanish-mackerel.jpg",
+    "author": "ppericard",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Scomberomorus_commerson_Philippines.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "silver-grunt": {
+    "kind": "species",
+    "src": "/fish-species/commons/silver-grunt.jpg",
+    "author": "jamesh111",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Pomadasys_argenteus.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "yellowtip-halfbeak": {
+    "kind": "species",
+    "src": "/fish-species/commons/yellowtip-halfbeak.jpg",
+    "author": "Jean-Paul Boerekamps",
+    "license": "CC0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Hemiramphus_far_234850435.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "milkfish": {
+    "kind": "species",
+    "src": "/fish-species/commons/milkfish.jpg",
+    "author": "Elisabeth Morcel",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Chanos_chanos.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "yellowfin-needlefish": {
+    "kind": "species",
+    "src": "/fish-species/commons/yellowfin-needlefish.jpg",
+    "author": "Francis Saucisse",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Strongylura_senegalensis.jpg",
+    "source": "Wikimedia Commons"
+  },
+  "milk-shark": {
+    "kind": "species",
+    "src": "/fish-species/commons/milk-shark.jpg",
+    "author": "Karunakar Rayker from India",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://commons.wikimedia.org/wiki/File:Rhizoprionodon_acutus_mangalore2.jpg",
+    "source": "Wikimedia Commons"
   }
 }

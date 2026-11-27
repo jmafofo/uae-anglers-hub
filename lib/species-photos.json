@@ -120,7 +120,8 @@
     "/fish-species/silver_bream.jpg"
   ],
   "silver-grunt": [
-    "/fish-species/silver_grunt.jpg"
+    "/fish-species/silver_grunt.jpg",
+    "/fish-species/commons/silver-grunt.jpg"
   ],
   "sky-emperor": [
     "/fish-species/sky_emperor.jpg"
@@ -264,5 +265,23 @@
   ],
   "pickhandle-barracuda": [
     "/fish-species/commons/pickhandle-barracuda.jpg"
+  ],
+  "malabar-blood-snapper": [
+    "/fish-species/commons/malabar-blood-snapper.jpg"
+  ],
+  "spanish-mackerel": [
+    "/fish-species/commons/spanish-mackerel.jpg"
+  ],
+  "yellowtip-halfbeak": [
+    "/fish-species/commons/yellowtip-halfbeak.jpg"
+  ],
+  "milkfish": [
+    "/fish-species/commons/milkfish.jpg"
+  ],
+  "yellowfin-needlefish": [
+    "/fish-species/commons/yellowfin-needlefish.jpg"
+  ],
+  "milk-shark": [
+    "/fish-species/commons/milk-shark.jpg"
   ]
 }
