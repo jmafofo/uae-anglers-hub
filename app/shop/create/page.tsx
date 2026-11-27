@@ -26,6 +26,7 @@ export default function CreateListingPage() {
   const [photos, setPhotos] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [posting, setPosting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [slotStatus, setSlotStatus] = useState<SlotStatus>('loading');
   const [slotInfo, setSlotInfo] = useState<SlotInfo | null>(null);
   const [form, setForm] = useState({
@@ -63,18 +64,30 @@ export default function CreateListingPage() {
   }, [router]);
 
   function handlePhotos(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? []).slice(0, 4);
-    setPhotos(files);
-    setPreviews(files.map((f) => URL.createObjectURL(f)));
+    // Append to the existing selection (the tile reads "add more"), capped at 4
+    const room = 4 - photos.length;
+    const files = Array.from(e.target.files ?? []).slice(0, Math.max(0, room));
+    e.target.value = ''; // allow re-picking the same file after removing it
+    if (!files.length) return;
+    setPhotos((prev) => [...prev, ...files]);
+    setPreviews((prev) => [...prev, ...files.map((f) => URL.createObjectURL(f))]);
+  }
+
+  function removePhoto(i: number) {
+    URL.revokeObjectURL(previews[i]);
+    setPhotos((f) => f.filter((_, j) => j !== i));
+    setPreviews((v) => v.filter((_, j) => j !== i));
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!userId || slotStatus !== 'ok') return;
     setPosting(true);
+    setSubmitError(null);
 
     const sb = getSupabase();
     const uploadedUrls: string[] = [];
+    let failedUploads = 0;
 
     for (const photo of photos) {
       const ext = photo.name.split('.').pop();
@@ -83,6 +96,8 @@ export default function CreateListingPage() {
       if (!error) {
         const { data } = sb.storage.from('catches').getPublicUrl(path);
         uploadedUrls.push(data.publicUrl);
+      } else {
+        failedUploads++;
       }
     }
 
@@ -100,7 +115,16 @@ export default function CreateListingPage() {
       contact_email: form.contact_email.trim() || null,
     }).select('id').single();
 
-    if (!error && data) router.push(`/shop/${data.id}`);
+    if (!error && data) {
+      if (failedUploads) console.warn(`${failedUploads} photo upload(s) failed`);
+      router.push(`/shop/${data.id}`);
+      return;
+    }
+    setSubmitError(
+      error?.message
+        ? `Couldn't post your listing: ${error.message}`
+        : "Couldn't post your listing. Please try again."
+    );
     setPosting(false);
   }
 
@@ -183,15 +207,15 @@ export default function CreateListingPage() {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Photos */}
           <div>
-            <label className="block text-sm text-gray-300 mb-2">Photos (up to 4)</label>
-            <input ref={fileRef} type="file" accept="image/*" multiple onChange={handlePhotos} className="hidden" />
+            <label htmlFor="listing-photos" className="block text-sm text-gray-300 mb-2">Photos (up to 4)</label>
+            <input ref={fileRef} id="listing-photos" type="file" accept="image/*" multiple onChange={handlePhotos} className="hidden" />
             {previews.length > 0 ? (
               <div className="grid grid-cols-4 gap-2">
                 {previews.map((p, i) => (
                   <div key={i} className="relative aspect-square rounded-lg overflow-hidden">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={p} alt="" className="w-full h-full object-cover" />
-                    <button type="button" onClick={() => { setPhotos((f) => f.filter((_, j) => j !== i)); setPreviews((v) => v.filter((_, j) => j !== i)); }}
+                    <button type="button" onClick={() => removePhoto(i)} aria-label={`Remove photo ${i + 1}`}
                       className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 flex items-center justify-center">
                       <X className="w-3 h-3 text-white" />
                     </button>
@@ -212,35 +236,35 @@ export default function CreateListingPage() {
           </div>
 
           <div>
-            <label className="block text-sm text-gray-300 mb-1.5">Title *</label>
-            <input type="text" required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Shimano Stradic 4000 — barely used" className={field} />
+            <label htmlFor="listing-title" className="block text-sm text-gray-300 mb-1.5">Title *</label>
+            <input id="listing-title" type="text" required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Shimano Stradic 4000 — barely used" className={field} />
           </div>
           <div>
-            <label className="block text-sm text-gray-300 mb-1.5">Description</label>
-            <textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Condition details, specs, reason for selling..." className={`${field} resize-none`} />
+            <label htmlFor="listing-description" className="block text-sm text-gray-300 mb-1.5">Description</label>
+            <textarea id="listing-description" rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Condition details, specs, reason for selling..." className={`${field} resize-none`} />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-gray-300 mb-1.5">Category *</label>
-              <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className={`${field} bg-[#0a0f1a]`}>
+              <label htmlFor="listing-category" className="block text-sm text-gray-300 mb-1.5">Category *</label>
+              <select id="listing-category" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className={`${field} bg-[#0a0f1a]`}>
                 {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm text-gray-300 mb-1.5">Condition *</label>
-              <select value={form.condition} onChange={(e) => setForm({ ...form, condition: e.target.value })} className={`${field} bg-[#0a0f1a]`}>
+              <label htmlFor="listing-condition" className="block text-sm text-gray-300 mb-1.5">Condition *</label>
+              <select id="listing-condition" value={form.condition} onChange={(e) => setForm({ ...form, condition: e.target.value })} className={`${field} bg-[#0a0f1a]`}>
                 {CONDITIONS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-gray-300 mb-1.5">Price (AED)</label>
-              <input type="number" min="0" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="Leave blank for offers" className={field} />
+              <label htmlFor="listing-price" className="block text-sm text-gray-300 mb-1.5">Price (AED)</label>
+              <input id="listing-price" type="number" min="0" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="Leave blank for offers" className={field} />
             </div>
             <div>
-              <label className="block text-sm text-gray-300 mb-1.5">Emirate</label>
-              <select value={form.emirate} onChange={(e) => setForm({ ...form, emirate: e.target.value })} className={`${field} bg-[#0a0f1a]`}>
+              <label htmlFor="listing-emirate" className="block text-sm text-gray-300 mb-1.5">Emirate</label>
+              <select id="listing-emirate" value={form.emirate} onChange={(e) => setForm({ ...form, emirate: e.target.value })} className={`${field} bg-[#0a0f1a]`}>
                 <option value="">Select...</option>
                 {emirates.map((em) => <option key={em} value={em}>{em}</option>)}
               </select>
@@ -248,12 +272,12 @@ export default function CreateListingPage() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm text-gray-300 mb-1.5">WhatsApp Number</label>
-              <input type="tel" value={form.contact_whatsapp} onChange={(e) => setForm({ ...form, contact_whatsapp: e.target.value })} placeholder="+971 50 000 0000" className={field} />
+              <label htmlFor="listing-whatsapp" className="block text-sm text-gray-300 mb-1.5">WhatsApp Number</label>
+              <input id="listing-whatsapp" type="tel" value={form.contact_whatsapp} onChange={(e) => setForm({ ...form, contact_whatsapp: e.target.value })} placeholder="+971 50 000 0000" className={field} />
             </div>
             <div>
-              <label className="block text-sm text-gray-300 mb-1.5">Email</label>
-              <input type="email" value={form.contact_email} onChange={(e) => setForm({ ...form, contact_email: e.target.value })} placeholder="Optional" className={field} />
+              <label htmlFor="listing-email" className="block text-sm text-gray-300 mb-1.5">Email</label>
+              <input id="listing-email" type="email" value={form.contact_email} onChange={(e) => setForm({ ...form, contact_email: e.target.value })} placeholder="Optional" className={field} />
             </div>
           </div>
 
@@ -267,6 +291,10 @@ export default function CreateListingPage() {
               to reduce or eliminate your commission. Listing is always free.
             </p>
           </div>
+
+          {submitError && (
+            <p role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{submitError}</p>
+          )}
 
           <button type="submit" disabled={posting || !form.title.trim() || slotStatus !== 'ok'} className="w-full py-4 rounded-xl bg-teal-500 hover:bg-teal-400 disabled:bg-teal-700 disabled:cursor-not-allowed text-white font-bold transition-colors">
             {posting ? 'Posting...' : 'Post Listing'}

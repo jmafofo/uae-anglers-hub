@@ -9,10 +9,9 @@ import { useEffect, useRef, useState } from 'react';
  * reduced-motion visitors get the first clip's poster frame.
  */
 const CLIPS = [
-  // veil = uniform white douse strength for readable text over this clip
-  { src: '/videos/hero-fish-school.mp4', poster: '/videos/hero-fish-school.jpg', veil: 0.55 },
-  { src: '/videos/hero-reef-life.mp4', poster: '/videos/hero-reef-life.jpg', veil: 0.45 },
-  { src: '/videos/hero-golden-hour.mp4', poster: '/videos/hero-golden-hour.jpg', veil: 0.3 },
+  { src: '/videos/hero-fish-school.mp4', poster: '/videos/hero-fish-school.jpg' },
+  { src: '/videos/hero-reef-life.mp4', poster: '/videos/hero-reef-life.jpg' },
+  { src: '/videos/hero-golden-hour.mp4', poster: '/videos/hero-golden-hour.jpg' },
 ];
 
 const ROTATE_MS = 14000;
@@ -61,7 +60,7 @@ export default function RealWaterBackdrop() {
       <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={CLIPS[0].poster} alt="" className="h-full w-full object-cover" />
-        <Scrims veil={CLIPS[0].veil} />
+        <Scrims />
       </div>
     );
   }
@@ -87,24 +86,19 @@ export default function RealWaterBackdrop() {
           src={clip.src}
         />
       ))}
-      <Scrims veil={CLIPS[active].veil} />
+      <Scrims />
     </div>
   );
 }
 
-function Scrims({ veil }: { veil: number }) {
+function Scrims() {
   return (
-    // z-[2] — must sit above the active video layer (z-index 1) or the
-    // text ends up on raw footage. The veil fades with the clip change.
-    <div className="pointer-events-none absolute inset-0 z-[2]">
-      <div
-        className="absolute inset-0 bg-white transition-opacity ease-in-out"
-        style={{ opacity: veil, transitionDuration: `${FADE_MS}ms` }}
-      />
-      {/* Gentle left lift only — the veil already carries the contrast;
-          stacking a heavy gradient here was washing the text out */}
-      <div className="absolute inset-0 bg-gradient-to-r from-white/50 via-white/20 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#f5faf9]/70 via-transparent to-transparent" />
-    </div>
+    <>
+      {/* Uniform dulling veil — keeps every clip at readable contrast,
+          then gradients for the text column and edges */}
+      <div className="absolute inset-0 bg-white/45" />
+      <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/60 to-white/20" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#f5faf9]/85 via-transparent to-white/30" />
+    </>
   );
 }
