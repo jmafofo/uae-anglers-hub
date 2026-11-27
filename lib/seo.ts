@@ -2,11 +2,14 @@ import type { Metadata } from 'next';
 
 export const SITE_URL = 'https://uaeangler.com';
 export const SITE_NAME = 'UAEAngler';
+export const SOCIAL_IMAGE = `${SITE_URL}/social/uaeangler-fishing-day-v2.png`;
+export const SOCIAL_TITLE = 'UAEAngler — Your next great fishing day';
+export const SOCIAL_DESCRIPTION = 'Find UAE fishing spots, explore tackle and charters, and share your next great catch.';
 export const SITE_DESCRIPTION = 'Explore UAE fishing spots, identify local fish species, browse tackle and pre-owned gear, and discover fishing charters and the angling community.';
 
 export function publicMetadata(path: string, title: string, description: string, image?: string): Metadata {
   const url = new URL(path, SITE_URL).href;
-  const images = image ? [{ url: image, alt: title }] : [{ url: `${SITE_URL}/api/og?title=${encodeURIComponent(title)}`, width: 1200, height: 630, alt: title }];
+  const images = image ? [{ url: image, alt: title }] : [{ url: `${SITE_URL}/api/og?v=2&title=${encodeURIComponent(title)}`, width: 1200, height: 630, alt: title }];
   return { title, description, alternates: { canonical: url },
     openGraph: { type: 'website', siteName: SITE_NAME, locale: 'en_AE', url, title, description, images },
     twitter: { card: 'summary_large_image', title, description, images: images.map(i => i.url) },

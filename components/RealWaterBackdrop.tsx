@@ -14,7 +14,9 @@ const CLIPS = [
   { src: '/videos/hero-golden-hour.mp4', poster: '/videos/hero-golden-hour.jpg' },
 ];
 
-const ROTATE_MS = 11000;
+const ROTATE_MS = 14000;
+const PLAYBACK_RATE = 0.75; // slowed for a calmer, more graceful motion
+const FADE_MS = 2800;
 
 export default function RealWaterBackdrop() {
   const [motionOk, setMotionOk] = useState(false);
@@ -29,11 +31,12 @@ export default function RealWaterBackdrop() {
     return () => query.removeEventListener('change', update);
   }, []);
 
-  // Play the active clip, pause the rest
+  // Play the active clip (slowed), pause the rest
   useEffect(() => {
     if (!motionOk) return;
     refs.current.forEach((video, i) => {
       if (!video) return;
+      video.playbackRate = PLAYBACK_RATE;
       if (i === active) {
         if (video.readyState === 0) video.load();
         video.play().catch(() => {});
@@ -68,8 +71,12 @@ export default function RealWaterBackdrop() {
         <video
           key={clip.src}
           ref={(el) => { refs.current[i] = el; }}
-          className="absolute inset-0 h-full w-full object-cover transition-opacity duration-[1400ms] ease-in-out"
-          style={{ opacity: i === active ? 1 : 0, zIndex: i === active ? 1 : 0 }}
+          className="absolute inset-0 h-full w-full object-cover transition-opacity ease-in-out"
+          style={{
+            opacity: i === active ? 1 : 0,
+            zIndex: i === active ? 1 : 0,
+            transitionDuration: `${FADE_MS}ms`,
+          }}
           poster={clip.poster}
           preload={i === 0 ? 'auto' : 'metadata'}
           muted
@@ -87,7 +94,10 @@ export default function RealWaterBackdrop() {
 function Scrims() {
   return (
     <>
-      <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/80 to-white/35" />
+      {/* Uniform dulling veil — keeps every clip at readable contrast,
+          then gradients for the text column and edges */}
+      <div className="absolute inset-0 bg-white/45" />
+      <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/60 to-white/20" />
       <div className="absolute inset-0 bg-gradient-to-t from-[#f5faf9]/85 via-transparent to-white/30" />
     </>
   );

@@ -12,9 +12,13 @@ import { HeroSection } from './(home)/sections/HeroSection';
 import SpotCard from '@/components/SpotCard';
 import GoogleAd from '@/components/GoogleAd';
 import { TodayPanel } from '@/components/home/TodayPanel';
-import { publicMetadata, SITE_URL, SITE_DESCRIPTION } from '@/lib/seo';
+import { publicMetadata, SITE_URL, SITE_DESCRIPTION, SOCIAL_IMAGE, SOCIAL_TITLE, SOCIAL_DESCRIPTION } from '@/lib/seo';
 
-export const metadata = publicMetadata('/', 'Fishing Spots, Tackle & Charters in the UAE', SITE_DESCRIPTION);
+const homeMetadata = publicMetadata('/', 'Fishing Spots, Tackle & Charters in the UAE', SITE_DESCRIPTION);
+export const metadata = { ...homeMetadata,
+  openGraph: { ...homeMetadata.openGraph, title: SOCIAL_TITLE, description: SOCIAL_DESCRIPTION, images: [{ url: SOCIAL_IMAGE, width: 1200, height: 630, type: 'image/png', alt: 'UAEAngler — Your next great fishing day. Angling at golden hour.' }] },
+  twitter: { card: 'summary_large_image' as const, title: SOCIAL_TITLE, description: SOCIAL_DESCRIPTION, images: [SOCIAL_IMAGE] },
+};
 
 // Paid placements must be checked against current booking state on every request.
 export const revalidate = 0;

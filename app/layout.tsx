@@ -5,7 +5,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AIChatButton from '@/components/AIChatButton';
 import PwaRegister from '@/components/PwaRegister';
-import { SITE_NAME, SITE_URL, SITE_DESCRIPTION } from '@/lib/seo';
+import { SITE_NAME, SITE_URL, SITE_DESCRIPTION, SOCIAL_IMAGE, SOCIAL_TITLE, SOCIAL_DESCRIPTION } from '@/lib/seo';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -42,12 +42,12 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_AE',
     siteName: SITE_NAME,
-    title: 'UAEAngler — Fishing Spots, Tackle & Charters in the UAE',
-    description:
-      SITE_DESCRIPTION,
+    title: SOCIAL_TITLE,
+    description: SOCIAL_DESCRIPTION,
     images: [
       {
-        url: 'https://uaeangler.com/api/og',
+        url: SOCIAL_IMAGE,
+        type: 'image/png',
         width: 1200,
         height: 630,
         alt: SITE_NAME,
@@ -56,8 +56,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: SITE_NAME,
-    description: SITE_DESCRIPTION,
+    title: SOCIAL_TITLE,
+    description: SOCIAL_DESCRIPTION,
+    images: [SOCIAL_IMAGE],
   },
   robots: {
     index: true,
