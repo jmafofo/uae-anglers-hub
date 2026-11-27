@@ -131,7 +131,7 @@ export default function LeafletSpotsMap({
   onSelect: (spot: FishingSpot) => void;
 }) {
   const tileAttribution = useMemo(
-    () => '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    () => 'Esri, HERE, Garmin, FAO, NOAA, USGS, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     [],
   );
 
@@ -145,10 +145,9 @@ export default function LeafletSpotsMap({
       style={{ background: '#e8f0f2' }}
     >
       <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
         attribution={tileAttribution}
-        subdomains="abcd"
-        maxZoom={20}
+        maxZoom={19}
       />
       <ClusterLayer spots={spots} onSelect={onSelect} />
       <FlyToUser pos={userPos} />
