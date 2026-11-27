@@ -12,9 +12,10 @@ test('habitat images retain credits, licenses and local originals', () => {
   }
 });
 test('rejected specimens and incorrect secondary photographs are not displayed', () => {
-  for (const slug of ['giant-catfish', 'silver-grunt']) assert.equal(photos[slug], undefined);
+  assert.equal(photos['giant-catfish'], undefined);
   // Reinstated with reviewed, approved photos (2026-11-27)
   assert.ok(photos['smallscaled-therapon'].includes('/fish-species/commons/smallscaled-therapon.jpg'));
   assert.ok(photos['yellowfin-seabream'].includes('/fish-species/commons/yellowfin-seabream.jpg'));
+  assert.ok(photos['silver-grunt'].includes('/fish-species/commons/silver-grunt.jpg'));
   assert.ok(!photos.queenfish.includes('/fish-species/jesh.jpg'));
 });
