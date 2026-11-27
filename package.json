@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "tsx --test tests/*.test.ts",
     "fetch-photos": "tsx scripts/fetch-spot-photos.ts",
     "scan-photos": "tsx scripts/scan-photos.ts",
     "scan-species-photos": "tsx scripts/scan-species-photos.ts",

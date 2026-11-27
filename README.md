@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# UAE Anglers Hub
 
-## Getting Started
+The UAE's shore-fishing community platform — spots, catches, species ID, AI assistant, chat, marketplace, charters, and tournaments across all seven Emirates.
 
-First, run the development server:
+Live: https://uaeangler.com
+
+## Stack
+
+- **Next.js 16** (App Router, Turbopack) + **React 19** + TypeScript
+- **Supabase** — Postgres, Auth (PKCE), RLS, Realtime, Storage
+- **Stripe** — subscriptions, ad-slot bidding, marketplace & charter payments
+- **Anthropic Claude** — fish identification (vision) and the AI fishing assistant
+- **Open-Meteo** — weather data (no key required)
+- **Tailwind CSS 4**, **Leaflet/react-leaflet** (maps), **Resend** (email), **zod** (validation)
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.local.example .env.local   # then fill in the values
+npm run dev                        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Purpose |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase project URL + anon key (client-safe) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-only — bypasses RLS. Never expose to the client |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` / `STRIPE_SECRET_KEY` | Stripe keys |
+| `STRIPE_WEBHOOK_SECRET` | From `stripe listen` / dashboard webhook |
+| `ANTHROPIC_API_KEY` | Claude for `/api/identify` and `/api/assistant` (add this — it's missing from the example file) |
+| `RESEND_API_KEY` | Transactional email |
+| `NEXT_PUBLIC_APP_URL` | e.g. `http://localhost:3000` in dev |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google sign-in |
+| `NEXT_PUBLIC_GOOGLE_ADS_CLIENT` / `NEXT_PUBLIC_GOOGLE_ADS_SLOT_HOME` | AdSense backfill |
+| `PUSH_WEBHOOK_SECRET` | Push notification webhook auth |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Scripts
 
-## Learn More
+| Command | Purpose |
+|---|---|
+| `npm run dev` | Dev server (Turbopack) |
+| `npm run build` / `npm start` | Production build / serve |
+| `npm test` | Unit tests (`tsx --test tests/*.test.ts`) — requires Node 20+, all tests should pass |
+| `npm run lint` | ESLint |
+| `npm run fetch-photos` | Fetch Google Places photos for spots (needs API key) |
+| `npm run scan-photos` / `scan-species-photos` | Index local photo assets into `lib/*.json` |
 
-To learn more about Next.js, take a look at the following resources:
+## Database
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Migrations live in `supabase/migrations/` and run in CI on merge (see `supabase/MIGRATIONS.md`).
+New migrations must be named `YYYYMMDDHHMMSS_description.sql` and are applied with the service role — write them idempotently (`create ... if not exists`, `drop policy if exists` before `create policy`).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project layout
 
-## Deploy on Vercel
+- `app/` — routes (App Router). API routes in `app/api/**` use `lib/api-auth.ts` (`requireAuth` / `requireAuthUniversal`)
+- `components/` — shared UI, `components/messages/`, `components/posts/`, `components/commerce/`, `components/ui/` (design-system primitives)
+- `lib/` — domain logic. `lib/supabase.ts` (browser client), `lib/supabase-admin.ts` (server-only, service role)
+- `tests/` — `node:test` suites run via tsx
+- `docs/` — product/design docs, including `docs/ROADMAP.md`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Conventions & coordination
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Multiple AI agents work in this repo.** Check `git status` before editing files someone else has modified; work on a branch per feature; agree contracts (schemas, component APIs) before parallel work.
+- Heed `AGENTS.md`: this is a newer Next.js than training data — check `node_modules/next/dist/docs/` before using Next APIs.
+- Server-side service-role usage stays in `app/api/**` and `lib/*-admin.ts`, never in client components.
+- Run `npm test` and `npx tsc --noEmit` before considering work done.
