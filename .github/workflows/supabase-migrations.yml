@@ -56,6 +56,22 @@ jobs:
           version: 2.101.0
       - name: Prepare tracked migrations
         run: ./scripts/prepare-supabase-migrations.sh "$RUNNER_TEMP/supabase"
+      # One-time (2026-11-27): production history contains orphan versions
+      # with no matching repo files (e.g. 20260218002729 from the pre-CI era),
+      # which makes `supabase db push` refuse to run. Prune any history entry
+      # that has no timestamped migration file in the repo. Safe to keep —
+      # becomes a no-op once history matches.
+      - name: Repair migration history
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          command -v psql >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client >/dev/null; }
+          psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -c "
+            delete from supabase_migrations.schema_migrations
+            where version not in (
+              '20260810030000','20261126000000','20261127000000','20261127010000',
+              '20261127020000','20261127130000','20261127140000','20261127150000'
+            );"
       - name: Preview pending migrations
         working-directory: ${{ runner.temp }}/supabase
         env:
