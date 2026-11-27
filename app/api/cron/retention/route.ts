@@ -108,6 +108,14 @@ export async function GET(req: NextRequest) {
     results.errors.push(`reminders: ${(e as Error).message}`);
   }
 
+  // ── A2. Expire boosts whose boosted_until has passed ───────────────────
+  try {
+    const { error } = await admin.rpc('expire_boosts');
+    if (error) results.errors.push(`expire_boosts: ${error.message}`);
+  } catch (e) {
+    results.errors.push(`expire_boosts: ${(e as Error).message}`);
+  }
+
   // ── B. Crown watch ─────────────────────────────────────────────────────
   try {
     const [reign] = await getWeeklyKings(1);
