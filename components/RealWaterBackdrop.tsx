@@ -10,9 +10,9 @@ import { useEffect, useRef, useState } from 'react';
  */
 const CLIPS = [
   // veil = uniform white douse strength for readable text over this clip
-  { src: '/videos/hero-fish-school.mp4', poster: '/videos/hero-fish-school.jpg', veil: 0.68 },
-  { src: '/videos/hero-reef-life.mp4', poster: '/videos/hero-reef-life.jpg', veil: 0.55 },
-  { src: '/videos/hero-golden-hour.mp4', poster: '/videos/hero-golden-hour.jpg', veil: 0.32 },
+  { src: '/videos/hero-fish-school.mp4', poster: '/videos/hero-fish-school.jpg', veil: 0.55 },
+  { src: '/videos/hero-reef-life.mp4', poster: '/videos/hero-reef-life.jpg', veil: 0.45 },
+  { src: '/videos/hero-golden-hour.mp4', poster: '/videos/hero-golden-hour.jpg', veil: 0.3 },
 ];
 
 const ROTATE_MS = 14000;
@@ -101,8 +101,10 @@ function Scrims({ veil }: { veil: number }) {
         className="absolute inset-0 bg-white transition-opacity ease-in-out"
         style={{ opacity: veil, transitionDuration: `${FADE_MS}ms` }}
       />
-      <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/75 to-white/20" />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#f5faf9]/85 via-transparent to-white/30" />
+      {/* Gentle left lift only — the veil already carries the contrast;
+          stacking a heavy gradient here was washing the text out */}
+      <div className="absolute inset-0 bg-gradient-to-r from-white/50 via-white/20 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#f5faf9]/70 via-transparent to-transparent" />
     </div>
   );
 }
