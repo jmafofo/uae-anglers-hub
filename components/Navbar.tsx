@@ -12,11 +12,11 @@ import LocaleSwitcher from './LocaleSwitcher';
 const primaryLinks = [
   { href: '/spots', label: 'Fishing spots', icon: Compass },
   { href: '/species', label: 'Species guide', icon: Fish },
-  { href: '/community', label: 'Community', icon: Users },
+  { href: '/community', label: 'Feed', icon: Users },
   { href: '/weather', label: 'Weather', icon: CloudSun },
   { href: '/shop', label: 'Shop', icon: ShoppingBag },
   { href: '/charters', label: 'Charters', icon: Anchor },
-  { href: '/lounges', label: 'Chat', icon: MessagesSquare },
+  { href: '/lounges', label: 'Live Chat', icon: MessagesSquare },
 ];
 const moreLinks = [
   { href: '/clubs', label: 'Local clubs', icon: Users },
