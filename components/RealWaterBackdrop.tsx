@@ -93,12 +93,14 @@ export default function RealWaterBackdrop() {
 
 function Scrims() {
   return (
-    <>
+    // z-[2] — must sit above the active video layer (z-index 1) or the
+    // text ends up on raw footage.
+    <div className="pointer-events-none absolute inset-0 z-[2]">
       {/* Uniform dulling veil — keeps every clip at readable contrast,
           then gradients for the text column and edges */}
       <div className="absolute inset-0 bg-white/45" />
-      <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/60 to-white/20" />
+      <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/75 to-white/25" />
       <div className="absolute inset-0 bg-gradient-to-t from-[#f5faf9]/85 via-transparent to-white/30" />
-    </>
+    </div>
   );
 }
