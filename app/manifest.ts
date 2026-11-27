@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'UAE Anglers Hub',
+    name: 'UAEAngler',
     short_name: 'UAEAngler',
     description: 'Fishing spots, catches, species ID, live chat and trip planning for anglers across all seven Emirates.',
     start_url: '/',

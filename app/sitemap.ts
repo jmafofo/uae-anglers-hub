@@ -1,55 +1,38 @@
 import type { MetadataRoute } from 'next';
-import { fishingSpots } from '@/lib/spots';
+import { createClient } from '@supabase/supabase-js';
+import { fishingSpots, emirates } from '@/lib/spots';
 import { fishSpecies } from '@/lib/species';
+import { SITE_URL } from '@/lib/seo';
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const base = 'https://uaeangler.com';
-
-  const staticPages: MetadataRoute.Sitemap = [
-    // Core
-    { url: base,                              lastModified: new Date(), changeFrequency: 'daily',   priority: 1.0 },
-    { url: `${base}/about`,                   lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${base}/contact`,                 lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${base}/spots`,                   lastModified: new Date(), changeFrequency: 'weekly',  priority: 0.9 },
-    { url: `${base}/species`,                 lastModified: new Date(), changeFrequency: 'weekly',  priority: 0.9 },
-    { url: `${base}/weather`,                 lastModified: new Date(), changeFrequency: 'hourly',  priority: 0.8 },
-    { url: `${base}/regulations`,             lastModified: new Date(), changeFrequency: 'monthly', priority: 0.9 },
-    { url: `${base}/charters`,                lastModified: new Date(), changeFrequency: 'weekly',  priority: 0.8 },
-    // Community hub + sub-pages
-    { url: `${base}/community`,               lastModified: new Date(), changeFrequency: 'daily',   priority: 0.8 },
-    { url: `${base}/catches`,                 lastModified: new Date(), changeFrequency: 'daily',   priority: 0.8 },
-    { url: `${base}/forum`,                   lastModified: new Date(), changeFrequency: 'daily',   priority: 0.8 },
-    { url: `${base}/tournaments`,             lastModified: new Date(), changeFrequency: 'daily',   priority: 0.7 },
-    { url: `${base}/advertise`,               lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${base}/assistant`,               lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
-    // Science & conservation
-    { url: `${base}/conservation`,            lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${base}/research`,                lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${base}/research/biogenome`,      lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${base}/ocean-sentinel`,          lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${base}/privacy-policy`,          lastModified: new Date(), changeFrequency: 'yearly',  priority: 0.5 },
-    { url: `${base}/terms-of-service`,        lastModified: new Date(), changeFrequency: 'yearly',  priority: 0.5 },
-    { url: `${base}/editorial-policy`,        lastModified: new Date(), changeFrequency: 'yearly',  priority: 0.6 },
-    // Auth excluded (login/signup) — private pages not useful to index
-    // community/messages excluded — requires auth
+export const revalidate = 3600;
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const paths = ['', '/about', '/contact', '/spots', '/species', '/weather', '/regulations',
+    '/beginners-guide', '/charters', '/shop', '/community', '/advertise', '/assistant',
+    '/conservation', '/research', '/research/biogenome', '/ocean-sentinel',
+    '/privacy-policy', '/terms-of-service', '/editorial-policy', '/species/photo-credits'];
+  const entries: MetadataRoute.Sitemap = [
+    ...paths.map(path => ({ url: SITE_URL + path })),
+    ...emirates.map(name => ({ url: SITE_URL + '/fishing/' + name.toLowerCase().replaceAll(' ', '-') })),
+    ...fishingSpots.map(spot => ({ url: SITE_URL + '/spots/' + spot.slug })),
+    ...fishSpecies.map(species => ({ url: SITE_URL + '/species/' + species.slug })),
   ];
-
-  // Priority spots get 0.95 — known community favourites with real photos
-  const prioritySpotSlugs = new Set(['hameem-beach', 'al-hamra-marina', 'fujairah-marine-club', 'khor-fakkan', 'dibba', 'al-zorah-nature-reserve', 'al-mamzah-beach']);
-
-  const spotPages: MetadataRoute.Sitemap = fishingSpots.map((spot) => ({
-    url: `${base}/spots/${spot.slug}`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly' as const,
-    priority: prioritySpotSlugs.has(spot.slug) ? 0.95 : 0.8,
-  }));
-
-  const speciesPages: MetadataRoute.Sitemap = fishSpecies.map((species) => ({
-    url: `${base}/species/${species.slug}`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly' as const,
-    priority: 0.75,
-  }));
-
-  return [...staticPages, ...spotPages, ...speciesPages];
+  // Omit lastModified unless a genuine content-update date is available.
+  // Anonymous reads obey the same RLS as public detail pages.
+  const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { auth: { persistSession: false } });
+  for (const table of ['charters', 'listings'] as const) {
+    for (let offset = 0; ; offset += 1000) {
+      let query = db.from(table).select(table === 'charters' ? 'slug' : 'id').order(table === 'charters' ? 'slug' : 'id');
+      if (table === 'listings') query = query.eq('is_active', true).eq('is_sold', false);
+      const { data, error } = await query.range(offset, offset + 999);
+      if (error) throw new Error('Sitemap public ' + table + ' query failed: ' + error.code);
+      for (const row of data ?? []) {
+        const record = row as unknown as { id?: string; slug?: string };
+        const key = table === 'charters' ? record.slug : record.id;
+        if (key) entries.push({ url: SITE_URL + '/' + (table === 'charters' ? 'charters' : 'shop') + '/' + encodeURIComponent(key) });
+      }
+      if (entries.length >= 49000) throw new Error('Split sitemap before reaching 50,000 URLs');
+      if (!data || data.length < 1000) break;
+    }
+  }
+  return entries;
 }

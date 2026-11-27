@@ -115,17 +115,43 @@ export default function GearCarousel({
         </div>
 
         {ordered.length === 0 ? (
-          <div className="flex flex-wrap items-center justify-between gap-5 rounded-2xl border border-teal-900/10 bg-[#f3f8f6] p-6 sm:px-8">
-            <div className="flex items-center gap-4">
-              <ShoppingBag className="shrink-0 text-teal-800" size={28} />
-              <div>
-                <h3 className="font-medium">Your next customer is already here.</h3>
-                <p className="mt-1 text-sm text-slate-600">Showcase your tackle, boats and outdoor gear to UAE anglers.</p>
+          <div>
+            {/* Tackle categories — shows anglers what the marketplace is for
+                while the first listings are on their way */}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {[
+                { name: 'Rods', hint: 'Surf, spinning & boat' },
+                { name: 'Reels', hint: 'Spinning & overhead' },
+                { name: 'Lures', hint: 'Jigs, poppers & spoons' },
+                { name: 'Braid & Leader', hint: 'Lines for UAE water' },
+              ].map((cat) => (
+                <Link
+                  key={cat.name}
+                  href="/shop"
+                  className="group rounded-xl border border-slate-200 bg-[#f8faf9] p-4 transition-colors hover:border-teal-600"
+                >
+                  <p className="font-serif text-lg tracking-tight text-[#18333f] group-hover:text-teal-800">{cat.name}</p>
+                  <p className="mt-1 text-xs text-slate-500">{cat.hint}</p>
+                </Link>
+              ))}
+            </div>
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-5 rounded-2xl border border-teal-900/10 bg-[#f3f8f6] p-6 sm:px-8">
+              <div className="flex items-center gap-4">
+                <ShoppingBag className="shrink-0 text-teal-800" size={28} />
+                <div>
+                  <h3 className="font-medium">Sell your tackle here — free to list.</h3>
+                  <p className="mt-1 text-sm text-slate-600">Rods, reels, lures, boats and outdoor gear, straight to UAE anglers.</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <Link href="/shop/create" className="coastal-button !py-3 !text-sm">
+                  List your gear <ArrowUpRight size={16} />
+                </Link>
+                <Link href="/advertise#banner-bids" className="coastal-button secondary !py-3 !text-sm">
+                  Become a partner
+                </Link>
               </div>
             </div>
-            <Link href="/advertise#banner-bids" className="coastal-button !py-3 !text-sm">
-              Become a partner <ArrowUpRight size={16} />
-            </Link>
           </div>
         ) : drifting ? (
           <div

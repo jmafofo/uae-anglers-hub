@@ -4,27 +4,30 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft, MapPin, Tag, MessageCircle, Mail, ShoppingBag } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
+import { publicMetadata, productSchema, jsonLd, breadcrumbs } from '@/lib/seo';
 
 interface PageProps { params: Promise<{ id: string }> }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
-  const { data } = await supabase.from('listings').select('title, description').eq('id', id).single();
-  if (!data) return { title: 'Listing not found' };
-  return { title: `${data.title} — UAE Anglers Hub Marketplace`, description: data.description ?? undefined };
+  const { data } = await supabase.from('listings').select('title, description, photos').eq('id', id).eq('is_active', true).single();
+  if (!data) return { title: 'Listing not found', robots: { index: false } };
+  return publicMetadata(`/shop/${encodeURIComponent(id)}`, data.title, data.description?.slice(0, 160) || `${data.title} on the UAEAngler fishing tackle marketplace.`, data.photos?.[0]);
 }
 
 export default async function ListingPage({ params }: PageProps) {
   const { id } = await params;
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
-  const { data: l } = await supabase.from('listings').select('*, profiles(display_name,username)').eq('id', id).single();
+  const { data: l } = await supabase.from('listings').select('*, profiles(display_name,username)').eq('id', id).eq('is_active', true).single();
   if (!l) notFound();
 
   const CONDITIONS: Record<string, string> = { new: 'New', like_new: 'Like New', good: 'Good', fair: 'Fair' };
 
   return (
     <div className="min-h-screen pt-20 px-4 pb-16">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(productSchema(l)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbs([{ name: 'UAEAngler', path: '/' }, { name: 'Fishing tackle', path: '/shop' }, { name: l.title, path: `/shop/${id}` }])) }} />
       <div className="max-w-3xl mx-auto">
         <Link href="/shop" className="inline-flex items-center gap-1.5 text-gray-400 hover:text-white text-sm mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4" /> Marketplace

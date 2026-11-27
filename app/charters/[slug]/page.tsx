@@ -3,6 +3,7 @@ import Link from 'next/link';
 import CharterCalendar from '@/components/commerce/CharterCalendar';
 import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
+import { publicMetadata, SITE_URL, jsonLd, breadcrumbs } from '@/lib/seo';
 import {
   Anchor, MapPin, Clock, Users, Fish, Star,
   Phone, ArrowLeft, Mail, Globe,
@@ -21,12 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
   const { data } = await supabase.from('charters').select('name, location').eq('slug', slug).maybeSingle();
-  return {
-    title: data ? `${data.name} — UAE Fishing Charter` : 'Charter Not Found',
-    description: data
-      ? `Book ${data.name} in ${data.location}. Deep-sea and offshore fishing charters in the UAE.`
-      : 'Charter not found.',
-  };
+  return data ? publicMetadata(`/charters/${encodeURIComponent(slug)}`, `${data.name} — Fishing Charter in ${data.location}`, `Explore ${data.name} in ${data.location}. View fishing trips, prices, boat details and operator contact information.`) : { title: 'Charter not found', robots: { index: false } };
 }
 
 export const revalidate = 300;
@@ -48,6 +44,8 @@ export default async function CharterDetailPage({ params }: { params: Promise<{ 
 
   return (
     <div className="min-h-screen pt-20 px-4 pb-16">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd({ '@context': 'https://schema.org', '@type': 'Service', name: c.name, serviceType: 'Fishing charter', url: `${SITE_URL}/charters/${encodeURIComponent(slug)}`, areaServed: c.location, provider: { '@type': 'Organization', name: c.name }, image: c.photo_urls?.length ? c.photo_urls : undefined }) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbs([{ name: 'UAEAngler', path: '/' }, { name: 'Fishing charters', path: '/charters' }, { name: c.name, path: `/charters/${slug}` }])) }} />
       <div className="max-w-3xl mx-auto">
         <Link href="/charters" className="inline-flex items-center gap-1.5 text-gray-400 hover:text-white text-sm mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4" /> Charters

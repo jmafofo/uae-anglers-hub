@@ -12,6 +12,9 @@ import { HeroSection } from './(home)/sections/HeroSection';
 import SpotCard from '@/components/SpotCard';
 import GoogleAd from '@/components/GoogleAd';
 import { TodayPanel } from '@/components/home/TodayPanel';
+import { publicMetadata, SITE_URL, SITE_DESCRIPTION } from '@/lib/seo';
+
+export const metadata = publicMetadata('/', 'Fishing Spots, Tackle & Charters in the UAE', SITE_DESCRIPTION);
 
 // Paid placements must be checked against current booking state on every request.
 export const revalidate = 0;
@@ -19,7 +22,10 @@ export const revalidate = 0;
 export default function HomePage() {
   const featured = ['hameem-beach', 'al-zorah-nature-reserve', 'mina-breakwater'].flatMap(slug => fishingSpots.filter(s => s.slug === slug));
   const species = fishSpecies.filter(s => (speciesPhotos as Record<string, string[]>)[s.slug]?.[0]).slice(0, 4);
-  const structuredData = { '@context': 'https://schema.org', '@type': 'WebSite', name: 'UAE Anglers Hub', url: 'https://uaeangler.com', potentialAction: { '@type': 'SearchAction', target: 'https://uaeangler.com/species?q={search_term_string}', 'query-input': 'required name=search_term_string' } };
+  const structuredData = { '@context': 'https://schema.org', '@graph': [
+    { '@type': 'Organization', '@id': `${SITE_URL}/#organization`, name: 'UAEAngler', alternateName: 'UAE Anglers Hub', url: SITE_URL, logo: `${SITE_URL}/logo-icon.png`, email: 'info@uaeangler.com', parentOrganization: { '@type': 'Organization', name: 'Black Pearl FZE LLC' }, areaServed: { '@type': 'Country', name: 'United Arab Emirates' } },
+    { '@type': 'WebSite', '@id': `${SITE_URL}/#website`, name: 'UAEAngler', alternateName: 'UAE Anglers Hub', url: SITE_URL, description: SITE_DESCRIPTION, publisher: { '@id': `${SITE_URL}/#organization` }, inLanguage: 'en' },
+  ] };
   return <div className="coastal-page">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, '\\u003c') }} />
     <HeroSection spotCount={fishingSpots.length} speciesCount={fishSpecies.length} />
@@ -36,7 +42,7 @@ export default function HomePage() {
     </section>
     <section className="coastal-wrap coastal-section">
       <div className="coastal-section-heading"><div><p className="coastal-eyebrow">A coastline worth exploring</p><h2>Where will the water take you?</h2><p>Quiet shores, city breakwaters, and a new favourite waiting to happen.</p></div><Link className="coastal-text-link" href="/spots">View all {fishingSpots.length} spots</Link></div>
-      <div className="mb-8 flex flex-wrap gap-2">{emirates.map(em => <Link key={em} href={`/spots?emirate=${encodeURIComponent(em)}`} className="coastal-chip">{em}</Link>)}</div>
+      <div className="mb-8 flex flex-wrap gap-2">{emirates.map(em => <Link key={em} href={`/fishing/${em.toLowerCase().replaceAll(' ', '-')}`} className="coastal-chip">{em}</Link>)}</div>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{featured.map(spot => <SpotCard key={spot.id} spot={spot} />)}</div>
     </section>
     <Suspense fallback={null}><TrendingNews /></Suspense>

@@ -4,8 +4,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ShoppingBag, Search, ArrowUpRight, Anchor, Package, Store, RefreshCw } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
+import { publicMetadata } from '@/lib/seo';
 
-export const metadata: Metadata = { title: 'Fishing tackle & pre-owned gear | UAEAngler', description: 'Explore fishing tackle from UAE dealers and pre-owned equipment from local anglers. Compare real product photographs, prices and sellers.' };
+export const metadata: Metadata = publicMetadata('/shop', 'Fishing Tackle & Pre-owned Gear in the UAE', 'Explore fishing tackle from UAE dealers and pre-owned equipment from local anglers. Compare real product photographs, prices and sellers.');
 export const revalidate = 0;
 const categories = ['All', 'Rod', 'Reel', 'Lure', 'Accessories', 'Boat', 'Other'];
 type Listing = { id: string; title: string; price: number | null; photos: string[] | null; condition: string; category: string; emirate: string | null; seller_type: string | null; profiles: { display_name: string | null; shop_name: string | null; verified_retailer: boolean | null; account_type: string | null } | null };

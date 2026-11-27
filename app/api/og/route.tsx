@@ -6,7 +6,7 @@ export const runtime = 'edge';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const title = searchParams.get('title')?.slice(0, 100) || "UAE Anglers Hub";
+    const title = searchParams.get('title')?.slice(0, 100) || "UAEAngler";
     const subtitle = searchParams.get('subtitle')?.slice(0, 200) || "Catch More. Explore Smarter. Connect Deeper.";
 
     return new ImageResponse(
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
                 letterSpacing: '-0.02em',
               }}
             >
-              UAE Anglers Hub
+              UAEAngler
             </div>
           </div>
 

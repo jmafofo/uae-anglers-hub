@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AIChatButton from '@/components/AIChatButton';
 import PwaRegister from '@/components/PwaRegister';
+import { SITE_NAME, SITE_URL, SITE_DESCRIPTION } from '@/lib/seo';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -18,11 +19,11 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "UAE Anglers Hub — UAE's Premier Shore Fishing Community",
-    template: '%s | UAE Anglers Hub',
+    default: 'UAEAngler — Fishing Spots, Tackle & Charters in the UAE',
+    template: '%s | UAEAngler',
   },
   description:
-    "Discover 50+ verified fishing spots across all 7 Emirates. Log catches, join tournaments, connect with UAE anglers, and get AI-powered fishing forecasts at uaeangler.com.",
+    SITE_DESCRIPTION,
   keywords: [
     'fishing UAE',
     'UAE fishing spots',
@@ -35,29 +36,28 @@ export const metadata: Metadata = {
     'RAK fishing',
     'Fujairah fishing',
   ],
-  authors: [{ name: 'UAE Anglers Hub' }],
-  creator: 'UAE Anglers Hub',
+  authors: [{ name: SITE_NAME }],
+  creator: SITE_NAME,
   openGraph: {
     type: 'website',
     locale: 'en_AE',
-    url: 'https://uaeangler.com',
-    siteName: 'UAE Anglers Hub',
-    title: "UAE Anglers Hub — Catch More. Explore Smarter. Connect Deeper.",
+    siteName: SITE_NAME,
+    title: 'UAEAngler — Fishing Spots, Tackle & Charters in the UAE',
     description:
-      "The UAE's premier fishing community. 50+ verified spots, AI fishing assistant, catch logs, tournaments and more.",
+      SITE_DESCRIPTION,
     images: [
       {
         url: 'https://uaeangler.com/api/og',
         width: 1200,
         height: 630,
-        alt: 'UAE Anglers Hub',
+        alt: SITE_NAME,
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'UAE Anglers Hub',
-    description: "UAE's premier shore fishing community platform.",
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
   },
   robots: {
     index: true,
@@ -70,10 +70,12 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  alternates: {
-    canonical: 'https://uaeangler.com',
+  // Individual pages own their canonical: do not canonicalise every page to the homepage.
+  metadataBase: new URL(SITE_URL),
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION,
+    other: process.env.BING_SITE_VERIFICATION ? { 'msvalidate.01': process.env.BING_SITE_VERIFICATION } : undefined,
   },
-  metadataBase: new URL('https://uaeangler.com'),
 };
 
 export default function RootLayout({

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import { publicMetadata } from '@/lib/seo';
 import Link from 'next/link';
 import {
   Building2,
@@ -16,14 +16,10 @@ import { fishingSpots } from '@/lib/spots';
 import { fishSpecies } from '@/lib/species';
 import AdSlotsShowcase from '@/components/AdSlotsShowcase';
 
-export const metadata: Metadata = {
-  title: 'Partner with UAE Anglers Hub',
-  description:
-    'Collaborate with the UAE\'s largest fishing community. Reach passionate anglers across all 7 Emirates.',
-};
+export const metadata = publicMetadata('/advertise', 'Advertise to UAE Anglers', 'Showcase your tackle, shop or fishing charter to anglers exploring UAE fishing spots, species and gear.');
 
 const STATS = [
-  { value: '10,000+', label: 'Active anglers' },
+  { value: '7', label: 'Emirates to explore' },
   { value: String(fishingSpots.length), label: 'Fishing spot pages' },
   { value: String(fishSpecies.length), label: 'UAE fish species' },
   { value: 'UAE-wide', label: 'Coverage across all 7 emirates' },
@@ -72,10 +68,10 @@ export default function PartnerPage() {
         </span>
         <h1 className="text-4xl sm:text-5xl font-extrabold text-white leading-tight mb-5">
           Partner with the UAE&apos;s <br className="hidden sm:block" />
-          <span className="text-teal-400">Largest Fishing Community</span>
+          <span className="text-teal-400">Fishing Community</span>
         </h1>
         <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-8">
-          UAE Anglers Hub is where UAE anglers discover spots, track catches, research species and connect with fellow anglers.
+          UAEAngler is where UAE anglers discover spots, track catches, research species and connect with fellow anglers.
           If your brand serves the fishing community, let&apos;s talk.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
