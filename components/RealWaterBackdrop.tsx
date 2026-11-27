@@ -9,9 +9,10 @@ import { useEffect, useRef, useState } from 'react';
  * reduced-motion visitors get the first clip's poster frame.
  */
 const CLIPS = [
-  { src: '/videos/hero-fish-school.mp4', poster: '/videos/hero-fish-school.jpg' },
-  { src: '/videos/hero-reef-life.mp4', poster: '/videos/hero-reef-life.jpg' },
-  { src: '/videos/hero-golden-hour.mp4', poster: '/videos/hero-golden-hour.jpg' },
+  // veil = uniform white douse strength for readable text over this clip
+  { src: '/videos/hero-fish-school.mp4', poster: '/videos/hero-fish-school.jpg', veil: 0.68 },
+  { src: '/videos/hero-reef-life.mp4', poster: '/videos/hero-reef-life.jpg', veil: 0.55 },
+  { src: '/videos/hero-golden-hour.mp4', poster: '/videos/hero-golden-hour.jpg', veil: 0.32 },
 ];
 
 const ROTATE_MS = 14000;
@@ -60,7 +61,7 @@ export default function RealWaterBackdrop() {
       <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={CLIPS[0].poster} alt="" className="h-full w-full object-cover" />
-        <Scrims />
+        <Scrims veil={CLIPS[0].veil} />
       </div>
     );
   }
@@ -86,20 +87,21 @@ export default function RealWaterBackdrop() {
           src={clip.src}
         />
       ))}
-      <Scrims />
+      <Scrims veil={CLIPS[active].veil} />
     </div>
   );
 }
 
-function Scrims() {
+function Scrims({ veil }: { veil: number }) {
   return (
     // z-[2] — must sit above the active video layer (z-index 1) or the
-    // text ends up on raw footage.
+    // text ends up on raw footage. The veil fades with the clip change.
     <div className="pointer-events-none absolute inset-0 z-[2]">
-      {/* Uniform dulling veil — keeps every clip at readable contrast,
-          then gradients for the text column and edges */}
-      <div className="absolute inset-0 bg-white/45" />
-      <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/75 to-white/25" />
+      <div
+        className="absolute inset-0 bg-white transition-opacity ease-in-out"
+        style={{ opacity: veil, transitionDuration: `${FADE_MS}ms` }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/75 to-white/20" />
       <div className="absolute inset-0 bg-gradient-to-t from-[#f5faf9]/85 via-transparent to-white/30" />
     </div>
   );
