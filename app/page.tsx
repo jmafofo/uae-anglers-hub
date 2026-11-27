@@ -11,6 +11,7 @@ import speciesPhotos from '@/lib/species-images';
 import { HeroSection } from './(home)/sections/HeroSection';
 import SpotCard from '@/components/SpotCard';
 import GoogleAd from '@/components/GoogleAd';
+import { TodayPanel } from '@/components/home/TodayPanel';
 
 // Paid placements must be checked against current booking state on every request.
 export const revalidate = 0;
@@ -22,6 +23,7 @@ export default function HomePage() {
   return <div className="coastal-page">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, '\\u003c') }} />
     <HeroSection spotCount={fishingSpots.length} speciesCount={fishSpecies.length} />
+    <Suspense fallback={null}><TodayPanel /></Suspense>
     <section className="border-y border-slate-200 bg-white">
       <div className="coastal-wrap grid gap-6 py-8 sm:grid-cols-2 lg:grid-cols-4">
         {[

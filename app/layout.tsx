@@ -4,6 +4,7 @@ import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AIChatButton from '@/components/AIChatButton';
+import PwaRegister from '@/components/PwaRegister';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -97,6 +98,7 @@ export default function RootLayout({
         <main id="main-content">{children}</main>
         <Footer />
         <AIChatButton />
+        <PwaRegister />
       </body>
     </html>
   );
